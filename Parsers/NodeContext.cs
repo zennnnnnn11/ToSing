@@ -25,6 +25,16 @@ public sealed class NodeContext
         _properties[key] = value;
     }
 
+    public bool HasProperty(string key)
+    {
+        return _properties.ContainsKey(key);
+    }
+
+    public object? GetRaw(string key)
+    {
+        return ResolveValue(key);
+    }
+
     /// <summary>
     /// 从标准 URI 字符串解析上下文。
     /// </summary>
@@ -47,10 +57,11 @@ public sealed class NodeContext
         if (string.Equals(ctx.Protocol, "ss", StringComparison.OrdinalIgnoreCase))
         {
             ParseShadowsocksUri(rest, ctx);
-            return ctx;
         }
-
-        ParseStandardUriRest(rest, ctx);
+        else
+        {
+            ParseStandardUriRest(rest, ctx);
+        }
 
         if (string.IsNullOrWhiteSpace(ctx.Tag))
         {
@@ -215,6 +226,14 @@ public sealed class NodeContext
                 }
                 if (dict.Count > 0) return dict;
             }
+            else if (val is IDictionary<string, object?> strMap)
+            {
+                foreach (var kv in strMap)
+                {
+                    dict[kv.Key] = kv.Value?.ToString() ?? string.Empty;
+                }
+                if (dict.Count > 0) return dict;
+            }
             else if (val is IDictionary<object, object> objMap)
             {
                 foreach (var kv in objMap)
@@ -266,23 +285,7 @@ public sealed class NodeContext
         string hostPart = queryIndex >= 0 ? rest[..queryIndex] : rest;
         string queryPart = queryIndex >= 0 ? rest[(queryIndex + 1)..] : string.Empty;
 
-        if (!string.IsNullOrEmpty(queryPart))
-        {
-            foreach (string pair in queryPart.Split('&', StringSplitOptions.RemoveEmptyEntries))
-            {
-                int eq = pair.IndexOf('=', StringComparison.Ordinal);
-                if (eq >= 0)
-                {
-                    string key = pair[..eq].Trim();
-                    string val = HttpUtility.UrlDecode(pair[(eq + 1)..].Trim());
-                    ctx._properties[key] = val;
-                }
-                else
-                {
-                    ctx._properties[pair.Trim()] = string.Empty;
-                }
-            }
-        }
+        ParseQueryParams(queryPart, ctx);
 
         int atIndex = hostPart.LastIndexOf('@', StringComparison.Ordinal);
         string authPart = atIndex >= 0 ? hostPart[..atIndex] : string.Empty;
@@ -291,23 +294,54 @@ public sealed class NodeContext
         if (!string.IsNullOrEmpty(authPart))
         {
             string decodedAuth = HttpUtility.UrlDecode(authPart);
-            int authColon = decodedAuth.IndexOf(':', StringComparison.Ordinal);
-            if (authColon >= 0)
+
+            // Hysteria 2 的 userpass 是整体作为 password
+            if (string.Equals(ctx.Protocol, "hy2", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase))
             {
-                ctx._properties["uuid"] = decodedAuth[..authColon];
-                ctx._properties["username"] = decodedAuth[..authColon];
-                ctx._properties["password"] = decodedAuth[(authColon + 1)..];
+                ctx._properties["password"] = decodedAuth;
                 ctx._properties["auth"] = decodedAuth;
             }
             else
             {
-                ctx._properties["uuid"] = decodedAuth;
-                ctx._properties["password"] = decodedAuth;
-                ctx._properties["auth"] = decodedAuth;
+                int authColon = decodedAuth.IndexOf(':', StringComparison.Ordinal);
+                if (authColon >= 0)
+                {
+                    ctx._properties["uuid"] = decodedAuth[..authColon];
+                    ctx._properties["username"] = decodedAuth[..authColon];
+                    ctx._properties["password"] = decodedAuth[(authColon + 1)..];
+                    ctx._properties["auth"] = decodedAuth;
+                }
+                else
+                {
+                    ctx._properties["uuid"] = decodedAuth;
+                    ctx._properties["password"] = decodedAuth;
+                    ctx._properties["auth"] = decodedAuth;
+                }
             }
         }
 
         ParseHostAndPort(endpointPart, ctx);
+    }
+
+    private static void ParseQueryParams(string queryPart, NodeContext ctx)
+    {
+        if (string.IsNullOrEmpty(queryPart)) return;
+
+        foreach (string pair in queryPart.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            int eq = pair.IndexOf('=', StringComparison.Ordinal);
+            if (eq >= 0)
+            {
+                string key = pair[..eq].Trim();
+                string val = HttpUtility.UrlDecode(pair[(eq + 1)..].Trim());
+                ctx._properties[key] = val;
+            }
+            else
+            {
+                ctx._properties[pair.Trim()] = string.Empty;
+            }
+        }
     }
 
     private object? ResolveValue(string path)
@@ -323,6 +357,10 @@ public sealed class NodeContext
             if (current is IReadOnlyDictionary<string, object?> roMap)
             {
                 if (!roMap.TryGetValue(seg, out current)) return null;
+            }
+            else if (current is IDictionary<string, object?> strMap)
+            {
+                if (!strMap.TryGetValue(seg, out current)) return null;
             }
             else if (current is IDictionary<object, object> objMap)
             {
@@ -349,10 +387,18 @@ public sealed class NodeContext
 
     private static void ParseShadowsocksUri(string rest, NodeContext ctx)
     {
-        int atIndex = rest.IndexOf('@', StringComparison.Ordinal);
+        // 先切出 query 参数部分
+        int queryIndex = rest.IndexOf('?', StringComparison.Ordinal);
+        string mainPart = queryIndex >= 0 ? rest[..queryIndex] : rest;
+        string queryPart = queryIndex >= 0 ? rest[(queryIndex + 1)..] : string.Empty;
+
+        ParseQueryParams(queryPart, ctx);
+        HandleSsPluginParam(ctx);
+
+        int atIndex = mainPart.IndexOf('@', StringComparison.Ordinal);
         if (atIndex < 0)
         {
-            string decoded = Base64Utils.Decode(rest);
+            string decoded = Base64Utils.Decode(mainPart);
             atIndex = decoded.IndexOf('@', StringComparison.Ordinal);
             if (atIndex >= 0)
             {
@@ -362,12 +408,30 @@ public sealed class NodeContext
             return;
         }
 
-        string userInfo = rest[..atIndex];
-        string remainder = rest[(atIndex + 1)..];
+        string userInfo = mainPart[..atIndex];
+        string remainder = mainPart[(atIndex + 1)..];
         string plainUserInfo = Base64Utils.Decode(userInfo);
 
         ApplySsCredentials(plainUserInfo.Contains(':', StringComparison.Ordinal) ? plainUserInfo : userInfo, ctx);
         ParseHostAndPort(remainder, ctx);
+    }
+
+    private static void HandleSsPluginParam(NodeContext ctx)
+    {
+        if (ctx._properties.TryGetValue("plugin", out object? pluginObj) && pluginObj is string pluginStr)
+        {
+            string decodedPlugin = HttpUtility.UrlDecode(pluginStr);
+            int semicolon = decodedPlugin.IndexOf(';', StringComparison.Ordinal);
+            if (semicolon >= 0)
+            {
+                ctx._properties["plugin"] = decodedPlugin[..semicolon].Trim();
+                ctx._properties["plugin_opts"] = decodedPlugin[(semicolon + 1)..].Trim();
+            }
+            else
+            {
+                ctx._properties["plugin"] = decodedPlugin.Trim();
+            }
+        }
     }
 
     private static void ApplySsCredentials(string creds, NodeContext ctx)
@@ -382,6 +446,16 @@ public sealed class NodeContext
 
     private static void ParseHostAndPort(string endpoint, NodeContext ctx)
     {
+        // 清理末尾可能的 /?query 或 ?query（如果之前未被剥离）
+        int qIdx = endpoint.IndexOf('?', StringComparison.Ordinal);
+        if (qIdx >= 0)
+        {
+            string q = endpoint[(qIdx + 1)..];
+            endpoint = endpoint[..qIdx];
+            ParseQueryParams(q, ctx);
+            HandleSsPluginParam(ctx);
+        }
+
         int slash = endpoint.IndexOf('/', StringComparison.Ordinal);
         string cleaned = slash >= 0 ? endpoint[..slash] : endpoint;
 

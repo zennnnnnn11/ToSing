@@ -12,6 +12,10 @@ public sealed record class OutboundTLSOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Enabled { get; init; }
 
+    [JsonPropertyName("disable_sni")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DisableSNI { get; init; }
+
     [JsonPropertyName("server_name")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ServerName { get; init; }

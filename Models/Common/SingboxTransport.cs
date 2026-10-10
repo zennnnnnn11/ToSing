@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// V2Ray 传输层配置（ws, grpc, http, httpupgrade 等）。
+/// V2Ray 传输层配置（http, ws, quic, grpc, httpupgrade 等）。
 /// </summary>
 public sealed record class V2RayTransportOptions
 {
@@ -14,6 +14,14 @@ public sealed record class V2RayTransportOptions
     [JsonPropertyName("path")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Path { get; init; }
+
+    [JsonPropertyName("method")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Method { get; init; }
+
+    [JsonPropertyName("host")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object? Host { get; init; }
 
     [JsonPropertyName("headers")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -42,10 +50,6 @@ public sealed record class V2RayTransportOptions
     [JsonPropertyName("permit_without_stream")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool PermitWithoutStream { get; init; }
-
-    [JsonPropertyName("host")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Host { get; init; }
 
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }

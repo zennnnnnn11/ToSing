@@ -11,14 +11,19 @@ public static class SingboxUtlsUtils
 {
     private static readonly FrozenSet<string> ValidFingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
+        "chrome_psk",
+        "chrome_psk_shuffle",
+        "chrome_padding_psk_shuffle",
+        "chrome_pq",
+        "chrome_pq_psk",
         "chrome",
         "firefox",
-        "safari",
-        "ios",
-        "android",
         "edge",
+        "safari",
         "360",
         "qq",
+        "ios",
+        "android",
         "random",
         "randomized"
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
