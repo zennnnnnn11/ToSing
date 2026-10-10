@@ -1,5 +1,6 @@
 namespace SubParser.Models;
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using SubParser.Models.Protocols;
 
@@ -29,10 +30,11 @@ public abstract record class SingboxOutbound
     public required string Server { get; init; }
 
     /// <summary>
-    /// 服务器端口 (对齐 ServerOptions.ServerPort uint16)
+    /// 服务器端口 (对齐 ServerOptions.ServerPort uint16，Hysteria2 使用 server_ports 时可缺省)
     /// </summary>
     [JsonPropertyName("server_port")]
-    public required int ServerPort { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? ServerPort { get; init; }
 
     /// <summary>
     /// 前置代理 / 链式代理出站标签 (对齐 DialerOptions.Detour)
@@ -63,7 +65,13 @@ public abstract record class SingboxOutbound
     public string? ConnectTimeout { get; init; }
 
     /// <summary>
-    /// 额外信息备用口袋（比如国家地区、原始行内容、节点分组等，序列化时忽略，绝不污染 JSON）
+    /// 未显式建模的顶层扩展字段无损保存在此，序列化时原样输出
+    /// </summary>
+    [JsonExtensionData]
+    public IDictionary<string, JsonElement>? ExtensionData { get; set; }
+
+    /// <summary>
+    /// 本地业务元数据口袋（仅在内存中使用，如测速延迟、原订阅行等，不输出到 JSON）
     /// </summary>
     [JsonIgnore]
     public IDictionary<string, object?> Extra { get; init; } = new Dictionary<string, object?>(StringComparer.Ordinal);

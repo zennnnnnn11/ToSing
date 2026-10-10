@@ -2,6 +2,7 @@ namespace SubParser.Models.Protocols;
 
 using System.Text.Json.Serialization;
 using SubParser.Models.Common;
+using SubParser.Models.Converters;
 
 /// <summary>
 /// 对齐 sing-box 官方 option/shadowsocks.go 中的 ShadowsocksOutboundOptions 定义
@@ -23,8 +24,9 @@ public sealed record class ShadowsocksOutbound : SingboxOutbound
     public string? PluginOptions { get; init; }
 
     [JsonPropertyName("network")]
+    [JsonConverter(typeof(SingleOrListConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public IReadOnlyList<string>? Network { get; init; }
 
     [JsonPropertyName("udp_over_tcp")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

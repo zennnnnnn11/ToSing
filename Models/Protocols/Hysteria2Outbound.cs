@@ -2,6 +2,7 @@ namespace SubParser.Models.Protocols;
 
 using System.Text.Json.Serialization;
 using SubParser.Models.Common;
+using SubParser.Models.Converters;
 
 /// <summary>
 /// 对齐 sing-box 官方 option/hysteria2.go 中的 Hysteria2OutboundOptions 定义
@@ -12,10 +13,12 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
     public required string Password { get; init; }
 
     [JsonPropertyName("network")]
+    [JsonConverter(typeof(SingleOrListConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public IReadOnlyList<string>? Network { get; init; }
 
     [JsonPropertyName("server_ports")]
+    [JsonConverter(typeof(SingleOrListConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? ServerPorts { get; init; }
 

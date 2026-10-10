@@ -2,6 +2,7 @@ namespace SubParser.Models.Protocols;
 
 using System.Text.Json.Serialization;
 using SubParser.Models.Common;
+using SubParser.Models.Converters;
 
 /// <summary>
 /// 对齐 sing-box 官方 option/vless.go 中的 VLESSOutboundOptions 定义
@@ -16,8 +17,9 @@ public sealed record class VlessOutbound : SingboxOutbound
     public string? Flow { get; init; } // e.g. "xtls-rprx-vision"
 
     [JsonPropertyName("network")]
+    [JsonConverter(typeof(SingleOrListConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public IReadOnlyList<string>? Network { get; init; }
 
     [JsonPropertyName("tls")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
