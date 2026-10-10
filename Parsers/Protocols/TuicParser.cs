@@ -78,12 +78,32 @@ public static class TuicParser
         object? streamRw = ctx.GetMemoryBytes("stream_receive_window", "stream-receive-window");
         object? connRw = ctx.GetMemoryBytes("connection_receive_window", "connection-receive-window");
 
+        long? finalInitPkt = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalInitPkt = ctx.GetLongNullable("initial_packet_size");
+        }
+        else if (initPkt > 0)
+        {
+            finalInitPkt = initPkt;
+        }
+
+        long? finalMaxStreams = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalMaxStreams = ctx.GetLongNullable("max_concurrent_streams");
+        }
+        else if (maxStreams > 0)
+        {
+            finalMaxStreams = maxStreams;
+        }
+
         return (
             !string.IsNullOrEmpty(idle) ? idle : null,
             !string.IsNullOrEmpty(keepAlive) ? keepAlive : null,
             disablePmtu,
-            ctx.IsNativeConfig ? ctx.GetLongNullable("initial_packet_size") : initPkt > 0 ? initPkt : null,
-            ctx.IsNativeConfig ? ctx.GetLongNullable("max_concurrent_streams") : maxStreams > 0 ? maxStreams : null,
+            finalInitPkt,
+            finalMaxStreams,
             streamRw,
             connRw
         );

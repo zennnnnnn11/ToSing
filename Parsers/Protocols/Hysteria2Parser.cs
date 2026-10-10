@@ -39,7 +39,19 @@ public static class Hysteria2Parser
             port = 0;
         }
 
-        string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : (realm != null ? $"HY2 {realm.RealmId}" : $"HY2 {server}:{port}");
+        string tag;
+        if (!string.IsNullOrWhiteSpace(ctx.Tag))
+        {
+            tag = ctx.Tag;
+        }
+        else if (realm != null)
+        {
+            tag = $"HY2 {realm.RealmId}";
+        }
+        else
+        {
+            tag = $"HY2 {server}:{port}";
+        }
         string password = ctx.GetSecretString("password", "auth");
 
         var (obfs, obfsValid) = ParseObfs(ctx);
@@ -71,6 +83,26 @@ public static class Hysteria2Parser
         bool brutalDebug = ctx.GetBool("brutal_debug", "brutal-debug");
         bool disableChromeParrot = ctx.GetBool("disable_chrome_parrot", "disable-chrome-parrot");
 
+        long? finalUpMbps = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalUpMbps = ctx.GetLongNullable("up_mbps");
+        }
+        else if (upMbps > 0)
+        {
+            finalUpMbps = upMbps;
+        }
+
+        long? finalDownMbps = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalDownMbps = ctx.GetLongNullable("down_mbps");
+        }
+        else if (downMbps > 0)
+        {
+            finalDownMbps = downMbps;
+        }
+
         return new Hysteria2Outbound
         {
             Tag = tag,
@@ -80,8 +112,8 @@ public static class Hysteria2Parser
             ServerPorts = serverPorts.Count > 0 ? serverPorts : null,
             HopInterval = !string.IsNullOrEmpty(hopInterval) ? hopInterval : null,
             HopIntervalMax = !string.IsNullOrEmpty(hopIntervalMax) ? hopIntervalMax : null,
-            UpMbps = ctx.IsNativeConfig ? ctx.GetLongNullable("up_mbps") : upMbps > 0 ? upMbps : null,
-            DownMbps = ctx.IsNativeConfig ? ctx.GetLongNullable("down_mbps") : downMbps > 0 ? downMbps : null,
+            UpMbps = finalUpMbps,
+            DownMbps = finalDownMbps,
             BbrProfile = !string.IsNullOrEmpty(bbrProfile) ? bbrProfile : null,
             BrutalDebug = brutalDebug,
             DisableChromeParrot = disableChromeParrot,
@@ -109,12 +141,32 @@ public static class Hysteria2Parser
         object? streamRw = ctx.GetMemoryBytes("stream_receive_window", "stream-receive-window");
         object? connRw = ctx.GetMemoryBytes("connection_receive_window", "connection-receive-window");
 
+        long? finalInitPkt = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalInitPkt = ctx.GetLongNullable("initial_packet_size");
+        }
+        else if (initPkt > 0)
+        {
+            finalInitPkt = initPkt;
+        }
+
+        long? finalMaxStreams = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalMaxStreams = ctx.GetLongNullable("max_concurrent_streams");
+        }
+        else if (maxStreams > 0)
+        {
+            finalMaxStreams = maxStreams;
+        }
+
         return (
             !string.IsNullOrEmpty(idle) ? idle : null,
             !string.IsNullOrEmpty(keepAlive) ? keepAlive : null,
             disablePmtu,
-            ctx.IsNativeConfig ? ctx.GetLongNullable("initial_packet_size") : initPkt > 0 ? initPkt : null,
-            ctx.IsNativeConfig ? ctx.GetLongNullable("max_concurrent_streams") : maxStreams > 0 ? maxStreams : null,
+            finalInitPkt,
+            finalMaxStreams,
             streamRw,
             connRw
         );

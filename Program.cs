@@ -30,7 +30,7 @@ if (Uri.TryCreate(input, UriKind.Absolute, out Uri? uri) &&
 }
 else if (File.Exists(input))
 {
-    content = File.ReadAllText(input);
+    content = await File.ReadAllTextAsync(input).ConfigureAwait(false);
 }
 else
 {

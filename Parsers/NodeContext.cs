@@ -224,12 +224,10 @@ public sealed class NodeContext
             if (val is long l && l is >= 0 and <= uint.MaxValue) return (uint)l;
 
             string strVal = val.ToString()?.Trim() ?? string.Empty;
-            if (strVal.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            if (strVal.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
+                uint.TryParse(strVal[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint hexParsed))
             {
-                if (uint.TryParse(strVal[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint hexParsed))
-                {
-                    return hexParsed;
-                }
+                return hexParsed;
             }
 
             if (uint.TryParse(strVal, CultureInfo.InvariantCulture, out uint parsed))

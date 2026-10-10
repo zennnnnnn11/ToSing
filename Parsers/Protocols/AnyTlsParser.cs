@@ -28,6 +28,16 @@ public static class AnyTlsParser
 
         var tls = TlsParser.Parse(ctx, server, allowUtls: true, forceTls: true);
 
+        long? finalMinIdleSession = null;
+        if (ctx.IsNativeConfig)
+        {
+            finalMinIdleSession = ctx.GetLongNullable("min_idle_session");
+        }
+        else if (minIdleSession > 0)
+        {
+            finalMinIdleSession = minIdleSession;
+        }
+
         return new AnyTlsOutbound
         {
             Tag = tag,
@@ -37,7 +47,7 @@ public static class AnyTlsParser
             ClientMetadata = !string.IsNullOrEmpty(clientMetadata) ? clientMetadata : null,
             IdleSessionCheckInterval = !string.IsNullOrEmpty(idleTimeout) ? idleTimeout : null,
             IdleSessionTimeout = !string.IsNullOrEmpty(maxIdleTime) ? maxIdleTime : null,
-            MinIdleSession = ctx.IsNativeConfig ? ctx.GetLongNullable("min_idle_session") : minIdleSession > 0 ? minIdleSession : null,
+            MinIdleSession = finalMinIdleSession,
             Tls = tls
         };
     }

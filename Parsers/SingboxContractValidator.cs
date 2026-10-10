@@ -20,10 +20,10 @@ internal static class SingboxContractValidator
         var json = JsonSerializer.SerializeToElement<SingboxOutbound>(outbound);
         string protocol = json.GetProperty("type").GetString()!;
         ValidateObject(json, protocol, protocol);
-        if (protocol is "hysteria2" or "tuic" or "anytls")
+        if (protocol is "hysteria2" or "tuic" or "anytls" &&
+            (!json.TryGetProperty("tls", out var tls) || !tls.TryGetProperty("enabled", out var enabled) || enabled.ValueKind != JsonValueKind.True))
         {
-            if (!json.TryGetProperty("tls", out var tls) || !tls.TryGetProperty("enabled", out var enabled) || enabled.ValueKind != JsonValueKind.True)
-                throw new FormatException($"sing-box {protocol} requires enabled TLS");
+            throw new FormatException($"sing-box {protocol} requires enabled TLS");
         }
         if (string.Equals(protocol, "anytls", StringComparison.Ordinal) && outbound.TcpFastOpen)
             throw new FormatException("sing-box AnyTLS does not support tcp_fast_open");
@@ -46,14 +46,12 @@ internal static class SingboxContractValidator
             if (rule.TryGetProperty("enum", out JsonElement choices)) ValidateEnum(field.Value, choices, location);
             if (string.Equals(kind, "string", StringComparison.Ordinal) && !string.Equals(goType, "option.NetworkList", StringComparison.Ordinal) && field.Value.ValueKind != JsonValueKind.String)
                 throw new FormatException($"Expected string for {location}");
-            if (string.Equals(goType, "int", StringComparison.Ordinal) || goType.Contains("MemoryBytes", StringComparison.Ordinal))
+            if ((string.Equals(goType, "int", StringComparison.Ordinal) || goType.Contains("MemoryBytes", StringComparison.Ordinal)) &&
+                field.Value.ValueKind == JsonValueKind.Number &&
+                (!field.Value.TryGetInt64(out long number) || number > 9223372036854775295L))
             {
-                if (field.Value.ValueKind == JsonValueKind.Number)
-                {
-                    // The reference core's excluded-object decoder rounds through float64.
-                    if (!field.Value.TryGetInt64(out long number) || number > 9223372036854775295L)
-                        throw new FormatException($"Integer exceeds sing-box JSON decoder range: {location}");
-                }
+                // The reference core's excluded-object decoder rounds through float64.
+                throw new FormatException($"Integer exceeds sing-box JSON decoder range: {location}");
             }
             if ((goType is "uint8" or "uint16" or "uint32" or "*uint32") &&
                 (!field.Value.TryGetUInt64(out ulong unsigned) || unsigned > (kind switch { "uint8" => byte.MaxValue, "uint16" => ushort.MaxValue, _ => uint.MaxValue })))

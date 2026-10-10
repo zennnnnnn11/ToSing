@@ -256,7 +256,7 @@ public static partial class UniversalParser
     public static string CleanRawText(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
-        return raw.Trim(['\uFEFF', '\u200B', ' ', '\r', '\n', '\t']);
+        return raw.Trim('\uFEFF', '\u200B', ' ', '\r', '\n', '\t');
     }
 
     private static bool IsCommentLine(string line)
