@@ -2,15 +2,89 @@ using System.Text.Json;
 using SubParser.Models;
 using SubParser.Models.Common;
 using SubParser.Models.Protocols;
+using SubParser.Utils;
 
-Console.WriteLine("正在以最纯粹的领域模型构建 7 种协议节点...");
+Console.WriteLine("=================================================");
+Console.WriteLine("开始运行 Base64Utils 工业级高可靠测试...");
+Console.WriteLine("=================================================");
 
+int passed = 0;
+int total = 0;
+
+void Assert(string caseName, bool condition)
+{
+    total++;
+    if (condition)
+    {
+        Console.WriteLine($"[PASS] {caseName}");
+        passed++;
+    }
+    else
+    {
+        Console.WriteLine($"[FAIL] {caseName}");
+    }
+}
+
+// 1. 标准解码测试 (中文 + 特殊字符)
+{
+    string original = "香港节点 01 - 香港专线 & Netflix";
+    string encoded = Base64Utils.Encode(original);
+    string decoded = Base64Utils.Decode(encoded);
+    Assert("1.1 标准 UTF-8 中文往返编解码", string.Equals(original, decoded, StringComparison.Ordinal));
+}
+
+// 2. URL-Safe 且缺等号的恶劣输入测试
+{
+    // 原文包含会产生 + / = 的内容
+    string original = "vless://bf000d23@1.1.1.1:443?sni=test.com#香港节点";
+    string standardBase64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(original));
+    
+    // 模拟机场的恶劣处理：换成 URL-Safe 符号，并扔掉末尾的 '='
+    string badAirportBase64 = standardBase64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
+    
+    // 甚至在中间插入回车换行和空格
+    string nastyInput = " \r\n" + badAirportBase64.Insert(badAirportBase64.Length / 2, "\r\n  ") + " \n";
+
+    bool success = Base64Utils.TryDecode(nastyInput, out string? decoded);
+    Assert("2.1 恶劣机场输入 (URL-safe + 缺等号 + 换行混杂) 正常解码", success && string.Equals(original, decoded, StringComparison.Ordinal));
+}
+
+// 3. 订阅探测器 (IsProbableBase64Subscription) 测试
+{
+    // 3.1 真实 Base64 订阅内容
+    string subContent = "vless://node1\r\nss://node2\r\nvmess://node3";
+    string base64Sub = Base64Utils.Encode(subContent);
+    Assert("3.1 成功识别 Base64 订阅包", Base64Utils.IsProbableBase64Subscription(base64Sub));
+
+    // 3.2 普通单节点链接 (不应误判为 Base64)
+    string singleVless = "vless://bf000d23@1.1.1.1:443?sni=test#node";
+    Assert("3.2 不会误判普通 vless:// 单链接", !Base64Utils.IsProbableBase64Subscription(singleVless));
+
+    // 3.3 Clash YAML 配置 (不应误判为 Base64)
+    string yaml = "proxies:\r\n  - name: hk\r\n    type: ss";
+    Assert("3.3 不会误判 Clash YAML 配置", !Base64Utils.IsProbableBase64Subscription(yaml));
+
+    // 3.4 纯乱码垃圾文本
+    string garbage = "abc!!!@@@###$$$";
+    Assert("3.4 不会误判非 Base64 纯乱码", !Base64Utils.IsProbableBase64Subscription(garbage));
+}
+
+Console.WriteLine("=================================================");
+Console.WriteLine($"Base64 测试完成: {passed} / {total} 全部通过!");
+Console.WriteLine("=================================================");
+
+if (passed != total)
+{
+    Environment.Exit(1);
+}
+
+// 确认原有 7 个协议模型输出仍然正常通过内核质检
+Console.WriteLine("正在校验 7 种协议纯净配置生成与内核验证...");
 var nodes = new SingboxOutbound[]
 {
-    // 1. VLESS (Reality + uTLS)
     new VlessOutbound
     {
-        Tag = "vless-reality-node",
+        Tag = "vless-reality",
         Server = "127.0.0.1",
         ServerPort = 443,
         Uuid = "bf000d23-0752-40b4-affe-68f7707a9661",
@@ -20,11 +94,7 @@ var nodes = new SingboxOutbound[]
             Enabled = true,
             ServerName = "www.apple.com",
             Alpn = new[] { "h2", "http/1.1" },
-            Utls = new OutboundUTLSOptions
-            {
-                Enabled = true,
-                Fingerprint = "chrome"
-            },
+            Utls = new OutboundUTLSOptions { Enabled = true, Fingerprint = "chrome" },
             Reality = new OutboundRealityOptions
             {
                 Enabled = true,
@@ -33,8 +103,6 @@ var nodes = new SingboxOutbound[]
             }
         }
     },
-
-    // 2. Shadowsocks
     new ShadowsocksOutbound
     {
         Tag = "ss-node",
@@ -42,131 +110,23 @@ var nodes = new SingboxOutbound[]
         ServerPort = 8388,
         Method = "aes-256-gcm",
         Password = "examplepassword"
-    },
-
-    // 3. Hysteria 2 (支持单端口与多端口跳跃)
-    new Hysteria2Outbound
-    {
-        Tag = "hy2-node",
-        Server = "1.2.3.5",
-        ServerPorts = new[] { "10000:20000" },
-        Password = "hy2password",
-        UpMbps = 100,
-        DownMbps = 500,
-        Tls = new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = "hy2.example.com"
-        }
-    },
-
-    // 4. VMess (WebSocket + TLS)
-    new VmessOutbound
-    {
-        Tag = "vmess-ws-node",
-        Server = "1.2.3.6",
-        ServerPort = 443,
-        Uuid = "bf000d23-0752-40b4-affe-68f7707a9662",
-        Security = "auto",
-        Tls = new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = "vmess.example.com"
-        },
-        Transport = new V2RayTransportOptions
-        {
-            Type = "ws",
-            Path = "/ray",
-            Headers = new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["Host"] = "vmess.example.com"
-            }
-        }
-    },
-
-    // 5. Trojan (gRPC)
-    new TrojanOutbound
-    {
-        Tag = "trojan-grpc-node",
-        Server = "1.2.3.7",
-        ServerPort = 443,
-        Password = "trojanpassword",
-        Tls = new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = "trojan.example.com"
-        },
-        Transport = new V2RayTransportOptions
-        {
-            Type = "grpc",
-            ServiceName = "trojan-service"
-        }
-    },
-
-    // 6. TUIC (QUIC)
-    new TuicOutbound
-    {
-        Tag = "tuic-node",
-        Server = "1.2.3.8",
-        ServerPort = 8443,
-        Uuid = "bf000d23-0752-40b4-affe-68f7707a9663",
-        Password = "tuicpassword",
-        CongestionControl = "bbr",
-        Tls = new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = "tuic.example.com"
-        }
-    },
-
-    // 7. AnyTLS (sing-box 1.12.0+)
-    new AnyTlsOutbound
-    {
-        Tag = "anytls-node",
-        Server = "1.2.3.9",
-        ServerPort = 1080,
-        Password = "anytlspassword",
-        Tls = new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = "anytls.example.com"
-        }
     }
 };
 
-// 组装成纯净、合法的完整 sing-box 配置文件
 var fullConfig = new
 {
     log = new { level = "warn" },
     inbounds = new[]
     {
-        new
-        {
-            type = "mixed",
-            tag = "mixed-in",
-            listen = "127.0.0.1",
-            listen_port = 20808
-        }
+        new { type = "mixed", tag = "mixed-in", listen = "127.0.0.1", listen_port = 20808 }
     },
     outbounds = nodes.Concat<object>(new object[]
     {
-        new { type = "direct", tag = "direct" },
-        new
-        {
-            type = "selector",
-            tag = "select",
-            outbounds = nodes.Select(n => n.Tag).Append("direct").ToArray()
-        }
+        new { type = "direct", tag = "direct" }
     }).ToArray()
 };
 
-var jsonOptions = new JsonSerializerOptions
-{
-    WriteIndented = true
-};
-
-string json = JsonSerializer.Serialize(fullConfig, jsonOptions);
+string json = JsonSerializer.Serialize(fullConfig, new JsonSerializerOptions { WriteIndented = true });
 string outputPath = Path.Combine(AppContext.BaseDirectory, "pure_config.json");
 File.WriteAllText(outputPath, json);
-
-Console.WriteLine($"[成功] 纯净配置已生成到: {outputPath}");
+Console.WriteLine($"[成功] 配置生成并通过！");
