@@ -25,7 +25,7 @@ public static class TrojanParser
 
         var transport = TransportParser.ParseTransport(ctx);
         var tls = ParseTls(ctx, server);
-        var multiplex = ParseMultiplex(ctx);
+        var multiplex = MultiplexParser.ParseMultiplex(ctx);
 
         return new TrojanOutbound
         {
@@ -66,26 +66,4 @@ public static class TrojanParser
         };
     }
 
-    private static OutboundMultiplexOptions? ParseMultiplex(NodeContext ctx)
-    {
-        if (!ctx.GetBool("mux", "smux.enabled")) return null;
-
-        string proto = ctx.GetString("smux.protocol", "mux.protocol");
-        if (string.IsNullOrEmpty(proto)) proto = "smux";
-
-        int mc = ctx.GetInt("smux.max-connections", "mux.max-connections", "smux.max_connections");
-        int minStreams = ctx.GetInt("smux.min-streams", "mux.min-streams", "smux.min_streams");
-        int maxStreams = ctx.GetInt("smux.max-streams", "mux.max-streams", "smux.max_streams");
-        bool padding = ctx.GetBool("smux.padding", "mux.padding");
-
-        return new OutboundMultiplexOptions
-        {
-            Enabled = true,
-            Protocol = proto,
-            MaxConnections = mc > 0 ? mc : null,
-            MinStreams = minStreams > 0 ? minStreams : null,
-            MaxStreams = maxStreams > 0 ? maxStreams : null,
-            Padding = padding
-        };
-    }
 }

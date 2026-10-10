@@ -30,6 +30,10 @@ public static class Hysteria2Parser
         int upMbps = ctx.GetInt("up_mbps", "upmbps", "up");
         int downMbps = ctx.GetInt("down_mbps", "downmbps", "down");
 
+        string bbrProfile = ctx.GetString("bbr_profile", "bbr-profile");
+        bool brutalDebug = ctx.GetBool("brutal_debug", "brutal-debug");
+        bool disableChromeParrot = ctx.GetBool("disable_chrome_parrot", "disable-chrome-parrot");
+
         var (obfs, obfsValid) = ParseObfs(ctx);
         if (!obfsValid)
         {
@@ -37,6 +41,7 @@ public static class Hysteria2Parser
         }
 
         var tls = ParseTls(ctx, server);
+        var q = ReadQuicParams(ctx);
 
         return new Hysteria2Outbound
         {
@@ -49,9 +54,43 @@ public static class Hysteria2Parser
             HopIntervalMax = !string.IsNullOrEmpty(hopIntervalMax) ? hopIntervalMax : null,
             UpMbps = upMbps > 0 ? upMbps : null,
             DownMbps = downMbps > 0 ? downMbps : null,
+            BbrProfile = !string.IsNullOrEmpty(bbrProfile) ? bbrProfile : null,
+            BrutalDebug = brutalDebug,
+            DisableChromeParrot = disableChromeParrot,
+            IdleTimeout = q.IdleTimeout,
+            KeepAlivePeriod = q.KeepAlivePeriod,
+            DisablePathMtuDiscovery = q.DisablePathMtuDiscovery,
+            InitialPacketSize = q.InitialPacketSize,
+            MaxConcurrentStreams = q.MaxConcurrentStreams,
+            StreamReceiveWindow = q.StreamReceiveWindow,
+            ConnectionReceiveWindow = q.ConnectionReceiveWindow,
+            Network = q.Network,
             Obfs = obfs,
             Tls = tls
         };
+    }
+
+    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, int? InitialPacketSize, int? MaxConcurrentStreams, string? StreamReceiveWindow, string? ConnectionReceiveWindow, string? Network) ReadQuicParams(NodeContext ctx)
+    {
+        string idle = ctx.GetString("idle_timeout", "idle-timeout");
+        string keepAlive = ctx.GetString("keep_alive_period", "keep-alive-period");
+        bool disablePmtu = ctx.GetBool("disable_path_mtu_discovery", "disable-path-mtu-discovery");
+        int initPkt = ctx.GetInt("initial_packet_size", "initial-packet-size");
+        int maxStreams = ctx.GetInt("max_concurrent_streams", "max-concurrent-streams");
+        string streamRw = ctx.GetString("stream_receive_window", "stream-receive-window");
+        string connRw = ctx.GetString("connection_receive_window", "connection-receive-window");
+        string network = ctx.GetString("network");
+
+        return (
+            !string.IsNullOrEmpty(idle) ? idle : null,
+            !string.IsNullOrEmpty(keepAlive) ? keepAlive : null,
+            disablePmtu,
+            initPkt > 0 ? initPkt : null,
+            maxStreams > 0 ? maxStreams : null,
+            !string.IsNullOrEmpty(streamRw) ? streamRw : null,
+            !string.IsNullOrEmpty(connRw) ? connRw : null,
+            !string.IsNullOrEmpty(network) ? network : null
+        );
     }
 
     private static (Hysteria2ObfsOptions? obfs, bool isValid) ParseObfs(NodeContext ctx)

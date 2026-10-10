@@ -27,10 +27,13 @@ public static class VmessParser
         string security = NormalizeVmessSecurity(ctx.GetString("security", "cipher"));
 
         int alterId = ctx.GetInt("alter_id", "alterId", "aid");
+        bool globalPadding = ctx.GetBool("global_padding", "global-padding");
+        bool authenticatedLength = ctx.GetBool("authenticated_length", "authenticated-length");
+
         var transport = TransportParser.ParseTransport(ctx);
         var tls = ParseTls(ctx, server);
         string packetEncoding = ParsePacketEncoding(ctx);
-        var multiplex = ParseMultiplex(ctx);
+        var multiplex = MultiplexParser.ParseMultiplex(ctx);
 
         return new VmessOutbound
         {
@@ -40,6 +43,8 @@ public static class VmessParser
             Uuid = uuid,
             Security = security,
             AlterId = alterId,
+            GlobalPadding = globalPadding,
+            AuthenticatedLength = authenticatedLength,
             Tls = tls,
             Transport = transport,
             PacketEncoding = !string.IsNullOrEmpty(packetEncoding) ? packetEncoding : null,
@@ -91,28 +96,6 @@ public static class VmessParser
         return string.Empty;
     }
 
-    private static OutboundMultiplexOptions? ParseMultiplex(NodeContext ctx)
-    {
-        if (!ctx.GetBool("mux", "smux.enabled")) return null;
-
-        string proto = ctx.GetString("smux.protocol", "mux.protocol");
-        if (string.IsNullOrEmpty(proto)) proto = "smux";
-
-        int mc = ctx.GetInt("smux.max-connections", "mux.max-connections", "smux.max_connections");
-        int minStreams = ctx.GetInt("smux.min-streams", "mux.min-streams", "smux.min_streams");
-        int maxStreams = ctx.GetInt("smux.max-streams", "mux.max-streams", "smux.max_streams");
-        bool padding = ctx.GetBool("smux.padding", "mux.padding");
-
-        return new OutboundMultiplexOptions
-        {
-            Enabled = true,
-            Protocol = proto,
-            MaxConnections = mc > 0 ? mc : null,
-            MinStreams = minStreams > 0 ? minStreams : null,
-            MaxStreams = maxStreams > 0 ? maxStreams : null,
-            Padding = padding
-        };
-    }
 
     public static NodeContext ParseVmessJsonUri(string vmessUri)
     {

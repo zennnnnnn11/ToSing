@@ -38,15 +38,7 @@ public static class ShadowsocksParser
             };
         }
 
-        OutboundMultiplexOptions? multiplex = null;
-        if (ctx.GetBool("mux", "smux.enabled"))
-        {
-            multiplex = new OutboundMultiplexOptions
-            {
-                Enabled = true,
-                Protocol = "smux"
-            };
-        }
+        OutboundMultiplexOptions? multiplex = MultiplexParser.ParseMultiplex(ctx);
 
         return new ShadowsocksOutbound
         {

@@ -20,10 +20,8 @@ public static class TuicParser
         string rawUuid = ctx.GetString("uuid", "username");
         if (string.IsNullOrWhiteSpace(rawUuid) || !Guid.TryParse(rawUuid, out Guid parsedGuid))
         {
-            // 内核强制要求合法的 UUID
             return null;
         }
-        // 规整为内核要求的标准 36 位连字符格式，剥离圆括号/大括号
         string uuid = parsedGuid.ToString("D");
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"TUIC {server}:{port}";
@@ -32,7 +30,6 @@ public static class TuicParser
         string udpRelayMode = ctx.GetString("udp_relay_mode", "udp-relay-mode");
         bool udpOverStream = ctx.GetBool("udp_over_stream", "udp-over-stream");
 
-        // 内核互斥规则: udp_over_stream is conflict with udp_relay_mode
         if (udpOverStream)
         {
             udpRelayMode = string.Empty;
@@ -40,8 +37,8 @@ public static class TuicParser
 
         string heartbeat = ctx.GetString("heartbeat");
         bool zeroRtt = ctx.GetBool("zero_rtt_handshake", "zero-rtt-handshake", "reduce-rtt");
-
         var tls = ParseTls(ctx, server);
+        var q = ReadQuicParams(ctx);
 
         return new TuicOutbound
         {
@@ -55,8 +52,39 @@ public static class TuicParser
             UdpOverStream = udpOverStream,
             Heartbeat = !string.IsNullOrEmpty(heartbeat) ? heartbeat : null,
             ZeroRttHandshake = zeroRtt,
+            IdleTimeout = q.IdleTimeout,
+            KeepAlivePeriod = q.KeepAlivePeriod,
+            DisablePathMtuDiscovery = q.DisablePathMtuDiscovery,
+            InitialPacketSize = q.InitialPacketSize,
+            MaxConcurrentStreams = q.MaxConcurrentStreams,
+            StreamReceiveWindow = q.StreamReceiveWindow,
+            ConnectionReceiveWindow = q.ConnectionReceiveWindow,
+            Network = q.Network,
             Tls = tls
         };
+    }
+
+    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, int? InitialPacketSize, int? MaxConcurrentStreams, string? StreamReceiveWindow, string? ConnectionReceiveWindow, string? Network) ReadQuicParams(NodeContext ctx)
+    {
+        string idle = ctx.GetString("idle_timeout", "idle-timeout");
+        string keepAlive = ctx.GetString("keep_alive_period", "keep-alive-period");
+        bool disablePmtu = ctx.GetBool("disable_path_mtu_discovery", "disable-path-mtu-discovery");
+        int initPkt = ctx.GetInt("initial_packet_size", "initial-packet-size");
+        int maxStreams = ctx.GetInt("max_concurrent_streams", "max-concurrent-streams");
+        string streamRw = ctx.GetString("stream_receive_window", "stream-receive-window");
+        string connRw = ctx.GetString("connection_receive_window", "connection-receive-window");
+        string network = ctx.GetString("network");
+
+        return (
+            !string.IsNullOrEmpty(idle) ? idle : null,
+            !string.IsNullOrEmpty(keepAlive) ? keepAlive : null,
+            disablePmtu,
+            initPkt > 0 ? initPkt : null,
+            maxStreams > 0 ? maxStreams : null,
+            !string.IsNullOrEmpty(streamRw) ? streamRw : null,
+            !string.IsNullOrEmpty(connRw) ? connRw : null,
+            !string.IsNullOrEmpty(network) ? network : null
+        );
     }
 
     private static OutboundTLSOptions ParseTls(NodeContext ctx, string server)
