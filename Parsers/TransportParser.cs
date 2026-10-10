@@ -58,13 +58,18 @@ internal static class TransportParser
             headers.Remove("Host");
         }
 
+        string idleTimeout = ctx.GetString("idle_timeout", "idle-timeout", "http-opts.idle_timeout", "http-opts.idle-timeout");
+        string pingTimeout = ctx.GetString("ping_timeout", "ping-timeout", "http-opts.ping_timeout", "http-opts.ping-timeout");
+
         return new V2RayTransportOptions
         {
             Type = "http",
             Path = !string.IsNullOrEmpty(path) ? path : null,
             Method = !string.IsNullOrEmpty(method) ? method : null,
             Host = hostVal,
-            Headers = headers.Count > 0 ? headers : null
+            Headers = headers.Count > 0 ? headers : null,
+            IdleTimeout = !string.IsNullOrEmpty(idleTimeout) ? idleTimeout : null,
+            PingTimeout = !string.IsNullOrEmpty(pingTimeout) ? pingTimeout : null
         };
     }
 
@@ -85,11 +90,18 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseGrpc(NodeContext ctx)
     {
-        string serviceName = ctx.GetString("serviceName", "service-name", "grpc-opts.grpc-service-name");
+        string serviceName = ctx.GetString("serviceName", "service-name", "grpc-opts.grpc-service-name", "grpc-opts.service_name", "grpc-opts.service-name");
+        string idleTimeout = ctx.GetString("idle_timeout", "idle-timeout", "grpc-opts.idle_timeout", "grpc-opts.idle-timeout");
+        string pingTimeout = ctx.GetString("ping_timeout", "ping-timeout", "grpc-opts.ping_timeout", "grpc-opts.ping-timeout");
+        bool permitWithoutStream = ctx.GetBool("permit_without_stream", "permit-without-stream", "grpc-opts.permit_without_stream", "grpc-opts.permit-without-stream");
+
         return new V2RayTransportOptions
         {
             Type = "grpc",
-            ServiceName = !string.IsNullOrEmpty(serviceName) ? serviceName : null
+            ServiceName = !string.IsNullOrEmpty(serviceName) ? serviceName : null,
+            IdleTimeout = !string.IsNullOrEmpty(idleTimeout) ? idleTimeout : null,
+            PingTimeout = !string.IsNullOrEmpty(pingTimeout) ? pingTimeout : null,
+            PermitWithoutStream = permitWithoutStream
         };
     }
 

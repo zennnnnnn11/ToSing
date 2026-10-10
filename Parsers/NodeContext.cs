@@ -368,11 +368,18 @@ public sealed class NodeContext
         {
             string decodedAuth = HttpUtility.UrlDecode(authPart);
 
-            // Hysteria 2 的 userpass 是整体作为 password
+            // Hysteria 2、Trojan、AnyTLS 的 UserInfo 整体作为 password (避免密码含冒号被截断)
             if (string.Equals(ctx.Protocol, "hy2", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase))
+                string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ctx.Protocol, "trojan", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ctx.Protocol, "anytls", StringComparison.OrdinalIgnoreCase))
             {
                 ctx._properties["password"] = decodedAuth;
+                ctx._properties["auth"] = decodedAuth;
+            }
+            else if (string.Equals(ctx.Protocol, "vless", StringComparison.OrdinalIgnoreCase))
+            {
+                ctx._properties["uuid"] = decodedAuth;
                 ctx._properties["auth"] = decodedAuth;
             }
             else
