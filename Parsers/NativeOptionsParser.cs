@@ -1,9 +1,11 @@
 namespace SubParser.Parsers;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using SubParser.Models;
 using SubParser.Models.Common;
 
 /// <summary>读取内核原生字段；YAML 标量只按目标类型转换，不丢弃未知字段。</summary>
@@ -17,19 +19,32 @@ internal static class NativeOptionsParser
         {
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
             UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+            TypeInfoResolver = SubParserJsonContext.Default,
         };
         options.Converters.Add(new ScalarBooleanConverter());
         options.Converters.Add(new ListableStringConverter());
         return options;
     }
 
-    public static T Deserialize<T>(object raw)
+    public static T Deserialize<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicProperties
+                | DynamicallyAccessedMemberTypes.PublicConstructors
+        )]
+            T
+    >(object raw)
     {
-        return JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(raw), Options)
+        return JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(raw, Options), Options)
             ?? throw new FormatException($"Empty {typeof(T).Name} options");
     }
 
-    public static T Read<T>(NodeContext ctx, params (string Alias, string Field)[] aliases)
+    public static T Read<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicProperties
+                | DynamicallyAccessedMemberTypes.PublicConstructors
+        )]
+            T
+    >(NodeContext ctx, params (string Alias, string Field)[] aliases)
     {
         var fields = new Dictionary<string, object?>(StringComparer.Ordinal);
         foreach (var property in typeof(T).GetProperties())

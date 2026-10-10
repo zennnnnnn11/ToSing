@@ -19,7 +19,10 @@ internal static class SingboxContractValidator
 
     internal static void Validate(SingboxOutbound outbound)
     {
-        var json = JsonSerializer.SerializeToElement<SingboxOutbound>(outbound);
+        var json = JsonSerializer.SerializeToElement(
+            outbound,
+            SubParserJsonContext.Default.SingboxOutbound
+        );
         string protocol = json.GetProperty("type").GetString()!;
         ValidateObject(json, protocol, protocol);
         if (

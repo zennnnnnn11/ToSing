@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using SubParser.Models;
 using SubParser.Parsers;
 
 if (args.Length == 0)
@@ -40,7 +41,8 @@ else
 
 var outbounds = UniversalParser.ParseSubscription(content);
 
-var options = new JsonSerializerOptions { WriteIndented = true };
-
-string json = JsonSerializer.Serialize(outbounds, options);
+string json = JsonSerializer.Serialize(
+    outbounds,
+    SubParserJsonContext.Default.IReadOnlyListSingboxOutbound
+);
 Console.WriteLine(json);

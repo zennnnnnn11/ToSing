@@ -17,8 +17,24 @@ using YamlDotNet.Serialization;
 public static partial class UniversalParser
 {
     private static readonly IDeserializer YamlDeserializer = new DeserializerBuilder()
+        .WithObjectFactory(new AotObjectFactory())
         .IgnoreUnmatchedProperties()
         .Build();
+
+    private sealed class AotObjectFactory
+        : YamlDotNet.Serialization.ObjectFactories.DefaultObjectFactory
+    {
+        public override object Create(Type type)
+        {
+            if (type == typeof(Dictionary<string, object>))
+                return new Dictionary<string, object>(StringComparer.Ordinal);
+            if (type == typeof(Dictionary<object, object>))
+                return new Dictionary<object, object>();
+            if (type == typeof(List<object>))
+                return new List<object>();
+            return base.Create(type);
+        }
+    }
 
     /// <summary>
     /// 根据 NodeContext 的 Protocol 调度解析出站节点。
