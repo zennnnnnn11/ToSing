@@ -126,17 +126,14 @@ public static class TlsParser
 
     private static OutboundECHOptions? ParseEch(NodeContext ctx)
     {
-        bool? echExplicit = ctx.GetBoolNullable("ech.enabled", "ech-enabled");
+        bool? echExplicit = ctx.GetBoolNullable("ech.enabled", "ech-enabled", "ech");
         if (echExplicit == false) return null;
-
-        bool echBool = ctx.GetBool("ech");
-        if (!echBool && ctx.HasProperty("ech") && ctx.GetRaw("ech") is false) return null;
 
         var echConfig = ctx.GetStringList("ech.config", "ech-config");
         string echConfigPath = ctx.GetString("ech.config_path", "ech-config-path");
         string echQuerySni = ctx.GetString("ech.query_server_name", "ech-query-server-name");
 
-        if (echExplicit != true && !echBool && echConfig.Count == 0 && string.IsNullOrEmpty(echConfigPath) && string.IsNullOrEmpty(echQuerySni))
+        if (echExplicit != true && echConfig.Count == 0 && string.IsNullOrEmpty(echConfigPath) && string.IsNullOrEmpty(echQuerySni))
         {
             return null;
         }
