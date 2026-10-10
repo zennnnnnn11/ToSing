@@ -107,20 +107,35 @@ public static partial class UniversalParser
     /// <summary>
     /// 解析订阅内容，自动识别 Clash YAML、Base64 订阅或多行 URI。
     /// </summary>
-    public static IReadOnlyList<SingboxOutbound> ParseSubscription(string rawText)
+    public static IReadOnlyList<SingboxOutbound> ParseSubscription(
+        string rawText,
+        bool filterAds = true
+    )
+    {
+        return ParseSubscriptionWithStats(rawText, filterAds).Outbounds;
+    }
+
+    /// <summary>
+    /// 解析订阅内容并返回节点列表和过滤的广告节点统计。
+    /// </summary>
+    public static (
+        IReadOnlyList<SingboxOutbound> Outbounds,
+        int FilteredAdCount
+    ) ParseSubscriptionWithStats(string rawText, bool filterAds = true)
     {
         var rawNodes = new List<SingboxOutbound>();
+        int filteredAdCount = 0;
         if (string.IsNullOrWhiteSpace(rawText))
-            return rawNodes;
+            return (rawNodes, 0);
 
         string content = CleanRawText(rawText);
 
         if (content.Contains("proxies:", StringComparison.OrdinalIgnoreCase))
         {
-            var yamlNodes = ParseClashYaml(content);
+            var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(content, filterAds);
             if (yamlNodes.Count > 0)
             {
-                return DeduplicateTags(yamlNodes);
+                return (DeduplicateTags(yamlNodes), yamlFiltered);
             }
         }
 
@@ -142,18 +157,29 @@ public static partial class UniversalParser
                 continue;
 
             var outbound = ParseLine(trimmed);
-            if (outbound != null && !IsFakeOrAdNode(outbound.Tag))
+            if (outbound != null)
             {
-                rawNodes.Add(outbound);
+                if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                {
+                    filteredAdCount++;
+                }
+                else
+                {
+                    rawNodes.Add(outbound);
+                }
             }
         }
 
-        return DeduplicateTags(rawNodes);
+        return (DeduplicateTags(rawNodes), filteredAdCount);
     }
 
-    private static List<SingboxOutbound> ParseClashYaml(string content)
+    private static (List<SingboxOutbound> Outbounds, int FilteredAdCount) ParseClashYamlWithStats(
+        string content,
+        bool filterAds
+    )
     {
         var results = new List<SingboxOutbound>();
+        int filteredCount = 0;
         try
         {
             var yamlData = YamlDeserializer.Deserialize<Dictionary<string, object>>(content);
@@ -169,9 +195,16 @@ public static partial class UniversalParser
                     {
                         var stringMap = (Dictionary<string, object?>)NormalizeYamlObject(objMap)!;
                         var outbound = ParseClashProxy(stringMap);
-                        if (outbound != null && !IsFakeOrAdNode(outbound.Tag))
+                        if (outbound != null)
                         {
-                            results.Add(outbound);
+                            if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                            {
+                                filteredCount++;
+                            }
+                            else
+                            {
+                                results.Add(outbound);
+                            }
                         }
                     }
                 }
@@ -181,7 +214,7 @@ public static partial class UniversalParser
         {
             // 忽略 YAML 解析异常并返回已解析项
         }
-        return results;
+        return (results, filteredCount);
     }
 
     /// <summary>

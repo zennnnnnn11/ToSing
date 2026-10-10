@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -14,6 +17,14 @@ namespace SubParser.Gui.Views;
 
 public partial class MainWindow : Window
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        TypeInfoResolver = SubParserJsonContext.Default,
+    };
+
     private static readonly HttpClient SharedHttpClient = new(
         new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }
     )
@@ -180,15 +191,19 @@ public partial class MainWindow : Window
                 content = rawInput;
             }
 
+            bool filterAds = FilterAdsCheckBox.IsChecked == true;
             ConvertButtonText.Text = "正在清洗与对齐...";
-            var outbounds = await Task.Run(() => UniversalParser.ParseSubscription(content))
+            var (outbounds, filteredCount) = await Task.Run(() =>
+                    UniversalParser.ParseSubscriptionWithStats(content, filterAds)
+                )
                 .ConfigureAwait(true);
 
             int nodeCount = outbounds.Count;
 
             string json = JsonSerializer.Serialize(
                 outbounds,
-                SubParserJsonContext.Default.IReadOnlyListSingboxOutbound
+                typeof(IReadOnlyList<SingboxOutbound>),
+                JsonOptions
             );
 
             OutputTextBox.Text = json;
@@ -198,8 +213,15 @@ public partial class MainWindow : Window
             NodeCountBadge.IsVisible = true;
             NodeCountText.Text = $"{nodeCount} 个有效节点";
 
-            FilteredBadge.IsVisible = true;
-            FilteredText.Text = "已过滤广告节点";
+            if (filterAds && filteredCount > 0)
+            {
+                FilteredBadge.IsVisible = true;
+                FilteredText.Text = $"已过滤 {filteredCount} 个提示节点";
+            }
+            else
+            {
+                FilteredBadge.IsVisible = false;
+            }
         }
         catch (Exception ex)
         {
