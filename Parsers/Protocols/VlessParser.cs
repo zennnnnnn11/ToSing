@@ -15,7 +15,8 @@ public static class VlessParser
         ArgumentNullException.ThrowIfNull(ctx);
 
         string server = ctx.Server;
-        int port = ctx.ServerPort > 0 ? ctx.ServerPort : 443;
+        int port = ctx.ServerPort;
+        if (port < 1 || port > 65535) return null!;
         string uuid = ctx.GetString("uuid", "password");
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VLESS {server}:{port}";
         string flow = ctx.GetString("flow");
@@ -100,7 +101,8 @@ public static class VlessParser
 
         bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
         var alpnList = ctx.GetStringList("alpn");
-        string fp = ctx.GetString("fp", "client-fingerprint", "fingerprint");
+        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
+        string? fp = SubParser.Utils.SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
 
         OutboundRealityOptions? reality = null;
         if (string.Equals(security, "reality", StringComparison.Ordinal) || !string.IsNullOrEmpty(pbk))
@@ -120,7 +122,7 @@ public static class VlessParser
             ServerName = serverName,
             Insecure = insecure,
             Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = !string.IsNullOrEmpty(fp) ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null,
+            Utls = fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null,
             Reality = reality
         };
     }

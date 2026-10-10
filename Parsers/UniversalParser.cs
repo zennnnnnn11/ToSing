@@ -2,6 +2,7 @@ namespace SubParser.Parsers;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using SubParser.Models;
 using SubParser.Parsers.Protocols;
@@ -10,6 +11,10 @@ using YamlDotNet.Serialization;
 
 /// <summary>
 /// 通用订阅与节点解析调度引擎
+/// 吸收 Sub-Store 实战避坑经验:
+/// - 自动过滤无效/垃圾/广告节点
+/// - 自动全局消重 (Duplicate Tag 智能编号重命名)
+/// - 严格合法端口范围校验 (1 ~ 65535)
 /// </summary>
 public static class UniversalParser
 {
@@ -67,15 +72,18 @@ public static class UniversalParser
 
     public static IReadOnlyList<SingboxOutbound> ParseSubscription(string rawText)
     {
-        var results = new List<SingboxOutbound>();
-        if (string.IsNullOrWhiteSpace(rawText)) return results;
+        var rawNodes = new List<SingboxOutbound>();
+        if (string.IsNullOrWhiteSpace(rawText)) return rawNodes;
 
         string content = rawText.Trim();
 
         if (content.Contains("proxies:", StringComparison.OrdinalIgnoreCase))
         {
             var yamlNodes = ParseClashYaml(content);
-            if (yamlNodes.Count > 0) return yamlNodes;
+            if (yamlNodes.Count > 0)
+            {
+                return DeduplicateTags(yamlNodes);
+            }
         }
 
         if (Base64Utils.IsProbableBase64Subscription(content))
@@ -92,11 +100,11 @@ public static class UniversalParser
             var outbound = ParseLine(line);
             if (outbound != null && !IsFakeOrAdNode(outbound.Tag))
             {
-                results.Add(outbound);
+                rawNodes.Add(outbound);
             }
         }
 
-        return results;
+        return DeduplicateTags(rawNodes);
     }
 
     private static List<SingboxOutbound> ParseClashYaml(string content)
@@ -131,6 +139,42 @@ public static class UniversalParser
             // 忽略失败，降级处理
         }
         return results;
+    }
+
+    /// <summary>
+    /// 核心防坑利器: 全局唯一 Tag 消重与自动编号器
+    /// 彻底消除 sing-box 启动时报 duplicate tag 崩溃闪退
+    /// </summary>
+    public static IReadOnlyList<SingboxOutbound> DeduplicateTags(IReadOnlyList<SingboxOutbound> nodes)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+        var result = new List<SingboxOutbound>(nodes.Count);
+
+        foreach (var node in nodes)
+        {
+            string originalTag = !string.IsNullOrWhiteSpace(node.Tag) ? node.Tag : "Proxy";
+            if (seen.Add(originalTag))
+            {
+                counts[originalTag] = 1;
+                result.Add(string.Equals(node.Tag, originalTag, StringComparison.Ordinal) ? node : node with { Tag = originalTag });
+            }
+            else
+            {
+                int index = counts.TryGetValue(originalTag, out int c) ? c : 1;
+                string newTag;
+                do
+                {
+                    newTag = $"{originalTag} ({index.ToString(CultureInfo.InvariantCulture)})";
+                    index++;
+                } while (!seen.Add(newTag));
+
+                counts[originalTag] = index;
+                result.Add(node with { Tag = newTag });
+            }
+        }
+
+        return result;
     }
 
     private static bool IsFakeOrAdNode(string? tag)

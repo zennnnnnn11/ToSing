@@ -352,6 +352,10 @@ public sealed class NodeContext
             {
                 ctx.ServerPort = p;
             }
+            else
+            {
+                ctx.ServerPort = -1;
+            }
         }
         else
         {

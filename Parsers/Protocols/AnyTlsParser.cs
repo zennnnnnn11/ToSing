@@ -14,7 +14,8 @@ public static class AnyTlsParser
         ArgumentNullException.ThrowIfNull(ctx);
 
         string server = ctx.Server;
-        int port = ctx.ServerPort > 0 ? ctx.ServerPort : 443;
+        int port = ctx.ServerPort;
+        if (port < 1 || port > 65535) return null!;
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"AnyTLS {server}:{port}";
         string password = ctx.GetString("password", "auth");
 
@@ -25,7 +26,8 @@ public static class AnyTlsParser
 
         bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
         var alpnList = ctx.GetStringList("alpn");
-        string fp = ctx.GetString("fp", "client-fingerprint", "fingerprint");
+        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
+        string? fp = SubParser.Utils.SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
 
         var tls = new OutboundTLSOptions
         {
@@ -33,7 +35,7 @@ public static class AnyTlsParser
             ServerName = serverName,
             Insecure = insecure,
             Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = !string.IsNullOrEmpty(fp) ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null
+            Utls = fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null
         };
 
         return new AnyTlsOutbound

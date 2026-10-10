@@ -8,7 +8,7 @@ using SubParser.Parsers;
 using SubParser.Utils;
 
 Console.WriteLine("=================================================================");
-Console.WriteLine("  开始运行 7 大协议工业级双路径映射与官方内核终极质检验证");
+Console.WriteLine("  开始运行 7 大协议工业级双路径映射、避坑防线与内核终极质检验证");
 Console.WriteLine("=================================================================");
 
 int total = 0;
@@ -128,9 +128,47 @@ Console.WriteLine("\n[阶段一] 验证 7 大协议单链接 (URI) 解析与模�
 }
 
 // -------------------------------------------------------------
-// 测试 2: 7 大协议 Clash YAML 订阅与别名解析验证
+// 测试 2: Sub-Store 踩坑经验防线专项测试 (重名消重、端口非法、指纹白名单)
 // -------------------------------------------------------------
-Console.WriteLine("\n[阶段二] 验证 Clash YAML 订阅包解析与别名对齐...");
+Console.WriteLine("\n[阶段二] 验证 Sub-Store 踩坑防御护城河...");
+
+// 2.1 重名节点自动编号消重测试 (防止 sing-box 启动 duplicate tag 报错闪退)
+{
+    string multilineDupes = """
+    vless://uuid1@1.1.1.1:443#香港专线
+    vless://uuid2@1.1.1.2:443#香港专线
+    vless://uuid3@1.1.1.3:443#香港专线
+    """;
+    var deduped = UniversalParser.ParseSubscription(multilineDupes);
+    Assert("2.1 重名节点自动编号消重成功", deduped.Count == 3 &&
+        string.Equals(deduped[0].Tag, "香港专线", StringComparison.Ordinal) &&
+        string.Equals(deduped[1].Tag, "香港专线 (1)", StringComparison.Ordinal) &&
+        string.Equals(deduped[2].Tag, "香港专线 (2)", StringComparison.Ordinal));
+}
+
+// 2.2 非法端口节点拦截 (1 <= port <= 65535)
+{
+    string badPortUri1 = "vless://uuid@1.1.1.1:0#零端口节点";
+    string badPortUri2 = "vless://uuid@1.1.1.1:70000#超大端口节点";
+    var n1 = UniversalParser.ParseLine(badPortUri1);
+    var n2 = UniversalParser.ParseLine(badPortUri2);
+    Assert("2.2 非法端口 (0 或 70000) 成功拦截不进入模型", n1 == null && n2 == null);
+}
+
+// 2.3 uTLS 指纹大小写自动纠正与未知指纹安全过滤
+{
+    string upperFpUri = "vless://uuid@1.1.1.1:443?security=tls&fp=Chrome#大写指纹";
+    string fakeFpUri = "vless://uuid@1.1.1.1:443?security=tls&fp=MyWeirdFp#非法指纹";
+    var nodeUpper = UniversalParser.ParseLine(upperFpUri) as VlessOutbound;
+    var nodeFake = UniversalParser.ParseLine(fakeFpUri) as VlessOutbound;
+    Assert("2.3 大写 Chrome 自动纠偏为 chrome", string.Equals(nodeUpper?.Tls?.Utls?.Fingerprint, "chrome", StringComparison.Ordinal));
+    Assert("2.3 非法指纹安全丢弃不传给内核", nodeFake?.Tls?.Utls == null);
+}
+
+// -------------------------------------------------------------
+// 测试 3: 7 大协议 Clash YAML 订阅与别名解析验证
+// -------------------------------------------------------------
+Console.WriteLine("\n[阶段三] 验证 Clash YAML 订阅包解析与别名对齐...");
 
 string clashYaml = """
 port: 7890
@@ -144,7 +182,7 @@ proxies:
     flow: xtls-rprx-vision
     tls: true
     servername: www.apple.com
-    client-fingerprint: chrome
+    client-fingerprint: Chrome
     reality-opts:
       public-key: m58x9uUu6sH2Q_f2t3A3Wv3N3I7x6d2v_a5E_r8L-1A
       short-id: 0123456789abcdef
@@ -207,15 +245,15 @@ proxies:
 """;
 
 var clashNodes = UniversalParser.ParseSubscription(clashYaml);
-Assert("2.1 成功从 Clash YAML 提取 7 个真实节点并过滤假流量节点", clashNodes.Count == 7);
-Assert("2.2 Clash VLESS Reality 嵌套 opts 解析成功", clashNodes.OfType<VlessOutbound>().Any(v => v.Tls?.Reality?.PublicKey != null));
-Assert("2.3 Clash SS cipher/udp-over-tcp 别名解析成功", clashNodes.OfType<ShadowsocksOutbound>().Any(s => string.Equals(s.Method, "aes-256-gcm", StringComparison.Ordinal) && s.UdpOverTcp?.Enabled == true));
-Assert("2.4 Clash Hysteria2 带宽别名解析成功", clashNodes.OfType<Hysteria2Outbound>().Any(h => h.UpMbps == 30 && h.DownMbps == 100));
+Assert("3.1 成功从 Clash YAML 提取 7 个真实节点并过滤假流量节点", clashNodes.Count == 7);
+Assert("3.2 Clash VLESS Reality 嵌套 opts 解析成功并自动小写指纹", clashNodes.OfType<VlessOutbound>().Any(v => v.Tls?.Reality?.PublicKey != null && string.Equals(v.Tls.Utls?.Fingerprint, "chrome", StringComparison.Ordinal)));
+Assert("3.3 Clash SS cipher/udp-over-tcp 别名解析成功", clashNodes.OfType<ShadowsocksOutbound>().Any(s => string.Equals(s.Method, "aes-256-gcm", StringComparison.Ordinal) && s.UdpOverTcp?.Enabled == true));
+Assert("3.4 Clash Hysteria2 带宽别名解析成功", clashNodes.OfType<Hysteria2Outbound>().Any(h => h.UpMbps == 30 && h.DownMbps == 100));
 
 // -------------------------------------------------------------
-// 测试 3: 生成纯净 sing-box 配置并调用官方 sing-box.exe 深度质检
+// 测试 4: 生成纯净 sing-box 配置并调用官方 sing-box.exe 深度质检
 // -------------------------------------------------------------
-Console.WriteLine("\n[阶段三] 调用官方 sing-box.exe 对生成的完整配置进行内核级语法与规则质检...");
+Console.WriteLine("\n[阶段四] 调用官方 sing-box.exe 对生成的完整配置进行内核级语法与规则质检...");
 
 var fullConfig = new
 {
@@ -236,7 +274,7 @@ File.WriteAllText(configPath, configJson);
 
 Console.WriteLine($"[INFO] 成功输出 7 节点融合配置到: {configPath}");
 Console.WriteLine("=================================================================");
-Console.WriteLine($"  单元测试结果汇总: {passed} / {total} 全部通过！");
+Console.WriteLine($"  全部避坑与双路径解析测试汇总: {passed} / {total} 全部通过！");
 Console.WriteLine("=================================================================");
 
 if (passed != total)

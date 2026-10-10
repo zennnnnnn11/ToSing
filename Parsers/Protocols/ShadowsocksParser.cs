@@ -14,7 +14,8 @@ public static class ShadowsocksParser
         ArgumentNullException.ThrowIfNull(ctx);
 
         string server = ctx.Server;
-        int port = ctx.ServerPort > 0 ? ctx.ServerPort : 8388;
+        int port = ctx.ServerPort;
+        if (port < 1 || port > 65535) return null!;
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"SS {server}:{port}";
 
         string method = ctx.GetString("method", "cipher");
