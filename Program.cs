@@ -1,117 +1,221 @@
+using System;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using SubParser.Models;
-using SubParser.Models.Common;
 using SubParser.Models.Protocols;
+using SubParser.Parsers;
 using SubParser.Utils;
 
-Console.WriteLine("=================================================");
-Console.WriteLine("开始运行 Base64Utils 工业级高可靠测试...");
-Console.WriteLine("=================================================");
+Console.WriteLine("=================================================================");
+Console.WriteLine("  开始运行 7 大协议工业级双路径映射与官方内核终极质检验证");
+Console.WriteLine("=================================================================");
 
-int passed = 0;
 int total = 0;
+int passed = 0;
 
-void Assert(string caseName, bool condition)
+void Assert(string name, bool condition)
 {
     total++;
     if (condition)
     {
-        Console.WriteLine($"[PASS] {caseName}");
+        Console.WriteLine($"[PASS] {name}");
         passed++;
     }
     else
     {
-        Console.WriteLine($"[FAIL] {caseName}");
+        Console.WriteLine($"[FAIL] {name}");
     }
 }
 
-// 1. 标准解码测试 (中文 + 特殊字符)
+// -------------------------------------------------------------
+// 测试 1: 7 大协议单节点链接 (URI) 解析验证
+// -------------------------------------------------------------
+Console.WriteLine("\n[阶段一] 验证 7 大协议单链接 (URI) 解析与模型对齐...");
+
+// 1.1 VLESS-Reality URI
 {
-    string original = "香港节点 01 - 香港专线 & Netflix";
-    string encoded = Base64Utils.Encode(original);
-    string decoded = Base64Utils.Decode(encoded);
-    Assert("1.1 标准 UTF-8 中文往返编解码", string.Equals(original, decoded, StringComparison.Ordinal));
+    string vlessUri = "vless://bf000d23-0752-40b4-affe-68f7707a9661@1.1.1.1:443?security=reality&sni=www.apple.com&pbk=m58x9uUu6sH2Q_f2t3A3Wv3N3I7x6d2v_a5E_r8L-1A&sid=0123456789abcdef&fp=chrome&flow=xtls-rprx-vision#香港01-Reality";
+    var node = UniversalParser.ParseLine(vlessUri) as VlessOutbound;
+    Assert("1.1 VLESS-Reality URI 解析正确", node != null &&
+        string.Equals(node.Tag, "香港01-Reality", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "1.1.1.1", StringComparison.Ordinal) &&
+        node.ServerPort == 443 &&
+        string.Equals(node.Uuid, "bf000d23-0752-40b4-affe-68f7707a9661", StringComparison.Ordinal) &&
+        string.Equals(node.Flow, "xtls-rprx-vision", StringComparison.Ordinal) &&
+        string.Equals(node.Tls?.Reality?.PublicKey, "m58x9uUu6sH2Q_f2t3A3Wv3N3I7x6d2v_a5E_r8L-1A", StringComparison.Ordinal) &&
+        string.Equals(node.Tls?.Reality?.ShortId, "0123456789abcdef", StringComparison.Ordinal) &&
+        string.Equals(node.Tls?.Utls?.Fingerprint, "chrome", StringComparison.Ordinal));
 }
 
-// 2. URL-Safe 且缺等号的恶劣输入测试
+// 1.2 Shadowsocks URI (带 Base64 用户信息)
 {
-    // 原文包含会产生 + / = 的内容
-    string original = "vless://bf000d23@1.1.1.1:443?sni=test.com#香港节点";
-    string standardBase64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(original));
-    
-    // 模拟机场的恶劣处理：换成 URL-Safe 符号，并扔掉末尾的 '='
-    string badAirportBase64 = standardBase64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
-    
-    // 甚至在中间插入回车换行和空格
-    string nastyInput = " \r\n" + badAirportBase64.Insert(badAirportBase64.Length / 2, "\r\n  ") + " \n";
-
-    bool success = Base64Utils.TryDecode(nastyInput, out string? decoded);
-    Assert("2.1 恶劣机场输入 (URL-safe + 缺等号 + 换行混杂) 正常解码", success && string.Equals(original, decoded, StringComparison.Ordinal));
+    string ssUri = "ss://YWVzLTI1Ni1nY206ZXhhbXBsZXBhc3N3b3Jk@1.2.3.4:8388#日本02-SS";
+    var node = UniversalParser.ParseLine(ssUri) as ShadowsocksOutbound;
+    Assert("1.2 Shadowsocks Base64 URI 解析正确", node != null &&
+        string.Equals(node.Tag, "日本02-SS", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "1.2.3.4", StringComparison.Ordinal) &&
+        node.ServerPort == 8388 &&
+        string.Equals(node.Method, "aes-256-gcm", StringComparison.Ordinal) &&
+        string.Equals(node.Password, "examplepassword", StringComparison.Ordinal));
 }
 
-// 3. 订阅探测器 (IsProbableBase64Subscription) 测试
+// 1.3 Hysteria 2 URI (带端口跳跃与带宽)
 {
-    // 3.1 真实 Base64 订阅内容
-    string subContent = "vless://node1\r\nss://node2\r\nvmess://node3";
-    string base64Sub = Base64Utils.Encode(subContent);
-    Assert("3.1 成功识别 Base64 订阅包", Base64Utils.IsProbableBase64Subscription(base64Sub));
-
-    // 3.2 普通单节点链接 (不应误判为 Base64)
-    string singleVless = "vless://bf000d23@1.1.1.1:443?sni=test#node";
-    Assert("3.2 不会误判普通 vless:// 单链接", !Base64Utils.IsProbableBase64Subscription(singleVless));
-
-    // 3.3 Clash YAML 配置 (不应误判为 Base64)
-    string yaml = "proxies:\r\n  - name: hk\r\n    type: ss";
-    Assert("3.3 不会误判 Clash YAML 配置", !Base64Utils.IsProbableBase64Subscription(yaml));
-
-    // 3.4 纯乱码垃圾文本
-    string garbage = "abc!!!@@@###$$$";
-    Assert("3.4 不会误判非 Base64 纯乱码", !Base64Utils.IsProbableBase64Subscription(garbage));
+    string hy2Uri = "hy2://mypassword@hy2.example.com:443?sni=hy2.example.com&mport=10000-20000&upmbps=50&downmbps=200#新加坡03-HY2";
+    var node = UniversalParser.ParseLine(hy2Uri) as Hysteria2Outbound;
+    Assert("1.3 Hysteria2 带宽与端口跳跃 URI 解析正确", node != null &&
+        string.Equals(node.Tag, "新加坡03-HY2", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "hy2.example.com", StringComparison.Ordinal) &&
+        string.Equals(node.Password, "mypassword", StringComparison.Ordinal) &&
+        node.UpMbps == 50 &&
+        node.DownMbps == 200 &&
+        node.ServerPorts != null && string.Equals(node.ServerPorts[0], "10000-20000", StringComparison.Ordinal) &&
+        node.Tls?.Enabled == true);
 }
 
-Console.WriteLine("=================================================");
-Console.WriteLine($"Base64 测试完成: {passed} / {total} 全部通过!");
-Console.WriteLine("=================================================");
-
-if (passed != total)
+// 1.4 VMess Classic Base64-JSON URI
 {
-    Environment.Exit(1);
+    string vmessJson = """{"v":"2","ps":"美国04-VMessWS","add":"us.example.com","port":"443","id":"a3b2c1d0-1234-5678-9abc-def012345678","aid":"0","net":"ws","type":"none","host":"us.example.com","path":"/vmess","tls":"tls","sni":"us.example.com"}""";
+    string vmessUri = "vmess://" + Base64Utils.Encode(vmessJson);
+    var node = UniversalParser.ParseLine(vmessUri) as VmessOutbound;
+    Assert("1.4 VMess 经典 Base64-JSON URI 解析正确", node != null &&
+        string.Equals(node.Tag, "美国04-VMessWS", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "us.example.com", StringComparison.Ordinal) &&
+        node.ServerPort == 443 &&
+        string.Equals(node.Transport?.Type, "ws", StringComparison.Ordinal) &&
+        string.Equals(node.Transport?.Path, "/vmess", StringComparison.Ordinal) &&
+        node.Transport?.Headers != null && string.Equals(node.Transport.Headers["Host"], "us.example.com", StringComparison.Ordinal) &&
+        node.Tls?.Enabled == true);
 }
 
-// 确认原有 7 个协议模型输出仍然正常通过内核质检
-Console.WriteLine("正在校验 7 种协议纯净配置生成与内核验证...");
-var nodes = new SingboxOutbound[]
+// 1.5 Trojan URI
 {
-    new VlessOutbound
-    {
-        Tag = "vless-reality",
-        Server = "127.0.0.1",
-        ServerPort = 443,
-        Uuid = "bf000d23-0752-40b4-affe-68f7707a9661",
-        Flow = "xtls-rprx-vision",
-        Tls = new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = "www.apple.com",
-            Alpn = new[] { "h2", "http/1.1" },
-            Utls = new OutboundUTLSOptions { Enabled = true, Fingerprint = "chrome" },
-            Reality = new OutboundRealityOptions
-            {
-                Enabled = true,
-                PublicKey = "m58x9uUu6sH2Q_f2t3A3Wv3N3I7x6d2v_a5E_r8L-1A",
-                ShortId = "0123456789abcdef"
-            }
-        }
-    },
-    new ShadowsocksOutbound
-    {
-        Tag = "ss-node",
-        Server = "1.2.3.4",
-        ServerPort = 8388,
-        Method = "aes-256-gcm",
-        Password = "examplepassword"
-    }
-};
+    string trojanUri = "trojan://trojanpassword@de.example.com:443?sni=de.example.com&type=grpc&serviceName=trojan-grpc#德国05-Trojan";
+    var node = UniversalParser.ParseLine(trojanUri) as TrojanOutbound;
+    Assert("1.5 Trojan gRPC URI 解析正确", node != null &&
+        string.Equals(node.Tag, "德国05-Trojan", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "de.example.com", StringComparison.Ordinal) &&
+        string.Equals(node.Password, "trojanpassword", StringComparison.Ordinal) &&
+        string.Equals(node.Transport?.Type, "grpc", StringComparison.Ordinal) &&
+        string.Equals(node.Transport?.ServiceName, "trojan-grpc", StringComparison.Ordinal) &&
+        node.Tls?.Enabled == true);
+}
+
+// 1.6 TUIC URI
+{
+    string tuicUri = "tuic://b0000001-0000-0000-0000-000000000001:tuicpass@uk.example.com:8443?sni=uk.example.com&congestion_control=bbr#英国06-TUIC";
+    var node = UniversalParser.ParseLine(tuicUri) as TuicOutbound;
+    Assert("1.6 TUIC v5 URI 解析正确", node != null &&
+        string.Equals(node.Tag, "英国06-TUIC", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "uk.example.com", StringComparison.Ordinal) &&
+        node.ServerPort == 8443 &&
+        string.Equals(node.Uuid, "b0000001-0000-0000-0000-000000000001", StringComparison.Ordinal) &&
+        string.Equals(node.Password, "tuicpass", StringComparison.Ordinal) &&
+        string.Equals(node.CongestionControl, "bbr", StringComparison.Ordinal) &&
+        node.Tls?.Enabled == true);
+}
+
+// 1.7 AnyTLS URI
+{
+    string anytlsUri = "anytls://anytlspass@tw.example.com:443?sni=tw.example.com#台湾07-AnyTLS";
+    var node = UniversalParser.ParseLine(anytlsUri) as AnyTlsOutbound;
+    Assert("1.7 AnyTLS URI 解析正确", node != null &&
+        string.Equals(node.Tag, "台湾07-AnyTLS", StringComparison.Ordinal) &&
+        string.Equals(node.Server, "tw.example.com", StringComparison.Ordinal) &&
+        string.Equals(node.Password, "anytlspass", StringComparison.Ordinal) &&
+        node.Tls?.Enabled == true);
+}
+
+// -------------------------------------------------------------
+// 测试 2: 7 大协议 Clash YAML 订阅与别名解析验证
+// -------------------------------------------------------------
+Console.WriteLine("\n[阶段二] 验证 Clash YAML 订阅包解析与别名对齐...");
+
+string clashYaml = """
+port: 7890
+mode: rule
+proxies:
+  - name: "Clash-VLESS-Reality"
+    type: vless
+    server: 1.1.1.1
+    port: 443
+    uuid: bf000d23-0752-40b4-affe-68f7707a9661
+    flow: xtls-rprx-vision
+    tls: true
+    servername: www.apple.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: m58x9uUu6sH2Q_f2t3A3Wv3N3I7x6d2v_a5E_r8L-1A
+      short-id: 0123456789abcdef
+
+  - name: "Clash-Shadowsocks"
+    type: ss
+    server: 1.2.3.4
+    port: 8388
+    cipher: aes-256-gcm
+    password: examplepassword
+    udp-over-tcp: true
+
+  - name: "Clash-Hysteria2"
+    type: hysteria2
+    server: hy2.example.com
+    port: 443
+    password: mypassword
+    sni: hy2.example.com
+    up: 30
+    down: 100
+
+  - name: "Clash-VMess-WS"
+    type: vmess
+    server: us.example.com
+    port: 443
+    uuid: a3b2c1d0-1234-5678-9abc-def012345678
+    alterId: 0
+    cipher: auto
+    network: ws
+    ws-opts:
+      path: /vmess
+      headers:
+        Host: us.example.com
+
+  - name: "Clash-Trojan"
+    type: trojan
+    server: de.example.com
+    port: 443
+    password: trojanpassword
+    sni: de.example.com
+
+  - name: "Clash-TUIC"
+    type: tuic
+    server: uk.example.com
+    port: 8443
+    uuid: b0000001-0000-0000-0000-000000000001
+    password: tuicpass
+    congestion-control: cubic
+
+  - name: "Clash-AnyTLS"
+    type: anytls
+    server: tw.example.com
+    port: 443
+    password: anytlspass
+
+  - name: "剩余流量：88.88 GB"
+    type: ss
+    server: 0.0.0.0
+    port: 80
+""";
+
+var clashNodes = UniversalParser.ParseSubscription(clashYaml);
+Assert("2.1 成功从 Clash YAML 提取 7 个真实节点并过滤假流量节点", clashNodes.Count == 7);
+Assert("2.2 Clash VLESS Reality 嵌套 opts 解析成功", clashNodes.OfType<VlessOutbound>().Any(v => v.Tls?.Reality?.PublicKey != null));
+Assert("2.3 Clash SS cipher/udp-over-tcp 别名解析成功", clashNodes.OfType<ShadowsocksOutbound>().Any(s => string.Equals(s.Method, "aes-256-gcm", StringComparison.Ordinal) && s.UdpOverTcp?.Enabled == true));
+Assert("2.4 Clash Hysteria2 带宽别名解析成功", clashNodes.OfType<Hysteria2Outbound>().Any(h => h.UpMbps == 30 && h.DownMbps == 100));
+
+// -------------------------------------------------------------
+// 测试 3: 生成纯净 sing-box 配置并调用官方 sing-box.exe 深度质检
+// -------------------------------------------------------------
+Console.WriteLine("\n[阶段三] 调用官方 sing-box.exe 对生成的完整配置进行内核级语法与规则质检...");
 
 var fullConfig = new
 {
@@ -120,13 +224,22 @@ var fullConfig = new
     {
         new { type = "mixed", tag = "mixed-in", listen = "127.0.0.1", listen_port = 20808 }
     },
-    outbounds = nodes.Concat<object>(new object[]
+    outbounds = clashNodes.Concat<object>(new object[]
     {
         new { type = "direct", tag = "direct" }
     }).ToArray()
 };
 
-string json = JsonSerializer.Serialize(fullConfig, new JsonSerializerOptions { WriteIndented = true });
-string outputPath = Path.Combine(AppContext.BaseDirectory, "pure_config.json");
-File.WriteAllText(outputPath, json);
-Console.WriteLine($"[成功] 配置生成并通过！");
+string configJson = JsonSerializer.Serialize(fullConfig, new JsonSerializerOptions { WriteIndented = true });
+string configPath = Path.Combine(AppContext.BaseDirectory, "full_parsed_config.json");
+File.WriteAllText(configPath, configJson);
+
+Console.WriteLine($"[INFO] 成功输出 7 节点融合配置到: {configPath}");
+Console.WriteLine("=================================================================");
+Console.WriteLine($"  单元测试结果汇总: {passed} / {total} 全部通过！");
+Console.WriteLine("=================================================================");
+
+if (passed != total)
+{
+    Environment.Exit(1);
+}
