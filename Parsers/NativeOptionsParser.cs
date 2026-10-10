@@ -84,7 +84,7 @@ internal static class NativeOptionsParser
         || value is JsonElement { ValueKind: JsonValueKind.Object };
 }
 
-internal sealed record class ParsedDialerOptions : SingboxDialerOptions;
+public sealed record class ParsedDialerOptions : SingboxDialerOptions;
 
 internal sealed class ScalarBooleanConverter : JsonConverter<bool>
 {

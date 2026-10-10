@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net11.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.2.5" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.5" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.5" />
+        <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SubParser.csproj" />
+    </ItemGroup>
+</Project>

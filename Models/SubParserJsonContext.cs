@@ -55,4 +55,4 @@ using SubParser.Parsers;
 [JsonSerializable(typeof(ulong))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(JsonElement))]
-internal sealed partial class SubParserJsonContext : JsonSerializerContext { }
+public sealed partial class SubParserJsonContext : JsonSerializerContext { }
