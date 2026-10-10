@@ -95,11 +95,14 @@ public static class TlsParser
         string? ClientKeyPath
     ) ParseCertificates(NodeContext ctx)
     {
-        var certificate = ctx.GetStringList("certificate", "ca");
+        var certificate = ctx.GetStringList("certificate", "ca", "ca_str", "ca-str");
         var certSha256 = ctx.GetStringList(
             "certificate_sha256",
             "certificate-sha256",
-            "cert-sha256"
+            "cert-sha256",
+            "pinSHA256",
+            "pin-sha256",
+            "pin_sha256"
         );
         var certPubKeySha256 = ctx.GetStringList(
             "certificate_public_key_sha256",

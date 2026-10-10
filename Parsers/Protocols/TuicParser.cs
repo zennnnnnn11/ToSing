@@ -27,7 +27,12 @@ public static class TuicParser
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"TUIC {server}:{port}";
         string password = ctx.GetSecretString("password");
-        string cc = ctx.GetString("congestion_control", "congestion-control");
+        string cc = ctx.GetString(
+            "congestion_control",
+            "congestion-control",
+            "congestion-controller",
+            "congestion_controller"
+        );
         string udpRelayMode = ctx.GetString("udp_relay_mode", "udp-relay-mode");
         if (!string.IsNullOrEmpty(udpRelayMode) && udpRelayMode is not ("native" or "quic"))
             throw new FormatException($"Unknown TUIC udp_relay_mode: {udpRelayMode}");

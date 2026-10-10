@@ -49,5 +49,33 @@ proxies:
 }
 Add-AuditCase 'ech-disable-zero-uri' ($taskVless + '&ech=0&ech-config-path=%2Fnonexistent%2Faudit-ech.pem') { param($n) !$n[0].tls.ContainsKey('ech') -or !$n[0].tls.ech.enabled }
 Add-AuditCase 'ech-disable-uppercase-uri' ($taskVless + '&ech=FALSE&ech-config-path=%2Fnonexistent%2Faudit-ech.pem') { param($n) !$n[0].tls.ContainsKey('ech') -or !$n[0].tls.ech.enabled }
+
+$taskDialerProxyYaml = @"
+proxies:
+  - name: dialer-proxy-node
+    type: shadowsocks
+    server: 127.0.0.1
+    port: 8388
+    cipher: aes-128-gcm
+    password: pass
+    dialer-proxy: proxy-chain-tag
+    fast-open: true
+"@
+Add-AuditCase 'mapping-dialer-proxy-detour-yaml' $taskDialerProxyYaml { param($n) $n[0].detour -eq 'proxy-chain-tag' -and $n[0].tcp_fast_open -eq $true } { param($n) $n[0].detour = 'proxy-chain-tag'; $n[0].tcp_fast_open = $true; return ,$n }
+
+Add-AuditCase 'mapping-hy2-pinsha256-uri' 'hy2://my-pass@127.0.0.1:443?pinSHA256=11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff#hy2-pin' { param($n) $n[0].tls.certificate_sha256[0] -eq '11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff' } { param($n) $n[0].tls.certificate_sha256 = @('11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff'); return ,$n }
+
+$taskTuicCcYaml = @"
+proxies:
+  - name: tuic-congestion-controller
+    type: tuic
+    server: 127.0.0.1
+    port: 443
+    uuid: $taskUuid
+    password: test-password
+    congestion-controller: bbr
+"@
+Add-AuditCase 'mapping-tuic-congestion-controller-yaml' $taskTuicCcYaml { param($n) $n[0].congestion_control -eq 'bbr' } { param($n) $n[0].congestion_control = 'bbr'; return ,$n }
+
 . (Join-Path $PSScriptRoot 'runner.ps1')
 

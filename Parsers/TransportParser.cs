@@ -49,7 +49,8 @@ internal static class TransportParser
         string edhn = ctx.GetString(
             "early_data_header_name",
             "ws-opts.early-data-header-name",
-            "early-data-header-name"
+            "early-data-header-name",
+            "eh"
         );
 
         return new V2RayTransportOptions

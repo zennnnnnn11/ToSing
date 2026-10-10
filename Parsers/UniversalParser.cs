@@ -233,6 +233,9 @@ public static partial class UniversalParser
         var dialer = NativeOptionsParser.Read<ParsedDialerOptions>(
             ctx,
             ("tfo", "tcp_fast_open"),
+            ("fast-open", "tcp_fast_open"),
+            ("fastopen", "tcp_fast_open"),
+            ("dialer-proxy", "detour"),
             ("interface-name", "bind_interface"),
             ("mptcp", "tcp_multi_path")
         );
