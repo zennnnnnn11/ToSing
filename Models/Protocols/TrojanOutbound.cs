@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using SubParser.Models.Common;
 
 /// <summary>
-/// 对齐 sing-box 官方 option/trojan.go 中的 TrojanOutboundOptions 定义
+/// Trojan 出站配置。
 /// </summary>
 public sealed record class TrojanOutbound : SingboxOutbound
 {

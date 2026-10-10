@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// 对齐 sing-box 官方 option/tls.go 中的 OutboundTLSOptions 定义
+/// 出站 TLS 配置。
 /// </summary>
 public sealed record class OutboundTLSOptions
 {
@@ -45,7 +45,7 @@ public sealed record class OutboundTLSOptions
 }
 
 /// <summary>
-/// 对齐 sing-box 官方 option/tls.go 中的 OutboundUTLSOptions 定义
+/// uTLS 指纹伪装配置。
 /// </summary>
 public sealed record class OutboundUTLSOptions
 {
@@ -62,7 +62,7 @@ public sealed record class OutboundUTLSOptions
 }
 
 /// <summary>
-/// 对齐 sing-box 官方 option/tls.go 中的 OutboundRealityOptions 定义
+/// Reality 协议配置。
 /// </summary>
 public sealed record class OutboundRealityOptions
 {

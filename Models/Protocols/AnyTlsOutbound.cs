@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using SubParser.Models.Common;
 
 /// <summary>
-/// 对齐 sing-box 官方 option/anytls.go 中的 AnyTLSOutboundOptions 定义 (1.12.0+)
+/// AnyTLS 出站配置。
 /// </summary>
 public sealed record class AnyTlsOutbound : SingboxOutbound
 {

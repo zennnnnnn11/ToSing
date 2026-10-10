@@ -10,13 +10,8 @@ using SubParser.Utils;
 using YamlDotNet.Serialization;
 
 /// <summary>
-/// 通用订阅与节点解析调度引擎
-/// 吸收 Sub-Store 与成熟转换器全套实战避坑经验:
-/// - 自动清洗 UTF-8 BOM (\uFEFF) 与隐形空白字符
-/// - 自动跳过纯注释行 (#, //, ;) 与空行杂质
-/// - 自动过滤无效/垃圾/广告节点
-/// - 自动全局消重 (Duplicate Tag 智能编号重命名)
-/// - 严格合法端口范围校验 (1 ~ 65535)
+/// 通用订阅与节点解析调度引擎。
+/// 支持处理单链接、多行链接、Base64 订阅及 Clash YAML 配置中的 proxies 列表。
 /// </summary>
 public static class UniversalParser
 {
@@ -24,6 +19,9 @@ public static class UniversalParser
         .IgnoreUnmatchedProperties()
         .Build();
 
+    /// <summary>
+    /// 根据 NodeContext 的 Protocol 调度解析出站节点。
+    /// </summary>
     public static SingboxOutbound? ParseContext(NodeContext ctx)
     {
         ArgumentNullException.ThrowIfNull(ctx);
@@ -42,6 +40,9 @@ public static class UniversalParser
         };
     }
 
+    /// <summary>
+    /// 解析单行节点 URI 链接。
+    /// </summary>
     public static SingboxOutbound? ParseLine(string line)
     {
         if (string.IsNullOrWhiteSpace(line)) return null;
@@ -66,6 +67,9 @@ public static class UniversalParser
         }
     }
 
+    /// <summary>
+    /// 解析 Clash YAML 的单个代理节点字典。
+    /// </summary>
     public static SingboxOutbound? ParseClashProxy(IReadOnlyDictionary<string, object?> proxy)
     {
         if (proxy == null || proxy.Count == 0) return null;
@@ -74,15 +78,16 @@ public static class UniversalParser
         return ParseContext(ctx);
     }
 
+    /// <summary>
+    /// 解析订阅内容，自动识别 Clash YAML、Base64 订阅或多行 URI。
+    /// </summary>
     public static IReadOnlyList<SingboxOutbound> ParseSubscription(string rawText)
     {
         var rawNodes = new List<SingboxOutbound>();
         if (string.IsNullOrWhiteSpace(rawText)) return rawNodes;
 
-        // 1. 深度清洗 BOM 头与不可见控制字符
         string content = CleanRawText(rawText);
 
-        // 2. 识别 Clash YAML
         if (content.Contains("proxies:", StringComparison.OrdinalIgnoreCase))
         {
             var yamlNodes = ParseClashYaml(content);
@@ -92,7 +97,6 @@ public static class UniversalParser
             }
         }
 
-        // 3. 识别 Base64 订阅
         if (Base64Utils.IsProbableBase64Subscription(content))
         {
             string decoded = Base64Utils.Decode(content);
@@ -102,7 +106,6 @@ public static class UniversalParser
             }
         }
 
-        // 4. 逐行安全扫描
         using var reader = new StringReader(content);
         string? line;
         while ((line = reader.ReadLine()) != null)
@@ -144,11 +147,14 @@ public static class UniversalParser
         }
         catch
         {
-            // 降级处理
+            // 忽略 YAML 解析异常并返回已解析项
         }
         return results;
     }
 
+    /// <summary>
+    /// 对同名节点追加递增编号后缀，确保出站标签全局唯一。
+    /// </summary>
     public static IReadOnlyList<SingboxOutbound> DeduplicateTags(IReadOnlyList<SingboxOutbound> nodes)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -208,7 +214,7 @@ public static class UniversalParser
     }
 
     /// <summary>
-    /// 拔除 UTF-8 BOM (\uFEFF) 与隐形空格杂质
+    /// 移除 UTF-8 BOM 及首尾空白字符。
     /// </summary>
     public static string CleanRawText(string? raw)
     {
@@ -216,9 +222,6 @@ public static class UniversalParser
         return raw.Trim(['\uFEFF', '\u200B', ' ', '\r', '\n', '\t']);
     }
 
-    /// <summary>
-    /// 判定是否为纯注释行 (#, //, ; 开头且不含 :// 协议标记)
-    /// </summary>
     private static bool IsCommentLine(string line)
     {
         if (line.Length == 0) return true;

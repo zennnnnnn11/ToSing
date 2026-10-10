@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// 对齐 sing-box 官方 option/multiplex.go 中的 OutboundMultiplexOptions 定义
+/// 出站多路复用配置。
 /// </summary>
 public sealed record class OutboundMultiplexOptions
 {
@@ -14,7 +14,7 @@ public sealed record class OutboundMultiplexOptions
 
     [JsonPropertyName("protocol")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Protocol { get; init; } // h2mux, smux, yamux
+    public string? Protocol { get; init; }
 
     [JsonPropertyName("max_connections")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

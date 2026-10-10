@@ -9,7 +9,7 @@ using SubParser.Models.Protocols;
 using SubParser.Utils;
 
 /// <summary>
-/// VMess 协议节点解析与装配器
+/// VMess 协议解析器。
 /// </summary>
 public static class VmessParser
 {
@@ -20,9 +20,9 @@ public static class VmessParser
         string server = ctx.Server;
         int port = ctx.ServerPort;
         if (port < 1 || port > 65535) return null!;
+
         string uuid = ctx.GetString("uuid", "id");
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VMess {server}:{port}";
-
         string security = NormalizeVmessSecurity(ctx.GetString("security", "cipher"));
 
         int alterId = ctx.GetInt("alter_id", "alterId", "aid");
@@ -102,7 +102,7 @@ public static class VmessParser
         bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
         var alpnList = ctx.GetStringList("alpn");
         string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
-        string? fp = SubParser.Utils.SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
+        string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
 
         return new OutboundTLSOptions
         {

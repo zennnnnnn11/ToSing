@@ -7,7 +7,7 @@ using System.Web;
 using SubParser.Utils;
 
 /// <summary>
-/// 统一节点属性查询上下文 (只读视图)
+/// 节点属性查询上下文，为 URI 链接和 Clash 字典提供统一的别名读取接口。
 /// </summary>
 public sealed class NodeContext
 {
@@ -25,6 +25,9 @@ public sealed class NodeContext
         _properties[key] = value;
     }
 
+    /// <summary>
+    /// 从标准 URI 字符串解析上下文。
+    /// </summary>
     public static NodeContext FromUri(string uriString)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(uriString);
@@ -61,6 +64,9 @@ public sealed class NodeContext
         return ctx;
     }
 
+    /// <summary>
+    /// 从 Clash 节点字典解析上下文。
+    /// </summary>
     public static NodeContext FromClash(IReadOnlyDictionary<string, object?> proxy)
     {
         ArgumentNullException.ThrowIfNull(proxy);
@@ -79,6 +85,9 @@ public sealed class NodeContext
         return ctx;
     }
 
+    /// <summary>
+    /// 依次按别名获取字符串值。
+    /// </summary>
     public string GetString(params string[] aliases)
     {
         foreach (string alias in aliases)
@@ -101,6 +110,9 @@ public sealed class NodeContext
         return string.Empty;
     }
 
+    /// <summary>
+    /// 依次按别名获取整数值。
+    /// </summary>
     public int GetInt(params string[] aliases) => GetIntWithDefault(0, aliases);
 
     public int GetIntWithDefault(int defaultValue, params string[] aliases)
@@ -126,6 +138,9 @@ public sealed class NodeContext
         return defaultValue;
     }
 
+    /// <summary>
+    /// 依次按别名获取布尔值。
+    /// </summary>
     public bool GetBool(params string[] aliases) => GetBoolWithDefault(false, aliases);
 
     public bool GetBoolWithDefault(bool defaultValue, params string[] aliases)
@@ -150,6 +165,9 @@ public sealed class NodeContext
         return defaultValue;
     }
 
+    /// <summary>
+    /// 依次按别名获取去重后的非空字符串列表。
+    /// </summary>
     public IReadOnlyList<string> GetStringList(params string[] aliases)
     {
         var result = new List<string>();
@@ -180,6 +198,9 @@ public sealed class NodeContext
         return result;
     }
 
+    /// <summary>
+    /// 获取子字典映射。
+    /// </summary>
     public IReadOnlyDictionary<string, string> GetStringDictionary(params string[] aliases)
     {
         var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -217,9 +238,6 @@ public sealed class NodeContext
         return raw;
     }
 
-    /// <summary>
-    /// 递归还原二次 URL 编码的节点名字 (解决 %25E9%25A6... 百分号乱码)
-    /// </summary>
     public static string SafeUrlDecode(string text)
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;

@@ -6,7 +6,7 @@ using SubParser.Models.Common;
 using SubParser.Models.Protocols;
 
 /// <summary>
-/// Shadowsocks 协议节点解析与装配器
+/// Shadowsocks 协议解析器。
 /// </summary>
 public static class ShadowsocksParser
 {
@@ -55,7 +55,7 @@ public static class ShadowsocksParser
             Method = method,
             Password = password,
             Plugin = !string.IsNullOrEmpty(plugin) ? plugin : null,
-            PluginOptions = !string.IsNullOrEmpty(pluginOpts) ? pluginOpts : null,
+            PluginOptions = pluginOpts,
             UdpOverTcp = uot,
             Multiplex = multiplex
         };

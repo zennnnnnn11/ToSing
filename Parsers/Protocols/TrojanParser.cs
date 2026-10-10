@@ -4,9 +4,10 @@ using System;
 using System.Collections.Generic;
 using SubParser.Models.Common;
 using SubParser.Models.Protocols;
+using SubParser.Utils;
 
 /// <summary>
-/// Trojan 协议节点解析与装配器
+/// Trojan 协议解析器。
 /// </summary>
 public static class TrojanParser
 {
@@ -17,8 +18,9 @@ public static class TrojanParser
         string server = ctx.Server;
         int port = ctx.ServerPort;
         if (port < 1 || port > 65535) return null!;
+
+        string password = ctx.GetString("password");
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"Trojan {server}:{port}";
-        string password = ctx.GetString("password", "auth");
 
         var transport = ParseTransport(ctx);
         var tls = ParseTls(ctx, server);
@@ -62,6 +64,17 @@ public static class TrojanParser
                 ServiceName = !string.IsNullOrEmpty(serviceName) ? serviceName : null
             };
         }
+        if (string.Equals(netType, "http", StringComparison.Ordinal) ||
+            string.Equals(netType, "h2", StringComparison.Ordinal) ||
+            string.Equals(netType, "httpupgrade", StringComparison.Ordinal))
+        {
+            string path = ctx.GetString("path", "http-opts.path");
+            return new V2RayTransportOptions
+            {
+                Type = netType,
+                Path = !string.IsNullOrEmpty(path) ? path : null
+            };
+        }
         return null;
     }
 
@@ -73,7 +86,7 @@ public static class TrojanParser
         bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
         var alpnList = ctx.GetStringList("alpn");
         string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
-        string? fp = SubParser.Utils.SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
+        string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
 
         return new OutboundTLSOptions
         {

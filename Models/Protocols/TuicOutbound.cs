@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using SubParser.Models.Common;
 
 /// <summary>
-/// 对齐 sing-box 官方 option/tuic.go 中的 TUICOutboundOptions 定义
+/// TUIC 出站配置。
 /// </summary>
 public sealed record class TuicOutbound : SingboxOutbound
 {
@@ -18,11 +18,11 @@ public sealed record class TuicOutbound : SingboxOutbound
 
     [JsonPropertyName("congestion_control")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? CongestionControl { get; init; } // "bbr", "cubic", "new_reno"
+    public string? CongestionControl { get; init; }
 
     [JsonPropertyName("udp_relay_mode")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? UdpRelayMode { get; init; } // "native", "quic"
+    public string? UdpRelayMode { get; init; }
 
     [JsonPropertyName("udp_over_stream")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

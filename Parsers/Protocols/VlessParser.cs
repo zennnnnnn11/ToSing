@@ -4,9 +4,10 @@ using System;
 using System.Collections.Generic;
 using SubParser.Models.Common;
 using SubParser.Models.Protocols;
+using SubParser.Utils;
 
 /// <summary>
-/// VLESS 协议节点解析与装配器
+/// VLESS 协议解析器。
 /// </summary>
 public static class VlessParser
 {
@@ -17,6 +18,7 @@ public static class VlessParser
         string server = ctx.Server;
         int port = ctx.ServerPort;
         if (port < 1 || port > 65535) return null!;
+
         string uuid = ctx.GetString("uuid", "password");
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VLESS {server}:{port}";
         string flow = ctx.GetString("flow");
@@ -24,7 +26,7 @@ public static class VlessParser
         var transport = ParseTransport(ctx);
         if (transport != null && !string.IsNullOrEmpty(flow))
         {
-            flow = string.Empty; // 内核约束: 存在 transport 时不可配置 flow
+            flow = string.Empty;
         }
 
         var tls = ParseTls(ctx, server);
@@ -102,7 +104,7 @@ public static class VlessParser
         bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
         var alpnList = ctx.GetStringList("alpn");
         string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
-        string? fp = SubParser.Utils.SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
+        string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
 
         OutboundRealityOptions? reality = null;
         if (string.Equals(security, "reality", StringComparison.Ordinal) || !string.IsNullOrEmpty(pbk))

@@ -3,7 +3,7 @@ namespace SubParser.Models.Common;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// 对齐 sing-box 官方 option/udp_over_tcp.go 中的 UDPOverTCPOptions 定义
+/// UDP Over TCP 配置。
 /// </summary>
 public sealed record class UdpOverTcpOptions
 {
@@ -13,5 +13,5 @@ public sealed record class UdpOverTcpOptions
 
     [JsonPropertyName("version")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? Version { get; init; } // 1 或 2
+    public int? Version { get; init; }
 }

@@ -4,18 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 /// <summary>
-/// 工业级 Base64 容错编解码工具类
-/// - 吸收 v2rayN、Sub-Store、subconverter 实战经验
-/// - 自动过滤回车、换行、空格杂质
-/// - 自动兼容 URL-Safe Base64 (- 和 _)
-/// - 自动补全末尾缺失的 '=' Padding
-/// - 零异常崩溃保证 (TryDecode API)
+/// Base64 编解码辅助类，支持 URL-Safe 字符与填充自动补齐。
 /// </summary>
 public static class Base64Utils
 {
     /// <summary>
-    /// 安全解码 Base64 字符串为 UTF-8 文本
-    /// 如果解码失败或输入为空，返回空字符串，绝不抛出异常
+    /// 解码 Base64 字符串为 UTF-8 文本，失败时返回空字符串。
     /// </summary>
     public static string Decode(string? input)
     {
@@ -23,7 +17,7 @@ public static class Base64Utils
     }
 
     /// <summary>
-    /// 尝试解码 Base64 字符串为 UTF-8 文本
+    /// 尝试解码 Base64 字符串为 UTF-8 文本。
     /// </summary>
     public static bool TryDecode(string? input, [NotNullWhen(true)] out string? result)
     {
@@ -45,7 +39,7 @@ public static class Base64Utils
     }
 
     /// <summary>
-    /// 尝试将 Base64 解码为原始字节数组
+    /// 尝试将 Base64 字符串解码为字节数组。
     /// </summary>
     public static bool TryDecodeToBytes(string? input, [NotNullWhen(true)] out byte[]? bytes)
     {
@@ -73,7 +67,7 @@ public static class Base64Utils
     }
 
     /// <summary>
-    /// 将文本编码为 Base64 字符串
+    /// 将文本编码为 Base64 字符串。
     /// </summary>
     public static string Encode(string? input, bool urlSafe = false)
     {
@@ -94,7 +88,7 @@ public static class Base64Utils
     }
 
     /// <summary>
-    /// 探测一段文本是否极大概率是 Base64 订阅内容（且不是普通的以协议开头的单链接）
+    /// 检查输入是否可能为 Base64 编码的订阅内容。
     /// </summary>
     public static bool IsProbableBase64Subscription(string? input)
     {
@@ -105,7 +99,6 @@ public static class Base64Utils
 
         string trimmed = input.Trim();
 
-        // 如果明显是普通的链接协议开头，则不是 Base64 订阅包
         if (trimmed.StartsWith("vless://", StringComparison.OrdinalIgnoreCase) ||
             trimmed.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase) ||
             trimmed.StartsWith("ss://", StringComparison.OrdinalIgnoreCase) ||
@@ -121,7 +114,6 @@ public static class Base64Utils
             return false;
         }
 
-        // 尝试解码并检查解出来的文本是否包含至少一个合法的协议头
         if (TryDecode(trimmed, out string? decoded))
         {
             return decoded.Contains("://", StringComparison.Ordinal) ||
@@ -131,18 +123,13 @@ public static class Base64Utils
         return false;
     }
 
-    /// <summary>
-    /// 核心清洗函数：去空、换符号、补齐等号
-    /// </summary>
     private static string SanitizeBase64(string raw)
     {
-        // 1. 去除首尾与内部空白符、换行符
         var sb = new StringBuilder(raw.Length + 4);
         foreach (char c in raw)
         {
             if (c is not ('\r' or '\n' or ' ' or '\t'))
             {
-                // 2. 转换 URL-safe 符号
                 char replaced = c switch
                 {
                     '-' => '+',
@@ -153,7 +140,6 @@ public static class Base64Utils
             }
         }
 
-        // 3. 补齐末尾缺失的 '=' 等号 (长度必须为 4 的整数倍)
         int mod = sb.Length % 4;
         if (mod > 0)
         {
