@@ -13,7 +13,7 @@ public sealed record class TrojanOutbound : SingboxOutbound
 
     [JsonPropertyName("network")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public object? Network { get; init; }
 
     [JsonPropertyName("tls")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

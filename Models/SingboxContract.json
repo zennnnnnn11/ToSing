@@ -1,0 +1,1721 @@
+{
+  "anytls": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "client_metadata": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "idle_session_check_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "idle_session_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "min_idle_session": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "password": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    }
+  },
+  "brutal": {
+    "down_mbps": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "up_mbps": {
+      "go_type": "int",
+      "kind": "int"
+    }
+  },
+  "dialer": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    }
+  },
+  "domain_resolver": {
+    "client_subnet": {
+      "go_type": "*badoption.Prefixable",
+      "kind": "struct"
+    },
+    "disable_cache": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "disable_optimistic_cache": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "rewrite_ttl": {
+      "go_type": "*uint32",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8"
+    },
+    "timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    }
+  },
+  "ech": {
+    "config": {
+      "go_type": "badoption.Listable[string]",
+      "kind": "slice"
+    },
+    "config_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "dynamic_record_sizing_disabled": {
+      "go_type": "bool",
+      "kind": "bool",
+      "deprecated": true
+    },
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "pq_signature_schemes_enabled": {
+      "go_type": "bool",
+      "kind": "bool",
+      "deprecated": true
+    },
+    "query_server_name": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "grpc": {
+    "idle_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "permit_without_stream": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "ping_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "service_name": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "http": {
+    "headers": {
+      "go_type": "badoption.HTTPHeader",
+      "kind": "map"
+    },
+    "host": {
+      "go_type": "badoption.Listable[string]",
+      "kind": "slice"
+    },
+    "idle_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "method": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "ping_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    }
+  },
+  "http_client": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "connection_receive_window": {
+      "go_type": "*byteformats.MemoryBytes",
+      "kind": "struct"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_path_mtu_discovery": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "disable_version_fallback": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "engine": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "go",
+        "apple"
+      ]
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "headers": {
+      "go_type": "badoption.HTTPHeader",
+      "kind": "map"
+    },
+    "idle_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "initial_packet_size": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "keep_alive_period": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "max_concurrent_streams": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "stream_receive_window": {
+      "go_type": "*byteformats.MemoryBytes",
+      "kind": "struct"
+    },
+    "tag": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    },
+    "version": {
+      "go_type": "int",
+      "kind": "int",
+      "enum": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ]
+    }
+  },
+  "httpupgrade": {
+    "headers": {
+      "go_type": "badoption.HTTPHeader",
+      "kind": "map"
+    },
+    "host": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "path": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "hy2_obfs": {
+    "max_packet_size": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "min_packet_size": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "password": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "type": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "salamander",
+        "gecko"
+      ]
+    }
+  },
+  "hysteria2": {
+    "bbr_profile": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "standard",
+        "conservative",
+        "aggressive"
+      ]
+    },
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "brutal_debug": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "connection_receive_window": {
+      "go_type": "*byteformats.MemoryBytes",
+      "kind": "struct"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_chrome_parrot": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "disable_path_mtu_discovery": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "down_mbps": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "hop_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "hop_interval_max": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "idle_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "initial_packet_size": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "keep_alive_period": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "max_concurrent_streams": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network": {
+      "go_type": "option.NetworkList",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "obfs": {
+      "go_type": "*option.Hysteria2Obfs",
+      "kind": "struct"
+    },
+    "password": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "realm": {
+      "go_type": "*option.Hysteria2Realm",
+      "kind": "struct"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "server_ports": {
+      "go_type": "option.LegacyListable[string]",
+      "kind": "slice"
+    },
+    "stream_receive_window": {
+      "go_type": "*byteformats.MemoryBytes",
+      "kind": "struct"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    },
+    "up_mbps": {
+      "go_type": "int",
+      "kind": "int"
+    }
+  },
+  "multiplex": {
+    "brutal": {
+      "go_type": "*option.BrutalOptions",
+      "kind": "struct"
+    },
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "max_connections": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "max_streams": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "min_streams": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "padding": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "protocol": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "h2mux",
+        "smux",
+        "yamux"
+      ]
+    }
+  },
+  "quic": {},
+  "reality": {
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "public_key": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "short_id": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "realm": {
+    "http_client": {
+      "go_type": "*option.HTTPClientOptions",
+      "kind": "struct"
+    },
+    "ip_version": {
+      "go_type": "int",
+      "kind": "int",
+      "enum": [
+        "0",
+        "4",
+        "6"
+      ]
+    },
+    "port_mapping": {
+      "go_type": "*option.Hysteria2RealmPortMapping",
+      "kind": "struct"
+    },
+    "realm_id": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_url": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "stun_servers": {
+      "go_type": "option.LegacyListable[string]",
+      "kind": "slice"
+    },
+    "token": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "realm_port_mapping": {
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "lifetime": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    }
+  },
+  "shadowsocks": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "method": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "none",
+        "aes-128-gcm",
+        "aes-192-gcm",
+        "aes-256-gcm",
+        "chacha20-ietf-poly1305",
+        "xchacha20-ietf-poly1305",
+        "2022-blake3-aes-128-gcm",
+        "2022-blake3-aes-256-gcm",
+        "2022-blake3-chacha20-poly1305",
+        "aes-128-ctr",
+        "aes-192-ctr",
+        "aes-256-ctr",
+        "aes-128-cfb",
+        "aes-192-cfb",
+        "aes-256-cfb",
+        "rc4-md5",
+        "chacha20-ietf",
+        "xchacha20"
+      ]
+    },
+    "multiplex": {
+      "go_type": "*option.OutboundMultiplexOptions",
+      "kind": "struct"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network": {
+      "go_type": "option.NetworkList",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "password": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "plugin": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "plugin_opts": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    },
+    "udp_over_tcp": {
+      "go_type": "*option.UDPOverTCPOptions",
+      "kind": "struct"
+    }
+  },
+  "tls": {
+    "alpn": {
+      "go_type": "badoption.Listable[string]",
+      "kind": "slice"
+    },
+    "certificate": {
+      "go_type": "badoption.Listable[string]",
+      "kind": "slice"
+    },
+    "certificate_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "certificate_public_key_sha256": {
+      "go_type": "badoption.Listable[[]uint8]",
+      "kind": "slice"
+    },
+    "certificate_sha256": {
+      "go_type": "badoption.Listable[[]uint8]",
+      "kind": "slice"
+    },
+    "cipher_suites": {
+      "go_type": "option.LegacyListable[string]",
+      "kind": "slice"
+    },
+    "client_certificate": {
+      "go_type": "badoption.Listable[string]",
+      "kind": "slice"
+    },
+    "client_certificate_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "client_key": {
+      "go_type": "badoption.Listable[string]",
+      "kind": "slice"
+    },
+    "client_key_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "curve_preferences": {
+      "go_type": "option.LegacyListable[github.com/sagernet/sing-box/option.CurvePreference]",
+      "kind": "slice"
+    },
+    "disable_sni": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "ech": {
+      "go_type": "*option.OutboundECHOptions",
+      "kind": "struct"
+    },
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "engine": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "go",
+        "apple",
+        "windows"
+      ]
+    },
+    "fragment": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "fragment_fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "handshake_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "insecure": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "kernel_rx": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "kernel_tx": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "max_version": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "1.0",
+        "1.1",
+        "1.2",
+        "1.3"
+      ]
+    },
+    "min_version": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "1.0",
+        "1.1",
+        "1.2",
+        "1.3"
+      ]
+    },
+    "reality": {
+      "go_type": "*option.OutboundRealityOptions",
+      "kind": "struct"
+    },
+    "record_fragment": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "server_name": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "spoof": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "spoof_method": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "wrong-sequence",
+        "wrong-checksum",
+        "wrong-ack",
+        "wrong-md5",
+        "wrong-timestamp"
+      ]
+    },
+    "utls": {
+      "go_type": "*option.OutboundUTLSOptions",
+      "kind": "struct"
+    }
+  },
+  "trojan": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "multiplex": {
+      "go_type": "*option.OutboundMultiplexOptions",
+      "kind": "struct"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network": {
+      "go_type": "option.NetworkList",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "password": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "transport": {
+      "go_type": "*option.V2RayTransportOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    }
+  },
+  "tuic": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "congestion_control": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "cubic",
+        "new_reno",
+        "bbr"
+      ]
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "connection_receive_window": {
+      "go_type": "*byteformats.MemoryBytes",
+      "kind": "struct"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_path_mtu_discovery": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "heartbeat": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "idle_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "initial_packet_size": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "keep_alive_period": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "max_concurrent_streams": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network": {
+      "go_type": "option.NetworkList",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "password": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "stream_receive_window": {
+      "go_type": "*byteformats.MemoryBytes",
+      "kind": "struct"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    },
+    "udp_over_stream": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "udp_relay_mode": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "native",
+        "quic"
+      ]
+    },
+    "uuid": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "zero_rtt_handshake": {
+      "go_type": "bool",
+      "kind": "bool"
+    }
+  },
+  "uot": {
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "version": {
+      "go_type": "uint8",
+      "kind": "uint8",
+      "enum": [
+        "1",
+        "2"
+      ]
+    }
+  },
+  "utls": {
+    "enabled": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "fingerprint": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "chrome_psk",
+        "chrome_psk_shuffle",
+        "chrome_padding_psk_shuffle",
+        "chrome_pq",
+        "chrome_pq_psk",
+        "chrome",
+        "firefox",
+        "edge",
+        "safari",
+        "360",
+        "qq",
+        "ios",
+        "android",
+        "random",
+        "randomized"
+      ]
+    }
+  },
+  "vless": {
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "flow": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "multiplex": {
+      "go_type": "*option.OutboundMultiplexOptions",
+      "kind": "struct"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network": {
+      "go_type": "option.NetworkList",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "packet_encoding": {
+      "go_type": "*string",
+      "kind": "string"
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "transport": {
+      "go_type": "*option.V2RayTransportOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    },
+    "uuid": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "vmess": {
+    "alter_id": {
+      "go_type": "int",
+      "kind": "int"
+    },
+    "authenticated_length": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_address_no_port": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "bind_interface": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "connect_timeout": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "detour": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "disable_tcp_keep_alive": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "domain_resolver": {
+      "go_type": "*option.DomainResolveOptions",
+      "kind": "struct"
+    },
+    "domain_strategy": {
+      "go_type": "option.DomainStrategy",
+      "kind": "uint8",
+      "deprecated": true
+    },
+    "fallback_delay": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "fallback_network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "global_padding": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "inet4_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "inet6_bind_address": {
+      "go_type": "*badoption.Addr",
+      "kind": "struct"
+    },
+    "multiplex": {
+      "go_type": "*option.OutboundMultiplexOptions",
+      "kind": "struct"
+    },
+    "netns": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "network": {
+      "go_type": "option.NetworkList",
+      "kind": "string"
+    },
+    "network_strategy": {
+      "go_type": "*option.NetworkStrategy",
+      "kind": "uint8"
+    },
+    "network_type": {
+      "go_type": "badoption.Listable[github.com/sagernet/sing-box/option.InterfaceType]",
+      "kind": "slice"
+    },
+    "packet_encoding": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "packetaddr",
+        "xudp"
+      ]
+    },
+    "protect_path": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "reuse_addr": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "routing_mark": {
+      "go_type": "option.FwMark",
+      "kind": "uint32"
+    },
+    "security": {
+      "go_type": "string",
+      "kind": "string",
+      "enum": [
+        "auto",
+        "none",
+        "zero",
+        "aes-128-cfb",
+        "aes-128-gcm",
+        "chacha20-poly1305"
+      ]
+    },
+    "server": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "server_port": {
+      "go_type": "uint16",
+      "kind": "uint16"
+    },
+    "tcp_fast_open": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tcp_keep_alive": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_keep_alive_interval": {
+      "go_type": "badoption.Duration",
+      "kind": "int64"
+    },
+    "tcp_multi_path": {
+      "go_type": "bool",
+      "kind": "bool"
+    },
+    "tls": {
+      "go_type": "*option.OutboundTLSOptions",
+      "kind": "struct"
+    },
+    "transport": {
+      "go_type": "*option.V2RayTransportOptions",
+      "kind": "struct"
+    },
+    "udp_fragment": {
+      "go_type": "*bool",
+      "kind": "bool"
+    },
+    "uuid": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  },
+  "ws": {
+    "early_data_header_name": {
+      "go_type": "string",
+      "kind": "string"
+    },
+    "headers": {
+      "go_type": "badoption.HTTPHeader",
+      "kind": "map"
+    },
+    "max_early_data": {
+      "go_type": "uint32",
+      "kind": "uint32"
+    },
+    "path": {
+      "go_type": "string",
+      "kind": "string"
+    }
+  }
+}

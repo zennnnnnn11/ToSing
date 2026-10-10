@@ -23,12 +23,20 @@ public static class ShadowsocksParser
         string method = ctx.GetString("method", "cipher");
         if (string.IsNullOrEmpty(method)) method = "aes-256-gcm";
 
-        string password = ctx.GetString("password");
+        string password = ctx.GetSecretString("password");
         string plugin = ctx.GetString("plugin");
         string? pluginOpts = ParsePluginOptions(ctx);
 
         UdpOverTcpOptions? uot = null;
-        if (ctx.GetBool("udp_over_tcp", "udp-over-tcp", "uot"))
+        if (ctx.GetRaw("udp_over_tcp") is { } nativeUot && NativeOptionsParser.IsObject(nativeUot))
+        {
+            uot = NativeOptionsParser.Deserialize<UdpOverTcpOptions>(nativeUot);
+        }
+        else if (ctx.IsNativeConfig && ctx.GetRaw("udp_over_tcp") is bool enabled)
+        {
+            uot = new UdpOverTcpOptions { Enabled = enabled };
+        }
+        else if (ctx.GetBool("udp_over_tcp", "udp-over-tcp", "uot"))
         {
             int ver = ctx.GetInt("uot_version", "uot-version");
             uot = new UdpOverTcpOptions
@@ -45,6 +53,7 @@ public static class ShadowsocksParser
             Tag = tag,
             Server = server,
             ServerPort = port,
+            Network = ctx.GetPacketNetwork(),
             Method = method,
             Password = password,
             Plugin = !string.IsNullOrEmpty(plugin) ? plugin : null,
@@ -63,6 +72,9 @@ public static class ShadowsocksParser
         {
             return rawStr.Trim();
         }
+
+        if (ctx.HasProperty("server_port") && raw is not string)
+            throw new FormatException("Native plugin_opts must be a SIP003 string");
 
         if (raw is IReadOnlyDictionary<string, object?> roDict)
         {

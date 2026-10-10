@@ -26,11 +26,11 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
 
     [JsonPropertyName("up_mbps")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? UpMbps { get; init; }
+    public long? UpMbps { get; init; }
 
     [JsonPropertyName("down_mbps")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? DownMbps { get; init; }
+    public long? DownMbps { get; init; }
 
     [JsonPropertyName("bbr_profile")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -54,7 +54,7 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
 
     [JsonPropertyName("initial_packet_size")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? InitialPacketSize { get; init; }
+    public long? InitialPacketSize { get; init; }
 
     [JsonPropertyName("disable_path_mtu_discovery")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -62,19 +62,21 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
 
     [JsonPropertyName("max_concurrent_streams")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MaxConcurrentStreams { get; init; }
+    public long? MaxConcurrentStreams { get; init; }
 
     [JsonPropertyName("stream_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? StreamReceiveWindow { get; init; }
+    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    public object? StreamReceiveWindow { get; init; }
 
     [JsonPropertyName("connection_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ConnectionReceiveWindow { get; init; }
+    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    public object? ConnectionReceiveWindow { get; init; }
 
     [JsonPropertyName("network")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public object? Network { get; init; }
 
     [JsonPropertyName("obfs")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -110,6 +112,14 @@ public sealed record class Hysteria2RealmOptions
     [JsonPropertyName("ip_version")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? IpVersion { get; init; }
+    [JsonPropertyName("port_mapping")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Hysteria2RealmPortMappingOptions? PortMapping { get; init; }
+
+    [JsonPropertyName("http_client")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonConverter(typeof(SubParser.Parsers.HttpClientReferenceConverter))]
+    public object? HttpClient { get; init; }
 }
 
 /// <summary>
@@ -122,4 +132,28 @@ public sealed record class Hysteria2ObfsOptions
 
     [JsonPropertyName("password")]
     public required string Password { get; init; }
+    [JsonPropertyName("min_packet_size")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? MinPacketSize { get; init; }
+
+    [JsonPropertyName("max_packet_size")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? MaxPacketSize { get; init; }
+
+}
+
+public sealed record class Hysteria2RealmPortMappingOptions
+{
+    [JsonPropertyName("enabled")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Enabled { get; init; }
+
+    [JsonPropertyName("timeout")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Timeout { get; init; }
+
+    [JsonPropertyName("lifetime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Lifetime { get; init; }
+
 }

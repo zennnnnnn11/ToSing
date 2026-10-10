@@ -25,13 +25,17 @@ public static class TuicParser
         string uuid = parsedGuid.ToString("D");
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"TUIC {server}:{port}";
-        string password = ctx.GetString("password");
+        string password = ctx.GetSecretString("password");
         string cc = ctx.GetString("congestion_control", "congestion-control");
         string udpRelayMode = ctx.GetString("udp_relay_mode", "udp-relay-mode");
+        if (!string.IsNullOrEmpty(udpRelayMode) && udpRelayMode is not ("native" or "quic"))
+            throw new FormatException($"Unknown TUIC udp_relay_mode: {udpRelayMode}");
         bool udpOverStream = ctx.GetBool("udp_over_stream", "udp-over-stream");
 
         if (udpOverStream)
         {
+            if (ctx.IsNativeConfig && !string.IsNullOrEmpty(udpRelayMode))
+                throw new FormatException("udp_over_stream conflicts with udp_relay_mode");
             udpRelayMode = string.Empty;
         }
 
@@ -59,31 +63,29 @@ public static class TuicParser
             MaxConcurrentStreams = q.MaxConcurrentStreams,
             StreamReceiveWindow = q.StreamReceiveWindow,
             ConnectionReceiveWindow = q.ConnectionReceiveWindow,
-            Network = q.Network,
+            Network = ctx.GetPacketNetwork(),
             Tls = tls
         };
     }
 
-    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, int? InitialPacketSize, int? MaxConcurrentStreams, string? StreamReceiveWindow, string? ConnectionReceiveWindow, string? Network) ReadQuicParams(NodeContext ctx)
+    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, long? InitialPacketSize, long? MaxConcurrentStreams, object? StreamReceiveWindow, object? ConnectionReceiveWindow) ReadQuicParams(NodeContext ctx)
     {
         string idle = ctx.GetString("idle_timeout", "idle-timeout");
         string keepAlive = ctx.GetString("keep_alive_period", "keep-alive-period");
         bool disablePmtu = ctx.GetBool("disable_path_mtu_discovery", "disable-path-mtu-discovery");
-        int initPkt = ctx.GetInt("initial_packet_size", "initial-packet-size");
-        int maxStreams = ctx.GetInt("max_concurrent_streams", "max-concurrent-streams");
-        string streamRw = ctx.GetString("stream_receive_window", "stream-receive-window");
-        string connRw = ctx.GetString("connection_receive_window", "connection-receive-window");
-        string network = ctx.GetString("network");
+        long initPkt = ctx.GetLong("initial_packet_size", "initial-packet-size");
+        long maxStreams = ctx.GetLong("max_concurrent_streams", "max-concurrent-streams");
+        object? streamRw = ctx.GetMemoryBytes("stream_receive_window", "stream-receive-window");
+        object? connRw = ctx.GetMemoryBytes("connection_receive_window", "connection-receive-window");
 
         return (
             !string.IsNullOrEmpty(idle) ? idle : null,
             !string.IsNullOrEmpty(keepAlive) ? keepAlive : null,
             disablePmtu,
-            initPkt > 0 ? initPkt : null,
-            maxStreams > 0 ? maxStreams : null,
-            !string.IsNullOrEmpty(streamRw) ? streamRw : null,
-            !string.IsNullOrEmpty(connRw) ? connRw : null,
-            !string.IsNullOrEmpty(network) ? network : null
+            ctx.IsNativeConfig ? ctx.GetLongNullable("initial_packet_size") : initPkt > 0 ? initPkt : null,
+            ctx.IsNativeConfig ? ctx.GetLongNullable("max_concurrent_streams") : maxStreams > 0 ? maxStreams : null,
+            streamRw,
+            connRw
         );
     }
 

@@ -26,7 +26,7 @@ public static class VmessParser
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VMess {server}:{port}";
         string security = NormalizeVmessSecurity(ctx.GetString("security", "cipher"));
 
-        int alterId = ctx.GetInt("alter_id", "alterId", "aid");
+        long alterId = ctx.GetLong("alter_id", "alterId", "aid");
         bool globalPadding = ctx.GetBool("global_padding", "global-padding");
         bool authenticatedLength = ctx.GetBool("authenticated_length", "authenticated-length");
 
@@ -40,6 +40,7 @@ public static class VmessParser
             Tag = tag,
             Server = server,
             ServerPort = port,
+            Network = ctx.GetPacketNetwork(),
             Uuid = uuid,
             Security = security,
             AlterId = alterId,
@@ -135,7 +136,8 @@ public static class VmessParser
             "none" => "none",
             "zero" => "zero",
             "aes-128-cfb" => "aes-128-cfb",
-            _ => "auto"
+            "auto" => "auto",
+            _ => throw new FormatException($"Unknown VMess security: {raw}")
         };
     }
 }

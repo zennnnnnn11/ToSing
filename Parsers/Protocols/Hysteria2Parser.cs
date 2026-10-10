@@ -17,8 +17,13 @@ public static class Hysteria2Parser
         var realm = ParseRealm(ctx);
         string server = ctx.Server;
         int port = ctx.ServerPort;
+        var rawPorts = ctx.GetStringList("server_ports", "ports", "mport");
+        var serverPorts = realm != null ? [] : NormalizeServerPorts(rawPorts);
 
-        if (realm == null && (port < 1 || port > 65535))
+        if (ctx.IsNativeConfig && realm != null && (!string.IsNullOrEmpty(server) || port != 0 || rawPorts.Count > 0))
+            throw new FormatException("realm conflicts with server, server_port, and server_ports");
+
+        if (realm == null && (port < 1 || port > 65535) && !(port == 0 && serverPorts.Count > 0))
         {
             return null;
         }
@@ -35,10 +40,7 @@ public static class Hysteria2Parser
         }
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : (realm != null ? $"HY2 {realm.RealmId}" : $"HY2 {server}:{port}");
-        string password = ctx.GetString("password", "auth");
-
-        var rawPorts = ctx.GetStringList("server_ports", "ports", "mport");
-        var serverPorts = realm != null ? [] : NormalizeServerPorts(rawPorts);
+        string password = ctx.GetSecretString("password", "auth");
 
         var (obfs, obfsValid) = ParseObfs(ctx);
         if (!obfsValid) return null;
@@ -58,13 +60,13 @@ public static class Hysteria2Parser
         List<string> serverPorts,
         Hysteria2ObfsOptions? obfs,
         OutboundTLSOptions? tls,
-        (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, int? InitialPacketSize, int? MaxConcurrentStreams, string? StreamReceiveWindow, string? ConnectionReceiveWindow, string? Network) q,
+        (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, long? InitialPacketSize, long? MaxConcurrentStreams, object? StreamReceiveWindow, object? ConnectionReceiveWindow) q,
         Hysteria2RealmOptions? realm)
     {
         string hopInterval = ctx.GetString("hop_interval", "hop-interval");
         string hopIntervalMax = ctx.GetString("hop_interval_max", "hop-interval-max");
-        int upMbps = ctx.GetInt("up_mbps", "upmbps", "up");
-        int downMbps = ctx.GetInt("down_mbps", "downmbps", "down");
+        long upMbps = ctx.GetLong("up_mbps", "upmbps", "up");
+        long downMbps = ctx.GetLong("down_mbps", "downmbps", "down");
         string bbrProfile = ctx.GetString("bbr_profile", "bbr-profile");
         bool brutalDebug = ctx.GetBool("brutal_debug", "brutal-debug");
         bool disableChromeParrot = ctx.GetBool("disable_chrome_parrot", "disable-chrome-parrot");
@@ -78,8 +80,8 @@ public static class Hysteria2Parser
             ServerPorts = serverPorts.Count > 0 ? serverPorts : null,
             HopInterval = !string.IsNullOrEmpty(hopInterval) ? hopInterval : null,
             HopIntervalMax = !string.IsNullOrEmpty(hopIntervalMax) ? hopIntervalMax : null,
-            UpMbps = upMbps > 0 ? upMbps : null,
-            DownMbps = downMbps > 0 ? downMbps : null,
+            UpMbps = ctx.IsNativeConfig ? ctx.GetLongNullable("up_mbps") : upMbps > 0 ? upMbps : null,
+            DownMbps = ctx.IsNativeConfig ? ctx.GetLongNullable("down_mbps") : downMbps > 0 ? downMbps : null,
             BbrProfile = !string.IsNullOrEmpty(bbrProfile) ? bbrProfile : null,
             BrutalDebug = brutalDebug,
             DisableChromeParrot = disableChromeParrot,
@@ -90,38 +92,41 @@ public static class Hysteria2Parser
             MaxConcurrentStreams = q.MaxConcurrentStreams,
             StreamReceiveWindow = q.StreamReceiveWindow,
             ConnectionReceiveWindow = q.ConnectionReceiveWindow,
-            Network = q.Network,
+            Network = ctx.GetPacketNetwork(),
             Obfs = obfs,
             Tls = tls,
             Realm = realm
         };
     }
 
-    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, int? InitialPacketSize, int? MaxConcurrentStreams, string? StreamReceiveWindow, string? ConnectionReceiveWindow, string? Network) ReadQuicParams(NodeContext ctx)
+    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, long? InitialPacketSize, long? MaxConcurrentStreams, object? StreamReceiveWindow, object? ConnectionReceiveWindow) ReadQuicParams(NodeContext ctx)
     {
         string idle = ctx.GetString("idle_timeout", "idle-timeout");
         string keepAlive = ctx.GetString("keep_alive_period", "keep-alive-period");
         bool disablePmtu = ctx.GetBool("disable_path_mtu_discovery", "disable-path-mtu-discovery");
-        int initPkt = ctx.GetInt("initial_packet_size", "initial-packet-size");
-        int maxStreams = ctx.GetInt("max_concurrent_streams", "max-concurrent-streams");
-        string streamRw = ctx.GetString("stream_receive_window", "stream-receive-window");
-        string connRw = ctx.GetString("connection_receive_window", "connection-receive-window");
-        string network = ctx.GetString("network");
+        long initPkt = ctx.GetLong("initial_packet_size", "initial-packet-size");
+        long maxStreams = ctx.GetLong("max_concurrent_streams", "max-concurrent-streams");
+        object? streamRw = ctx.GetMemoryBytes("stream_receive_window", "stream-receive-window");
+        object? connRw = ctx.GetMemoryBytes("connection_receive_window", "connection-receive-window");
 
         return (
             !string.IsNullOrEmpty(idle) ? idle : null,
             !string.IsNullOrEmpty(keepAlive) ? keepAlive : null,
             disablePmtu,
-            initPkt > 0 ? initPkt : null,
-            maxStreams > 0 ? maxStreams : null,
-            !string.IsNullOrEmpty(streamRw) ? streamRw : null,
-            !string.IsNullOrEmpty(connRw) ? connRw : null,
-            !string.IsNullOrEmpty(network) ? network : null
+            ctx.IsNativeConfig ? ctx.GetLongNullable("initial_packet_size") : initPkt > 0 ? initPkt : null,
+            ctx.IsNativeConfig ? ctx.GetLongNullable("max_concurrent_streams") : maxStreams > 0 ? maxStreams : null,
+            streamRw,
+            connRw
         );
     }
 
     private static (Hysteria2ObfsOptions? obfs, bool isValid) ParseObfs(NodeContext ctx)
     {
+        if (ctx.GetRaw("obfs") is { } native && NativeOptionsParser.IsObject(native))
+        {
+            var value = NativeOptionsParser.Deserialize<Hysteria2ObfsOptions>(native);
+            return (value, !string.IsNullOrEmpty(value.Password));
+        }
         string obfsType = ctx.GetString("obfs", "obfs-type");
         string obfsPassword = ctx.GetString("obfs-password", "obfs_password");
 
@@ -149,6 +154,8 @@ public static class Hysteria2Parser
         foreach (string p in ports)
         {
             string s = p.Trim();
+            if (ushort.TryParse(s, System.Globalization.CultureInfo.InvariantCulture, out ushort singlePort) && singlePort > 0)
+                s = $"{singlePort}:{singlePort}";
             if (s.Contains('-', StringComparison.Ordinal) && !s.Contains(':', StringComparison.Ordinal))
             {
                 s = s.Replace('-', ':');
@@ -163,6 +170,10 @@ public static class Hysteria2Parser
 
     private static Hysteria2RealmOptions? ParseRealm(NodeContext ctx)
     {
+        if (ctx.GetRaw("realm") is { } native && NativeOptionsParser.IsObject(native))
+        {
+            return NativeOptionsParser.Deserialize<Hysteria2RealmOptions>(native);
+        }
         string serverUrl = ctx.GetString("realm.server_url", "realm.server-url", "realm-server-url");
         string realmId = ctx.GetString("realm.realm_id", "realm.realm-id", "realm-id");
         var stunServers = ctx.GetStringList("realm.stun_servers", "realm.stun-servers", "realm-stun-servers");

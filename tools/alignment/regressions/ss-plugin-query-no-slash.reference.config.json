@@ -1,0 +1,17 @@
+{
+  "log": {
+    "level": "error"
+  },
+  "outbounds": [
+    {
+      "plugin_opts": "obfs=http;obfs-host=front.example.com",
+      "server": "127.0.0.1",
+      "plugin": "obfs-local",
+      "tag": "ss-plugin",
+      "password": "test-password",
+      "server_port": 8388,
+      "type": "shadowsocks",
+      "method": "aes-128-gcm"
+    }
+  ]
+}

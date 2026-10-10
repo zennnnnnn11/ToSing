@@ -7,14 +7,18 @@ internal static class MultiplexParser
 {
     public static OutboundMultiplexOptions? ParseMultiplex(NodeContext ctx)
     {
+        if (ctx.GetRaw("multiplex") is { } native && NativeOptionsParser.IsObject(native))
+        {
+            return NativeOptionsParser.Deserialize<OutboundMultiplexOptions>(native);
+        }
         if (!ctx.GetBool("mux", "smux.enabled")) return null;
 
         string proto = ctx.GetString("smux.protocol", "mux.protocol");
         if (string.IsNullOrEmpty(proto)) proto = "smux";
 
-        int mc = ctx.GetInt("smux.max-connections", "mux.max-connections", "smux.max_connections");
-        int minStreams = ctx.GetInt("smux.min-streams", "mux.min-streams", "smux.min_streams");
-        int maxStreams = ctx.GetInt("smux.max-streams", "mux.max-streams", "smux.max_streams");
+        long mc = ctx.GetLong("smux.max-connections", "mux.max-connections", "smux.max_connections");
+        long minStreams = ctx.GetLong("smux.min-streams", "mux.min-streams", "smux.min_streams");
+        long maxStreams = ctx.GetLong("smux.max-streams", "mux.max-streams", "smux.max_streams");
         bool padding = ctx.GetBool("smux.padding", "mux.padding");
 
         BrutalOptions? brutal = ParseBrutal(ctx);
@@ -39,8 +43,8 @@ internal static class MultiplexParser
                                 ctx.GetRaw("mux.brutal") != null;
 
         bool brutalEnabled = ctx.GetBool("smux.brutal.enabled", "mux.brutal.enabled");
-        int up = ctx.GetInt("smux.brutal.up_mbps", "mux.brutal.up_mbps", "smux.brutal.up-mbps", "mux.brutal.up-mbps");
-        int down = ctx.GetInt("smux.brutal.down_mbps", "mux.brutal.down_mbps", "smux.brutal.down-mbps", "mux.brutal.down-mbps");
+        long up = ctx.GetLong("smux.brutal.up_mbps", "mux.brutal.up_mbps", "smux.brutal.up-mbps", "mux.brutal.up-mbps");
+        long down = ctx.GetLong("smux.brutal.down_mbps", "mux.brutal.down_mbps", "smux.brutal.down-mbps", "mux.brutal.down-mbps");
 
         if (hasBrutalSection || brutalEnabled || up > 0 || down > 0)
         {

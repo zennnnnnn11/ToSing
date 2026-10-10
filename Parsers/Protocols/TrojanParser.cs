@@ -18,7 +18,7 @@ public static class TrojanParser
         int port = ctx.ServerPort;
         if (port < 1 || port > 65535) return null;
 
-        string password = ctx.GetString("password");
+        string password = ctx.GetSecretString("password");
         if (string.IsNullOrWhiteSpace(password)) return null;
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"Trojan {server}:{port}";
@@ -32,6 +32,7 @@ public static class TrojanParser
             Tag = tag,
             Server = server,
             ServerPort = port,
+            Network = ctx.GetPacketNetwork(),
             Password = password,
             Tls = tls,
             Transport = transport,

@@ -61,6 +61,7 @@ public static class VlessParser
             Tag = tag,
             Server = server,
             ServerPort = port,
+            Network = ctx.GetPacketNetwork(),
             Uuid = uuid,
             Flow = !string.IsNullOrEmpty(flow) ? flow : null,
             Tls = tls,

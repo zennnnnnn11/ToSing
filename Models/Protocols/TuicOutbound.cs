@@ -38,7 +38,7 @@ public sealed record class TuicOutbound : SingboxOutbound
 
     [JsonPropertyName("network")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public object? Network { get; init; }
 
     [JsonPropertyName("idle_timeout")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -50,7 +50,7 @@ public sealed record class TuicOutbound : SingboxOutbound
 
     [JsonPropertyName("initial_packet_size")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? InitialPacketSize { get; init; }
+    public long? InitialPacketSize { get; init; }
 
     [JsonPropertyName("disable_path_mtu_discovery")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -58,15 +58,17 @@ public sealed record class TuicOutbound : SingboxOutbound
 
     [JsonPropertyName("max_concurrent_streams")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MaxConcurrentStreams { get; init; }
+    public long? MaxConcurrentStreams { get; init; }
 
     [JsonPropertyName("stream_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? StreamReceiveWindow { get; init; }
+    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    public object? StreamReceiveWindow { get; init; }
 
     [JsonPropertyName("connection_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ConnectionReceiveWindow { get; init; }
+    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    public object? ConnectionReceiveWindow { get; init; }
 
     [JsonPropertyName("tls")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -17,6 +17,14 @@ public static class TlsParser
     {
         ArgumentNullException.ThrowIfNull(ctx);
 
+        if (ctx.GetRaw("tls") is { } rawTls && NativeOptionsParser.IsObject(rawTls))
+        {
+            var nativeTls = NativeOptionsParser.Deserialize<OutboundTLSOptions>(rawTls);
+            if (!allowUtls && nativeTls.Utls?.Enabled == true)
+                throw new FormatException("uTLS cannot be used by this QUIC protocol");
+            return nativeTls;
+        }
+
         if (!CheckTlsEnabled(ctx, forceTls)) return null;
 
         string serverName = ctx.GetString("sni", "servername", "peer");
@@ -28,7 +36,8 @@ public static class TlsParser
         string maxVersion = ctx.GetString("max_version", "max-version");
         var certs = ParseCertificates(ctx);
 
-        return new OutboundTLSOptions
+        var native = NativeOptionsParser.Read<OutboundTLSOptions>(ctx);
+        return native with
         {
             Enabled = true,
             ServerName = serverName,
@@ -126,6 +135,11 @@ public static class TlsParser
 
     private static OutboundECHOptions? ParseEch(NodeContext ctx)
     {
+        if (ctx.GetRaw("ech") is { } native && NativeOptionsParser.IsObject(native))
+        {
+            var options = NativeOptionsParser.Deserialize<OutboundECHOptions>(native);
+            return options.Enabled == true ? options : null;
+        }
         bool? echExplicit = ctx.GetBoolNullable("ech.enabled", "ech-enabled", "ech");
         if (echExplicit == false) return null;
 

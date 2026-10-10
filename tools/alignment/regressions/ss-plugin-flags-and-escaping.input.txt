@@ -1,0 +1,14 @@
+proxies:
+  - name: ss-plugin-flags
+    type: ss
+    server: 127.0.0.1
+    port: 8388
+    cipher: aes-128-gcm
+    password: test-password
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: websocket
+      host: localhost
+      tls: false
+      mux: 0
+      path: /ws;token=abc

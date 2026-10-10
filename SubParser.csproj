@@ -14,6 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="tools/**/*.cs" />
+    <EmbeddedResource Include="Models/SingboxContract.json" />
     <PackageReference Include="Meziantou.Analyzer" Version="3.0.296">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

@@ -17,7 +17,7 @@ public sealed record class VmessOutbound : SingboxOutbound
 
     [JsonPropertyName("alter_id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public int AlterId { get; init; }
+    public long AlterId { get; init; }
 
     [JsonPropertyName("global_padding")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -29,7 +29,7 @@ public sealed record class VmessOutbound : SingboxOutbound
 
     [JsonPropertyName("network")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Network { get; init; }
+    public object? Network { get; init; }
 
     [JsonPropertyName("tls")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

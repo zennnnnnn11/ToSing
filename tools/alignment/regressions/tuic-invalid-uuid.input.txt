@@ -1,0 +1,1 @@
+tuic://invalid-uuid:test-password@127.0.0.1:443#invalid-uuid

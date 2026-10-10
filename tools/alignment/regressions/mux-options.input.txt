@@ -1,0 +1,14 @@
+proxies:
+  - name: mux-options
+    type: vless
+    server: 127.0.0.1
+    port: 443
+    uuid: 11111111-1111-4111-8111-111111111111
+    tls: true
+    smux:
+      enabled: true
+      protocol: yamux
+      max-connections: 2
+      min-streams: 2
+      max-streams: 8
+      padding: true

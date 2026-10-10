@@ -41,7 +41,9 @@ public static partial class UniversalParser
         };
 
         if (outbound == null) return null;
-        return ApplyCommonDialerOptions(outbound, ctx);
+        outbound = ApplyCommonDialerOptions(outbound, ctx);
+        SingboxContractValidator.Validate(outbound);
+        return outbound;
     }
 
     /// <summary>
@@ -193,33 +195,32 @@ public static partial class UniversalParser
 
     private static SingboxOutbound ApplyCommonDialerOptions(SingboxOutbound node, NodeContext ctx)
     {
-        string detour = ctx.GetString("detour");
-        string domainStrategy = ctx.GetString("domain_strategy", "domain-strategy");
-        bool tcpFastOpen = ctx.GetBool("tcp_fast_open", "tcp-fast-open", "tfo");
-        string connectTimeout = ctx.GetString("connect_timeout", "connect-timeout");
-        string bindInterface = ctx.GetString("bind_interface", "bind-interface", "interface-name");
-        string inet4 = ctx.GetString("inet4_bind_address", "inet4-bind-address");
-        string inet6 = ctx.GetString("inet6_bind_address", "inet6-bind-address");
-        uint? routingMark = ctx.GetUIntNullable("routing_mark", "routing-mark");
-        bool reuseAddr = ctx.GetBool("reuse_addr", "reuse-addr");
-        bool tcpMultiPath = ctx.GetBool("tcp_multi_path", "tcp-multi-path", "mptcp");
-        bool? udpFragment = ctx.GetBoolNullable("udp_fragment", "udp-fragment");
-        object? domainResolver = NormalizeDomainResolver(ctx.GetRaw("domain_resolver") ?? ctx.GetRaw("domain-resolver"));
-
+        var dialer = NativeOptionsParser.Read<ParsedDialerOptions>(ctx,
+            ("tfo", "tcp_fast_open"), ("interface-name", "bind_interface"), ("mptcp", "tcp_multi_path"));
         return node with
         {
-            Detour = !string.IsNullOrEmpty(detour) ? detour : node.Detour,
-            DomainStrategy = !string.IsNullOrEmpty(domainStrategy) ? domainStrategy : node.DomainStrategy,
-            TcpFastOpen = tcpFastOpen || node.TcpFastOpen,
-            ConnectTimeout = !string.IsNullOrEmpty(connectTimeout) ? connectTimeout : node.ConnectTimeout,
-            BindInterface = !string.IsNullOrEmpty(bindInterface) ? bindInterface : node.BindInterface,
-            Inet4BindAddress = !string.IsNullOrEmpty(inet4) ? inet4 : node.Inet4BindAddress,
-            Inet6BindAddress = !string.IsNullOrEmpty(inet6) ? inet6 : node.Inet6BindAddress,
-            RoutingMark = routingMark ?? node.RoutingMark,
-            ReuseAddr = reuseAddr || node.ReuseAddr,
-            TcpMultiPath = tcpMultiPath || node.TcpMultiPath,
-            UdpFragment = udpFragment ?? node.UdpFragment,
-            DomainResolver = domainResolver ?? node.DomainResolver
+            Detour = dialer.Detour,
+            DomainStrategy = dialer.DomainStrategy,
+            TcpFastOpen = dialer.TcpFastOpen,
+            ConnectTimeout = dialer.ConnectTimeout,
+            BindInterface = dialer.BindInterface,
+            Inet4BindAddress = dialer.Inet4BindAddress,
+            Inet6BindAddress = dialer.Inet6BindAddress,
+            RoutingMark = dialer.RoutingMark,
+            ReuseAddr = dialer.ReuseAddr,
+            TcpMultiPath = dialer.TcpMultiPath,
+            UdpFragment = dialer.UdpFragment,
+            DomainResolver = dialer.DomainResolver,
+            BindAddressNoPort = dialer.BindAddressNoPort,
+            ProtectPath = dialer.ProtectPath,
+            NetNs = dialer.NetNs,
+            DisableTcpKeepAlive = dialer.DisableTcpKeepAlive,
+            TcpKeepAlive = dialer.TcpKeepAlive,
+            TcpKeepAliveInterval = dialer.TcpKeepAliveInterval,
+            NetworkStrategy = dialer.NetworkStrategy,
+            NetworkType = dialer.NetworkType,
+            FallbackNetworkType = dialer.FallbackNetworkType,
+            FallbackDelay = dialer.FallbackDelay
         };
     }
 
@@ -247,37 +248,6 @@ public static partial class UniversalParser
             return resultList;
         }
         return obj;
-    }
-
-    private static object? NormalizeDomainResolver(object? raw)
-    {
-        if (raw == null) return null;
-        if (raw is string str) return str;
-        if (raw is IDictionary<string, object?> map)
-        {
-            var res = new Dictionary<string, object?>(map.Count, StringComparer.Ordinal);
-            foreach (var (k, v) in map)
-            {
-                if (string.Equals(k, "disable_cache", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(k, "disable_optimistic_cache", StringComparison.OrdinalIgnoreCase))
-                {
-                    res[k] = v is bool b ? b : (v is string s && (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal)));
-                }
-                else if (string.Equals(k, "rewrite_ttl", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (v is uint u) res[k] = u;
-                    else if (v is int i && i >= 0) res[k] = (uint)i;
-                    else if (v is string s && uint.TryParse(s, CultureInfo.InvariantCulture, out uint parsedTtl)) res[k] = parsedTtl;
-                    else res[k] = v;
-                }
-                else
-                {
-                    res[k] = v;
-                }
-            }
-            return res;
-        }
-        return raw;
     }
 
     /// <summary>

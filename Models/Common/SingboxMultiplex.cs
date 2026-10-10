@@ -18,15 +18,15 @@ public sealed record class OutboundMultiplexOptions
 
     [JsonPropertyName("max_connections")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MaxConnections { get; init; }
+    public long? MaxConnections { get; init; }
 
     [JsonPropertyName("min_streams")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MinStreams { get; init; }
+    public long? MinStreams { get; init; }
 
     [JsonPropertyName("max_streams")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MaxStreams { get; init; }
+    public long? MaxStreams { get; init; }
 
     [JsonPropertyName("padding")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -51,9 +51,9 @@ public sealed record class BrutalOptions
 
     [JsonPropertyName("up_mbps")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? UpMbps { get; init; }
+    public long? UpMbps { get; init; }
 
     [JsonPropertyName("down_mbps")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? DownMbps { get; init; }
+    public long? DownMbps { get; init; }
 }

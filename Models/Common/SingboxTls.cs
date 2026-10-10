@@ -72,6 +72,46 @@ public sealed record class OutboundTLSOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ClientKeyPath { get; init; }
 
+    [JsonPropertyName("engine")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Engine { get; init; }
+
+    [JsonPropertyName("curve_preferences")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? CurvePreferences { get; init; }
+
+    [JsonPropertyName("fragment")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Fragment { get; init; }
+
+    [JsonPropertyName("fragment_fallback_delay")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FragmentFallbackDelay { get; init; }
+
+    [JsonPropertyName("handshake_timeout")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? HandshakeTimeout { get; init; }
+
+    [JsonPropertyName("kernel_rx")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool KernelRx { get; init; }
+
+    [JsonPropertyName("kernel_tx")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool KernelTx { get; init; }
+
+    [JsonPropertyName("record_fragment")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RecordFragment { get; init; }
+
+    [JsonPropertyName("spoof")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Spoof { get; init; }
+
+    [JsonPropertyName("spoof_method")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SpoofMethod { get; init; }
+
     [JsonPropertyName("ech")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public OutboundECHOptions? Ech { get; init; }

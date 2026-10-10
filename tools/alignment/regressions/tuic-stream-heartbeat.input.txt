@@ -1,0 +1,1 @@
+tuic://11111111-1111-4111-8111-111111111111:test-password@127.0.0.1:443?udp_over_stream=true&heartbeat=15s#tuic-options

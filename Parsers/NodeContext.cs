@@ -30,6 +30,8 @@ public sealed class NodeContext
         return _properties.ContainsKey(key);
     }
 
+    internal bool IsNativeConfig { get; private set; }
+
     public object? GetRaw(string key)
     {
         return ResolveValue(key);
@@ -87,11 +89,12 @@ public sealed class NodeContext
         {
             ctx._properties[kv.Key] = kv.Value;
         }
+        ctx.IsNativeConfig = proxy.ContainsKey("server_port") || (proxy.ContainsKey("tag") && !proxy.ContainsKey("name"));
 
         ctx.Protocol = ctx.GetString("type");
-        ctx.Tag = ctx.GetString("name");
+        ctx.Tag = ctx.GetString("name", "tag");
         ctx.Server = ctx.GetString("server");
-        ctx.ServerPort = ctx.GetInt("port");
+        ctx.ServerPort = ctx.GetInt("port", "server_port");
 
         return ctx;
     }
@@ -116,6 +119,10 @@ public sealed class NodeContext
                     string s = val.ToString()?.Trim() ?? string.Empty;
                     if (!string.IsNullOrEmpty(s)) return s;
                 }
+                else
+                {
+                    throw new FormatException($"Expected scalar string for {alias}");
+                }
             }
         }
         return string.Empty;
@@ -126,27 +133,69 @@ public sealed class NodeContext
     /// </summary>
     public int GetInt(params string[] aliases) => GetIntWithDefault(0, aliases);
 
-    public int GetIntWithDefault(int defaultValue, params string[] aliases)
+    public string GetSecretString(params string[] aliases)
     {
         foreach (string alias in aliases)
         {
-            object? val = ResolveValue(alias);
-            if (val != null)
-            {
-                if (val is int i) return i;
-                if (val is long l) return (int)l;
-                if (int.TryParse(val.ToString(), CultureInfo.InvariantCulture, out int parsed))
-                {
-                    return parsed;
-                }
-                string strVal = val.ToString()?.Trim() ?? string.Empty;
-                if (double.TryParse(strVal, CultureInfo.InvariantCulture, out double d) && !double.IsNaN(d) && !double.IsInfinity(d))
-                {
-                    return (int)d;
-                }
-            }
+            object? raw = ResolveValue(alias);
+            if (raw is string value) return value;
+            if (raw != null) throw new FormatException($"Expected string credential for {alias}");
         }
-        return defaultValue;
+        return string.Empty;
+    }
+
+    public object? GetPacketNetwork()
+    {
+        object? raw = GetRaw("packet_network") ?? GetRaw("packet-network") ?? GetRaw("network");
+        if (raw is string text)
+        {
+            if (text is "tcp" or "udp") return text;
+            if (text is "ws" or "websocket" or "http" or "h2" or "grpc" or "quic" or "httpupgrade") return null;
+            if (text.Length == 0) return null;
+            throw new FormatException($"Unknown network: {text}");
+        }
+        if (raw is IEnumerable<object> list)
+        {
+            var values = list.Select(item => item.ToString() ?? string.Empty).ToArray();
+            if (values.Any(value => value is not ("tcp" or "udp"))) throw new FormatException("Unknown packet network");
+            return values;
+        }
+        if (raw != null) throw new FormatException("Expected a packet network string or list");
+        return null;
+    }
+
+    public int GetIntWithDefault(int defaultValue, params string[] aliases) => GetIntNullable(aliases) ?? defaultValue;
+
+    public long GetLong(params string[] aliases) => GetLongNullable(aliases) ?? 0;
+
+    public long? GetLongNullable(params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            object? value = ResolveValue(alias);
+            if (value == null) continue;
+            if (value is long number) return number;
+            if (value is int small) return small;
+            if (value is string text && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed)) return parsed;
+            throw new FormatException($"Expected int64 for {alias}");
+        }
+        return null;
+    }
+
+    public object? GetMemoryBytes(params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            object? value = ResolveValue(alias);
+            if (value == null) continue;
+            if (value is string text) return text;
+            if (value is long number) return number;
+            if (value is int small) return (long)small;
+            if (value is uint integer) return (long)integer;
+            if (value is ulong unsigned && unsigned <= long.MaxValue) return (long)unsigned;
+            throw new FormatException($"Expected int64 bytes or a size string for {alias}");
+        }
+        return null;
     }
 
     public int? GetIntNullable(params string[] aliases)
@@ -154,20 +203,11 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? val = ResolveValue(alias);
-            if (val != null)
-            {
-                if (val is int i) return i;
-                if (val is long l) return (int)l;
-                if (int.TryParse(val.ToString(), CultureInfo.InvariantCulture, out int parsed))
-                {
-                    return parsed;
-                }
-                string strVal = val.ToString()?.Trim() ?? string.Empty;
-                if (double.TryParse(strVal, CultureInfo.InvariantCulture, out double d) && !double.IsNaN(d) && !double.IsInfinity(d))
-                {
-                    return (int)d;
-                }
-            }
+            if (val == null) continue;
+            if (val is int i) return i;
+            if (val is long l && l is >= int.MinValue and <= int.MaxValue) return (int)l;
+            if (int.TryParse(val.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed)) return parsed;
+            throw new FormatException($"Expected int32 for {alias}");
         }
         return null;
     }
@@ -210,44 +250,18 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? val = ResolveValue(alias);
-            if (val != null)
-            {
-                if (val is bool b) return b;
-                string s = val.ToString()?.Trim() ?? string.Empty;
-                if (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                if (string.Equals(s, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "0", StringComparison.Ordinal))
-                {
-                    return false;
-                }
-            }
+            if (val == null) continue;
+            if (val is bool b) return b;
+            string s = val.ToString()?.Trim() ?? string.Empty;
+            if (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal)) return true;
+            if (string.Equals(s, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "0", StringComparison.Ordinal)) return false;
+            if (string.Equals(alias, "tls", StringComparison.Ordinal) && string.Equals(s, "tls", StringComparison.OrdinalIgnoreCase)) return true;
+            throw new FormatException($"Expected boolean for {alias}");
         }
         return null;
     }
 
-    public bool GetBoolWithDefault(bool defaultValue, params string[] aliases)
-    {
-        foreach (string alias in aliases)
-        {
-            object? val = ResolveValue(alias);
-            if (val != null)
-            {
-                if (val is bool b) return b;
-                string s = val.ToString()?.Trim() ?? string.Empty;
-                if (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                if (string.Equals(s, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "0", StringComparison.Ordinal))
-                {
-                    return false;
-                }
-            }
-        }
-        return defaultValue;
-    }
+    public bool GetBoolWithDefault(bool defaultValue, params string[] aliases) => GetBoolNullable(aliases) ?? defaultValue;
 
     /// <summary>
     /// 依次按别名获取去重后的非空字符串列表。
@@ -366,7 +380,7 @@ public sealed class NodeContext
 
         if (!string.IsNullOrEmpty(authPart))
         {
-            string decodedAuth = HttpUtility.UrlDecode(authPart);
+            string decodedAuth = Uri.UnescapeDataString(authPart);
 
             // Hysteria 2、Trojan、AnyTLS 的 UserInfo 整体作为 password (避免密码含冒号被截断)
             if (string.Equals(ctx.Protocol, "hy2", StringComparison.OrdinalIgnoreCase) ||
@@ -492,7 +506,7 @@ public sealed class NodeContext
         string remainder = mainPart[(atIndex + 1)..];
         string plainUserInfo = Base64Utils.Decode(userInfo);
 
-        ApplySsCredentials(plainUserInfo.Contains(':', StringComparison.Ordinal) ? plainUserInfo : userInfo, ctx);
+        ApplySsCredentials(plainUserInfo.Contains(':', StringComparison.Ordinal) ? plainUserInfo : Uri.UnescapeDataString(userInfo), ctx);
         ParseHostAndPort(remainder, ctx);
     }
 
@@ -521,7 +535,7 @@ public sealed class NodeContext
         if (colon >= 0)
         {
             ctx._properties["method"] = creds[..colon].Trim();
-            ctx._properties["password"] = creds[(colon + 1)..].Trim();
+            ctx._properties["password"] = creds[(colon + 1)..];
         }
     }
 

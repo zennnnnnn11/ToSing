@@ -22,7 +22,7 @@ public sealed record class AnyTlsOutbound : SingboxOutbound
 
     [JsonPropertyName("min_idle_session")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? MinIdleSession { get; init; }
+    public long? MinIdleSession { get; init; }
 
     [JsonPropertyName("client_metadata")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

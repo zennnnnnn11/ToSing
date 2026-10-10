@@ -18,13 +18,13 @@ public static class AnyTlsParser
         int port = ctx.ServerPort;
         if (port < 1 || port > 65535) return null;
 
-        string password = ctx.GetString("password");
+        string password = ctx.GetSecretString("password");
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"AnyTLS {server}:{port}";
         string clientMetadata = ctx.GetString("client_metadata", "client-metadata");
 
         string idleTimeout = ctx.GetString("idle_session_check_interval", "idle-session-check-interval");
         string maxIdleTime = ctx.GetString("idle_session_timeout", "idle-session-timeout");
-        int minIdleSession = ctx.GetInt("min_idle_session", "min-idle-session");
+        long minIdleSession = ctx.GetLong("min_idle_session", "min-idle-session");
 
         var tls = TlsParser.Parse(ctx, server, allowUtls: true, forceTls: true);
 
@@ -37,7 +37,7 @@ public static class AnyTlsParser
             ClientMetadata = !string.IsNullOrEmpty(clientMetadata) ? clientMetadata : null,
             IdleSessionCheckInterval = !string.IsNullOrEmpty(idleTimeout) ? idleTimeout : null,
             IdleSessionTimeout = !string.IsNullOrEmpty(maxIdleTime) ? maxIdleTime : null,
-            MinIdleSession = minIdleSession > 0 ? minIdleSession : null,
+            MinIdleSession = ctx.IsNativeConfig ? ctx.GetLongNullable("min_idle_session") : minIdleSession > 0 ? minIdleSession : null,
             Tls = tls
         };
     }

@@ -1,0 +1,15 @@
+proxies:
+  - name: ws-extra
+    type: vless
+    server: 127.0.0.1
+    port: 443
+    uuid: 11111111-1111-4111-8111-111111111111
+    tls: true
+    network: ws
+    ws-opts:
+      path: /ws
+      headers:
+        Host: front.example.com
+        X-Custom: audit-value
+      max-early-data: 2048
+      early-data-header-name: Sec-WebSocket-Protocol

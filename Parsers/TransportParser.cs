@@ -9,6 +9,10 @@ internal static class TransportParser
 {
     public static V2RayTransportOptions? ParseTransport(NodeContext ctx)
     {
+        if (ctx.GetRaw("transport") is { } native && NativeOptionsParser.IsObject(native))
+        {
+            return NativeOptionsParser.Deserialize<V2RayTransportOptions>(native);
+        }
         string netType = GetTransportNetType(ctx);
         if (string.IsNullOrEmpty(netType)) return null;
 
@@ -33,7 +37,7 @@ internal static class TransportParser
             headers["Host"] = host;
         }
 
-        int med = ctx.GetInt("max_early_data", "ws-opts.max-early-data", "max-early-data");
+        uint? med = ctx.GetUIntNullable("max_early_data", "ws-opts.max-early-data", "max-early-data");
         string edhn = ctx.GetString("early_data_header_name", "ws-opts.early-data-header-name", "early-data-header-name");
 
         return new V2RayTransportOptions
@@ -41,7 +45,7 @@ internal static class TransportParser
             Type = "ws",
             Path = path,
             Headers = headers.Count > 0 ? headers : null,
-            MaxEarlyData = med > 0 ? (uint)med : null,
+            MaxEarlyData = med > 0 ? med : null,
             EarlyDataHeaderName = !string.IsNullOrEmpty(edhn) ? edhn : null
         };
     }
@@ -198,7 +202,7 @@ internal static class TransportParser
 
     private static string GetTransportNetType(NodeContext ctx)
     {
-        string net = ctx.GetString("network", "net");
+        string net = ctx.GetRaw("network") is string ? ctx.GetString("network", "net") : ctx.GetString("net");
         if (!string.IsNullOrEmpty(net)) return net.ToLowerInvariant();
 
         string type = ctx.GetString("type");
