@@ -44,10 +44,10 @@ internal static class MultiplexParser
 
         if (hasBrutalSection || brutalEnabled || up > 0 || down > 0)
         {
-            bool enabled = ctx.GetBoolWithDefault(true, "smux.brutal.enabled", "mux.brutal.enabled");
+            // 严格对齐内核: brutal 默认必须为 false，只有用户显式配置 enabled: true 时才为 true
             return new BrutalOptions
             {
-                Enabled = enabled,
+                Enabled = brutalEnabled,
                 UpMbps = up > 0 ? up : null,
                 DownMbps = down > 0 ? down : null
             };
