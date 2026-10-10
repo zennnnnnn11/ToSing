@@ -14,7 +14,8 @@ internal static class TransportParser
             return NativeOptionsParser.Deserialize<V2RayTransportOptions>(native);
         }
         string netType = GetTransportNetType(ctx);
-        if (string.IsNullOrEmpty(netType)) return null;
+        if (string.IsNullOrEmpty(netType))
+            return null;
 
         return netType switch
         {
@@ -23,13 +24,16 @@ internal static class TransportParser
             "httpupgrade" => ParseHttpUpgrade(ctx),
             "grpc" => ParseGrpc(ctx),
             "quic" => new V2RayTransportOptions { Type = "quic" },
-            _ => null
+            _ => null,
         };
     }
 
     private static V2RayTransportOptions ParseWebsocket(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "ws-opts.path", "ws-path"), stripEarlyData: true);
+        string path = ParsePath(
+            GetPathString(ctx, "path", "ws-opts.path", "ws-path"),
+            stripEarlyData: true
+        );
         var headers = ParseHeaders(ctx, "ws-opts.headers", "ws-headers");
         string host = ctx.GetString("host", "ws-opts.headers.Host", "ws-headers.Host");
         if (!string.IsNullOrEmpty(host) && !headers.ContainsKey("Host"))
@@ -37,8 +41,16 @@ internal static class TransportParser
             headers["Host"] = host;
         }
 
-        uint? med = ctx.GetUIntNullable("max_early_data", "ws-opts.max-early-data", "max-early-data");
-        string edhn = ctx.GetString("early_data_header_name", "ws-opts.early-data-header-name", "early-data-header-name");
+        uint? med = ctx.GetUIntNullable(
+            "max_early_data",
+            "ws-opts.max-early-data",
+            "max-early-data"
+        );
+        string edhn = ctx.GetString(
+            "early_data_header_name",
+            "ws-opts.early-data-header-name",
+            "early-data-header-name"
+        );
 
         return new V2RayTransportOptions
         {
@@ -46,24 +58,40 @@ internal static class TransportParser
             Path = path,
             Headers = headers.Count > 0 ? headers : null,
             MaxEarlyData = med > 0 ? med : null,
-            EarlyDataHeaderName = !string.IsNullOrEmpty(edhn) ? edhn : null
+            EarlyDataHeaderName = !string.IsNullOrEmpty(edhn) ? edhn : null,
         };
     }
 
     private static V2RayTransportOptions ParseHttp(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "http-opts.path"), stripEarlyData: false);
+        string path = ParsePath(
+            GetPathString(ctx, "path", "http-opts.path"),
+            stripEarlyData: false
+        );
         string method = ctx.GetString("method", "http-opts.method");
         var headers = ParseHeaders(ctx, "http-opts.headers");
-        object? hostVal = ctx.GetRaw("http-opts.headers.Host") ?? ctx.GetRaw("http-opts.host") ?? ctx.GetRaw("host");
+        object? hostVal =
+            ctx.GetRaw("http-opts.headers.Host")
+            ?? ctx.GetRaw("http-opts.host")
+            ?? ctx.GetRaw("host");
 
         if (hostVal != null)
         {
             headers.Remove("Host");
         }
 
-        string idleTimeout = ctx.GetString("idle_timeout", "idle-timeout", "http-opts.idle_timeout", "http-opts.idle-timeout");
-        string pingTimeout = ctx.GetString("ping_timeout", "ping-timeout", "http-opts.ping_timeout", "http-opts.ping-timeout");
+        string idleTimeout = ctx.GetString(
+            "idle_timeout",
+            "idle-timeout",
+            "http-opts.idle_timeout",
+            "http-opts.idle-timeout"
+        );
+        string pingTimeout = ctx.GetString(
+            "ping_timeout",
+            "ping-timeout",
+            "http-opts.ping_timeout",
+            "http-opts.ping-timeout"
+        );
 
         return new V2RayTransportOptions
         {
@@ -73,13 +101,16 @@ internal static class TransportParser
             Host = hostVal,
             Headers = headers.Count > 0 ? headers : null,
             IdleTimeout = !string.IsNullOrEmpty(idleTimeout) ? idleTimeout : null,
-            PingTimeout = !string.IsNullOrEmpty(pingTimeout) ? pingTimeout : null
+            PingTimeout = !string.IsNullOrEmpty(pingTimeout) ? pingTimeout : null,
         };
     }
 
     private static V2RayTransportOptions ParseHttpUpgrade(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "httpupgrade-opts.path"), stripEarlyData: false);
+        string path = ParsePath(
+            GetPathString(ctx, "path", "httpupgrade-opts.path"),
+            stripEarlyData: false
+        );
         string host = ctx.GetString("host", "httpupgrade-opts.host");
         var headers = ParseHeaders(ctx, "httpupgrade-opts.headers");
 
@@ -88,16 +119,37 @@ internal static class TransportParser
             Type = "httpupgrade",
             Path = !string.IsNullOrEmpty(path) ? path : null,
             Host = !string.IsNullOrEmpty(host) ? host : null,
-            Headers = headers.Count > 0 ? headers : null
+            Headers = headers.Count > 0 ? headers : null,
         };
     }
 
     private static V2RayTransportOptions ParseGrpc(NodeContext ctx)
     {
-        string serviceName = ctx.GetString("serviceName", "service-name", "grpc-opts.grpc-service-name", "grpc-opts.service_name", "grpc-opts.service-name");
-        string idleTimeout = ctx.GetString("idle_timeout", "idle-timeout", "grpc-opts.idle_timeout", "grpc-opts.idle-timeout");
-        string pingTimeout = ctx.GetString("ping_timeout", "ping-timeout", "grpc-opts.ping_timeout", "grpc-opts.ping-timeout");
-        bool permitWithoutStream = ctx.GetBool("permit_without_stream", "permit-without-stream", "grpc-opts.permit_without_stream", "grpc-opts.permit-without-stream");
+        string serviceName = ctx.GetString(
+            "serviceName",
+            "service-name",
+            "grpc-opts.grpc-service-name",
+            "grpc-opts.service_name",
+            "grpc-opts.service-name"
+        );
+        string idleTimeout = ctx.GetString(
+            "idle_timeout",
+            "idle-timeout",
+            "grpc-opts.idle_timeout",
+            "grpc-opts.idle-timeout"
+        );
+        string pingTimeout = ctx.GetString(
+            "ping_timeout",
+            "ping-timeout",
+            "grpc-opts.ping_timeout",
+            "grpc-opts.ping-timeout"
+        );
+        bool permitWithoutStream = ctx.GetBool(
+            "permit_without_stream",
+            "permit-without-stream",
+            "grpc-opts.permit_without_stream",
+            "grpc-opts.permit-without-stream"
+        );
 
         return new V2RayTransportOptions
         {
@@ -105,7 +157,7 @@ internal static class TransportParser
             ServiceName = !string.IsNullOrEmpty(serviceName) ? serviceName : null,
             IdleTimeout = !string.IsNullOrEmpty(idleTimeout) ? idleTimeout : null,
             PingTimeout = !string.IsNullOrEmpty(pingTimeout) ? pingTimeout : null,
-            PermitWithoutStream = permitWithoutStream
+            PermitWithoutStream = permitWithoutStream,
         };
     }
 
@@ -114,14 +166,16 @@ internal static class TransportParser
         foreach (string alias in aliases)
         {
             object? val = ctx.GetRaw(alias);
-            if (val == null) continue;
+            if (val == null)
+                continue;
 
             if (val is IEnumerable<object> list)
             {
                 foreach (object item in list)
                 {
                     string s = item?.ToString()?.Trim() ?? string.Empty;
-                    if (!string.IsNullOrEmpty(s)) return s;
+                    if (!string.IsNullOrEmpty(s))
+                        return s;
                 }
             }
             else if (val is string str && !string.IsNullOrWhiteSpace(str))
@@ -142,7 +196,8 @@ internal static class TransportParser
             {
                 foreach (var kv in roDict)
                 {
-                    if (string.IsNullOrEmpty(kv.Key) || kv.Value == null) continue;
+                    if (string.IsNullOrEmpty(kv.Key) || kv.Value == null)
+                        continue;
                     dict[kv.Key] = NormalizeHeaderValue(kv.Value);
                 }
             }
@@ -150,7 +205,8 @@ internal static class TransportParser
             {
                 foreach (var kv in sDict)
                 {
-                    if (string.IsNullOrEmpty(kv.Key) || kv.Value == null) continue;
+                    if (string.IsNullOrEmpty(kv.Key) || kv.Value == null)
+                        continue;
                     dict[kv.Key] = NormalizeHeaderValue(kv.Value);
                 }
             }
@@ -159,7 +215,8 @@ internal static class TransportParser
                 var d = ctx.GetStringDictionary(p);
                 foreach (var kv in d)
                 {
-                    if (!string.IsNullOrEmpty(kv.Key) && !string.IsNullOrEmpty(kv.Value)) dict[kv.Key] = kv.Value;
+                    if (!string.IsNullOrEmpty(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+                        dict[kv.Key] = kv.Value;
                 }
             }
         }
@@ -174,7 +231,8 @@ internal static class TransportParser
             foreach (object item in list)
             {
                 string s = item?.ToString()?.Trim() ?? string.Empty;
-                if (!string.IsNullOrEmpty(s)) strList.Add(s);
+                if (!string.IsNullOrEmpty(s))
+                    strList.Add(s);
             }
             return strList.ToArray();
         }
@@ -184,7 +242,8 @@ internal static class TransportParser
 
     private static string ParsePath(string rawPath, bool stripEarlyData)
     {
-        if (string.IsNullOrWhiteSpace(rawPath)) return "/";
+        if (string.IsNullOrWhiteSpace(rawPath))
+            return "/";
         string path = rawPath.Trim();
 
         if (stripEarlyData && path.Contains("?ed=", StringComparison.OrdinalIgnoreCase))
@@ -202,17 +261,23 @@ internal static class TransportParser
 
     private static string GetTransportNetType(NodeContext ctx)
     {
-        string net = ctx.GetRaw("network") is string ? ctx.GetString("network", "net") : ctx.GetString("net");
-        if (!string.IsNullOrEmpty(net)) return net.ToLowerInvariant();
+        string net =
+            ctx.GetRaw("network") is string
+                ? ctx.GetString("network", "net")
+                : ctx.GetString("net");
+        if (!string.IsNullOrEmpty(net))
+            return net.ToLowerInvariant();
 
         string type = ctx.GetString("type");
-        if (string.Equals(type, "ws", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(type, "websocket", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(type, "grpc", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(type, "http", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(type, "h2", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(type, "httpupgrade", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(type, "quic", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(type, "ws", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(type, "websocket", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(type, "grpc", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(type, "http", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(type, "h2", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(type, "httpupgrade", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(type, "quic", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return type.ToLowerInvariant();
         }

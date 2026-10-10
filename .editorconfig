@@ -24,6 +24,8 @@ dotnet_diagnostic.MA0048.severity = none
 dotnet_diagnostic.CA1062.severity = none
 # 不需要处处写 ConfigureAwait(false)
 dotnet_diagnostic.CA2007.severity = none
+# 关闭单方法最大行数死板限制（允许 CSharpier 展开排版）
+dotnet_diagnostic.MA0051.severity = none
 
 # -------------------------------------------------------------
 # 2. 严厉监控：多线程、防死锁与取消令牌（防隐蔽致命 Bug）

@@ -31,5 +31,6 @@ public abstract record class SingboxOutbound : SingboxDialerOptions
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }
 
     [JsonIgnore]
-    public IDictionary<string, object?> Extra { get; init; } = new Dictionary<string, object?>(StringComparer.Ordinal);
+    public IDictionary<string, object?> Extra { get; init; } =
+        new Dictionary<string, object?>(StringComparer.Ordinal);
 }

@@ -37,10 +37,11 @@ public static partial class UniversalParser
             "trojan" => TrojanParser.Parse(ctx),
             "tuic" => TuicParser.Parse(ctx),
             "anytls" => AnyTlsParser.Parse(ctx),
-            _ => null
+            _ => null,
         };
 
-        if (outbound == null) return null;
+        if (outbound == null)
+            return null;
         outbound = ApplyCommonDialerOptions(outbound, ctx);
         SingboxContractValidator.Validate(outbound);
         return outbound;
@@ -51,10 +52,12 @@ public static partial class UniversalParser
     /// </summary>
     public static SingboxOutbound? ParseLine(string line)
     {
-        if (string.IsNullOrWhiteSpace(line)) return null;
+        if (string.IsNullOrWhiteSpace(line))
+            return null;
 
         string trimmed = CleanRawText(line);
-        if (IsCommentLine(trimmed)) return null;
+        if (IsCommentLine(trimmed))
+            return null;
 
         if (trimmed.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase))
         {
@@ -78,7 +81,8 @@ public static partial class UniversalParser
     /// </summary>
     public static SingboxOutbound? ParseClashProxy(IReadOnlyDictionary<string, object?> proxy)
     {
-        if (proxy == null || proxy.Count == 0) return null;
+        if (proxy == null || proxy.Count == 0)
+            return null;
 
         var ctx = NodeContext.FromClash(proxy);
         return ParseContext(ctx);
@@ -90,7 +94,8 @@ public static partial class UniversalParser
     public static IReadOnlyList<SingboxOutbound> ParseSubscription(string rawText)
     {
         var rawNodes = new List<SingboxOutbound>();
-        if (string.IsNullOrWhiteSpace(rawText)) return rawNodes;
+        if (string.IsNullOrWhiteSpace(rawText))
+            return rawNodes;
 
         string content = CleanRawText(rawText);
 
@@ -117,7 +122,8 @@ public static partial class UniversalParser
         while ((line = reader.ReadLine()) != null)
         {
             string trimmed = CleanRawText(line);
-            if (string.IsNullOrWhiteSpace(trimmed) || IsCommentLine(trimmed)) continue;
+            if (string.IsNullOrWhiteSpace(trimmed) || IsCommentLine(trimmed))
+                continue;
 
             var outbound = ParseLine(trimmed);
             if (outbound != null && !IsFakeOrAdNode(outbound.Tag))
@@ -135,7 +141,11 @@ public static partial class UniversalParser
         try
         {
             var yamlData = YamlDeserializer.Deserialize<Dictionary<string, object>>(content);
-            if (yamlData != null && yamlData.TryGetValue("proxies", out object? proxiesObj) && proxiesObj is IEnumerable<object> proxyList)
+            if (
+                yamlData != null
+                && yamlData.TryGetValue("proxies", out object? proxiesObj)
+                && proxiesObj is IEnumerable<object> proxyList
+            )
             {
                 foreach (object item in proxyList)
                 {
@@ -161,7 +171,9 @@ public static partial class UniversalParser
     /// <summary>
     /// 对同名节点追加递增编号后缀，确保出站标签全局唯一。
     /// </summary>
-    public static IReadOnlyList<SingboxOutbound> DeduplicateTags(IReadOnlyList<SingboxOutbound> nodes)
+    public static IReadOnlyList<SingboxOutbound> DeduplicateTags(
+        IReadOnlyList<SingboxOutbound> nodes
+    )
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -173,7 +185,14 @@ public static partial class UniversalParser
             if (seen.Add(originalTag))
             {
                 counts[originalTag] = 1;
-                result.Add(string.Equals(node.Tag, originalTag, StringComparison.Ordinal) ? node : node with { Tag = originalTag });
+                result.Add(
+                    string.Equals(node.Tag, originalTag, StringComparison.Ordinal)
+                        ? node
+                        : node with
+                        {
+                            Tag = originalTag,
+                        }
+                );
             }
             else
             {
@@ -195,8 +214,12 @@ public static partial class UniversalParser
 
     private static SingboxOutbound ApplyCommonDialerOptions(SingboxOutbound node, NodeContext ctx)
     {
-        var dialer = NativeOptionsParser.Read<ParsedDialerOptions>(ctx,
-            ("tfo", "tcp_fast_open"), ("interface-name", "bind_interface"), ("mptcp", "tcp_multi_path"));
+        var dialer = NativeOptionsParser.Read<ParsedDialerOptions>(
+            ctx,
+            ("tfo", "tcp_fast_open"),
+            ("interface-name", "bind_interface"),
+            ("mptcp", "tcp_multi_path")
+        );
         return node with
         {
             Detour = dialer.Detour,
@@ -220,7 +243,7 @@ public static partial class UniversalParser
             NetworkStrategy = dialer.NetworkStrategy,
             NetworkType = dialer.NetworkType,
             FallbackNetworkType = dialer.FallbackNetworkType,
-            FallbackDelay = dialer.FallbackDelay
+            FallbackDelay = dialer.FallbackDelay,
         };
     }
 
@@ -255,28 +278,31 @@ public static partial class UniversalParser
     /// </summary>
     public static string CleanRawText(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(raw))
+            return string.Empty;
         return raw.Trim('\uFEFF', '\u200B', ' ', '\r', '\n', '\t');
     }
 
     private static bool IsCommentLine(string line)
     {
-        if (line.Length == 0) return true;
-        bool startsWithComment = line[0] == '#' ||
-                                 line.StartsWith("//", StringComparison.Ordinal) ||
-                                 line[0] == ';';
+        if (line.Length == 0)
+            return true;
+        bool startsWithComment =
+            line[0] == '#' || line.StartsWith("//", StringComparison.Ordinal) || line[0] == ';';
         return startsWithComment && !line.Contains("://", StringComparison.Ordinal);
     }
 
     [GeneratedRegex(
         @"(?i)(?:网址|官网|发布页|流量|剩余|到期|时间|重置|过期|通知|公告|bandwidth|traffic|expire)",
         RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture,
-        matchTimeoutMilliseconds: 1000)]
+        matchTimeoutMilliseconds: 1000
+    )]
     private static partial Regex FakeOrAdNodeRegex();
 
     private static bool IsFakeOrAdNode(string? tag)
     {
-        if (string.IsNullOrWhiteSpace(tag)) return false;
+        if (string.IsNullOrWhiteSpace(tag))
+            return false;
         return FakeOrAdNodeRegex().IsMatch(tag);
     }
 }

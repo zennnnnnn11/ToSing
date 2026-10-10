@@ -18,10 +18,12 @@ public static class VmessParser
 
         string server = ctx.Server;
         int port = ctx.ServerPort;
-        if (port < 1 || port > 65535) return null;
+        if (port < 1 || port > 65535)
+            return null;
 
         string uuid = ctx.GetString("uuid", "id");
-        if (string.IsNullOrWhiteSpace(uuid)) return null;
+        if (string.IsNullOrWhiteSpace(uuid))
+            return null;
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VMess {server}:{port}";
         string security = NormalizeVmessSecurity(ctx.GetString("security", "cipher"));
@@ -49,21 +51,21 @@ public static class VmessParser
             Tls = tls,
             Transport = transport,
             PacketEncoding = !string.IsNullOrEmpty(packetEncoding) ? packetEncoding : null,
-            Multiplex = multiplex
+            Multiplex = multiplex,
         };
     }
-
-
 
     private static string ParsePacketEncoding(NodeContext ctx)
     {
         string pe = ctx.GetString("packet_encoding", "packet-encoding");
-        if (!string.IsNullOrEmpty(pe)) return pe;
-        if (ctx.GetBool("xudp")) return "xudp";
-        if (ctx.GetBool("packet-addr")) return "packetaddr";
+        if (!string.IsNullOrEmpty(pe))
+            return pe;
+        if (ctx.GetBool("xudp"))
+            return "xudp";
+        if (ctx.GetBool("packet-addr"))
+            return "packetaddr";
         return string.Empty;
     }
-
 
     public static NodeContext ParseVmessJsonUri(string vmessUri)
     {
@@ -100,34 +102,64 @@ public static class VmessParser
             JsonValueKind.Number => valElem.GetRawText(),
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
-            _ => valElem.GetRawText()
+            _ => valElem.GetRawText(),
         };
 
         switch (key.ToLowerInvariant())
         {
-            case "ps": ctx.Tag = val; break;
-            case "add": ctx.Server = val; break;
-            case "port":
-                if (int.TryParse(val, CultureInfo.InvariantCulture, out int p)) ctx.ServerPort = p;
+            case "ps":
+                ctx.Tag = val;
                 break;
-            case "id": ctx.SetProperty("uuid", val); break;
-            case "aid": ctx.SetProperty("alter_id", val); break;
-            case "scy": ctx.SetProperty("security", val); break;
-            case "net": ctx.SetProperty("network", val); break;
-            case "type": ctx.SetProperty("header_type", val); break;
-            case "host": ctx.SetProperty("host", val); break;
-            case "path": ctx.SetProperty("path", val); break;
-            case "tls": ctx.SetProperty("tls", val); break;
-            case "sni": ctx.SetProperty("sni", val); break;
-            case "alpn": ctx.SetProperty("alpn", val); break;
-            case "fp": ctx.SetProperty("fp", val); break;
-            default: ctx.SetProperty(key, val); break;
+            case "add":
+                ctx.Server = val;
+                break;
+            case "port":
+                if (int.TryParse(val, CultureInfo.InvariantCulture, out int p))
+                    ctx.ServerPort = p;
+                break;
+            case "id":
+                ctx.SetProperty("uuid", val);
+                break;
+            case "aid":
+                ctx.SetProperty("alter_id", val);
+                break;
+            case "scy":
+                ctx.SetProperty("security", val);
+                break;
+            case "net":
+                ctx.SetProperty("network", val);
+                break;
+            case "type":
+                ctx.SetProperty("header_type", val);
+                break;
+            case "host":
+                ctx.SetProperty("host", val);
+                break;
+            case "path":
+                ctx.SetProperty("path", val);
+                break;
+            case "tls":
+                ctx.SetProperty("tls", val);
+                break;
+            case "sni":
+                ctx.SetProperty("sni", val);
+                break;
+            case "alpn":
+                ctx.SetProperty("alpn", val);
+                break;
+            case "fp":
+                ctx.SetProperty("fp", val);
+                break;
+            default:
+                ctx.SetProperty(key, val);
+                break;
         }
     }
 
     private static string NormalizeVmessSecurity(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(raw)) return "auto";
+        if (string.IsNullOrWhiteSpace(raw))
+            return "auto";
         string s = raw.Trim().ToLowerInvariant();
         return s switch
         {
@@ -137,7 +169,7 @@ public static class VmessParser
             "zero" => "zero",
             "aes-128-cfb" => "aes-128-cfb",
             "auto" => "auto",
-            _ => throw new FormatException($"Unknown VMess security: {raw}")
+            _ => throw new FormatException($"Unknown VMess security: {raw}"),
         };
     }
 }

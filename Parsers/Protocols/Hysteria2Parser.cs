@@ -20,7 +20,11 @@ public static class Hysteria2Parser
         var rawPorts = ctx.GetStringList("server_ports", "ports", "mport");
         var serverPorts = realm != null ? [] : NormalizeServerPorts(rawPorts);
 
-        if (ctx.IsNativeConfig && realm != null && (!string.IsNullOrEmpty(server) || port != 0 || rawPorts.Count > 0))
+        if (
+            ctx.IsNativeConfig
+            && realm != null
+            && (!string.IsNullOrEmpty(server) || port != 0 || rawPorts.Count > 0)
+        )
             throw new FormatException("realm conflicts with server, server_port, and server_ports");
 
         if (realm == null && (port < 1 || port > 65535) && !(port == 0 && serverPorts.Count > 0))
@@ -55,7 +59,8 @@ public static class Hysteria2Parser
         string password = ctx.GetSecretString("password", "auth");
 
         var (obfs, obfsValid) = ParseObfs(ctx);
-        if (!obfsValid) return null;
+        if (!obfsValid)
+            return null;
 
         var tls = TlsParser.Parse(ctx, defaultSni, allowUtls: false, forceTls: true);
         var q = ReadQuicParams(ctx);
@@ -72,8 +77,17 @@ public static class Hysteria2Parser
         List<string> serverPorts,
         Hysteria2ObfsOptions? obfs,
         OutboundTLSOptions? tls,
-        (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, long? InitialPacketSize, long? MaxConcurrentStreams, object? StreamReceiveWindow, object? ConnectionReceiveWindow) q,
-        Hysteria2RealmOptions? realm)
+        (
+            string? IdleTimeout,
+            string? KeepAlivePeriod,
+            bool DisablePathMtuDiscovery,
+            long? InitialPacketSize,
+            long? MaxConcurrentStreams,
+            object? StreamReceiveWindow,
+            object? ConnectionReceiveWindow
+        ) q,
+        Hysteria2RealmOptions? realm
+    )
     {
         string hopInterval = ctx.GetString("hop_interval", "hop-interval");
         string hopIntervalMax = ctx.GetString("hop_interval_max", "hop-interval-max");
@@ -127,11 +141,19 @@ public static class Hysteria2Parser
             Network = ctx.GetPacketNetwork(),
             Obfs = obfs,
             Tls = tls,
-            Realm = realm
+            Realm = realm,
         };
     }
 
-    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, long? InitialPacketSize, long? MaxConcurrentStreams, object? StreamReceiveWindow, object? ConnectionReceiveWindow) ReadQuicParams(NodeContext ctx)
+    private static (
+        string? IdleTimeout,
+        string? KeepAlivePeriod,
+        bool DisablePathMtuDiscovery,
+        long? InitialPacketSize,
+        long? MaxConcurrentStreams,
+        object? StreamReceiveWindow,
+        object? ConnectionReceiveWindow
+    ) ReadQuicParams(NodeContext ctx)
     {
         string idle = ctx.GetString("idle_timeout", "idle-timeout");
         string keepAlive = ctx.GetString("keep_alive_period", "keep-alive-period");
@@ -139,7 +161,10 @@ public static class Hysteria2Parser
         long initPkt = ctx.GetLong("initial_packet_size", "initial-packet-size");
         long maxStreams = ctx.GetLong("max_concurrent_streams", "max-concurrent-streams");
         object? streamRw = ctx.GetMemoryBytes("stream_receive_window", "stream-receive-window");
-        object? connRw = ctx.GetMemoryBytes("connection_receive_window", "connection-receive-window");
+        object? connRw = ctx.GetMemoryBytes(
+            "connection_receive_window",
+            "connection-receive-window"
+        );
 
         long? finalInitPkt = null;
         if (ctx.IsNativeConfig)
@@ -193,11 +218,14 @@ public static class Hysteria2Parser
             return (null, false);
         }
 
-        return (new Hysteria2ObfsOptions
-        {
-            Type = !string.IsNullOrEmpty(obfsType) ? obfsType : "salamander",
-            Password = obfsPassword
-        }, true);
+        return (
+            new Hysteria2ObfsOptions
+            {
+                Type = !string.IsNullOrEmpty(obfsType) ? obfsType : "salamander",
+                Password = obfsPassword,
+            },
+            true
+        );
     }
 
     private static List<string> NormalizeServerPorts(IReadOnlyList<string> ports)
@@ -206,9 +234,19 @@ public static class Hysteria2Parser
         foreach (string p in ports)
         {
             string s = p.Trim();
-            if (ushort.TryParse(s, System.Globalization.CultureInfo.InvariantCulture, out ushort singlePort) && singlePort > 0)
+            if (
+                ushort.TryParse(
+                    s,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out ushort singlePort
+                )
+                && singlePort > 0
+            )
                 s = $"{singlePort}:{singlePort}";
-            if (s.Contains('-', StringComparison.Ordinal) && !s.Contains(':', StringComparison.Ordinal))
+            if (
+                s.Contains('-', StringComparison.Ordinal)
+                && !s.Contains(':', StringComparison.Ordinal)
+            )
             {
                 s = s.Replace('-', ':');
             }
@@ -226,17 +264,33 @@ public static class Hysteria2Parser
         {
             return NativeOptionsParser.Deserialize<Hysteria2RealmOptions>(native);
         }
-        string serverUrl = ctx.GetString("realm.server_url", "realm.server-url", "realm-server-url");
+        string serverUrl = ctx.GetString(
+            "realm.server_url",
+            "realm.server-url",
+            "realm-server-url"
+        );
         string realmId = ctx.GetString("realm.realm_id", "realm.realm-id", "realm-id");
-        var stunServers = ctx.GetStringList("realm.stun_servers", "realm.stun-servers", "realm-stun-servers");
+        var stunServers = ctx.GetStringList(
+            "realm.stun_servers",
+            "realm.stun-servers",
+            "realm-stun-servers"
+        );
 
-        if (string.IsNullOrEmpty(serverUrl) || string.IsNullOrEmpty(realmId) || stunServers.Count == 0)
+        if (
+            string.IsNullOrEmpty(serverUrl)
+            || string.IsNullOrEmpty(realmId)
+            || stunServers.Count == 0
+        )
         {
             return null;
         }
 
         string token = ctx.GetString("realm.token", "realm-token");
-        int? ipVersion = ctx.GetIntNullable("realm.ip_version", "realm.ip-version", "realm-ip-version");
+        int? ipVersion = ctx.GetIntNullable(
+            "realm.ip_version",
+            "realm.ip-version",
+            "realm-ip-version"
+        );
 
         return new Hysteria2RealmOptions
         {
@@ -244,7 +298,7 @@ public static class Hysteria2Parser
             RealmId = realmId,
             StunServers = stunServers,
             Token = !string.IsNullOrEmpty(token) ? token : null,
-            IpVersion = ipVersion
+            IpVersion = ipVersion,
         };
     }
 }

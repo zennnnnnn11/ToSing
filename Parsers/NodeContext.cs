@@ -11,7 +11,9 @@ using SubParser.Utils;
 /// </summary>
 public sealed class NodeContext
 {
-    private readonly Dictionary<string, object?> _properties = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, object?> _properties = new(
+        StringComparer.OrdinalIgnoreCase
+    );
 
     public string Protocol { get; set; } = string.Empty;
     public string Tag { get; set; } = string.Empty;
@@ -70,7 +72,8 @@ public sealed class NodeContext
             ctx.Tag = ctx.GetString("remarks", "remark");
             if (string.IsNullOrWhiteSpace(ctx.Tag))
             {
-                ctx.Tag = $"{ctx.Protocol.ToUpperInvariant()} {ctx.Server}:{ctx.ServerPort.ToString(CultureInfo.InvariantCulture)}";
+                ctx.Tag =
+                    $"{ctx.Protocol.ToUpperInvariant()} {ctx.Server}:{ctx.ServerPort.ToString(CultureInfo.InvariantCulture)}";
             }
         }
 
@@ -89,7 +92,9 @@ public sealed class NodeContext
         {
             ctx._properties[kv.Key] = kv.Value;
         }
-        ctx.IsNativeConfig = proxy.ContainsKey("server_port") || (proxy.ContainsKey("tag") && !proxy.ContainsKey("name"));
+        ctx.IsNativeConfig =
+            proxy.ContainsKey("server_port")
+            || (proxy.ContainsKey("tag") && !proxy.ContainsKey("name"));
 
         ctx.Protocol = ctx.GetString("type");
         ctx.Tag = ctx.GetString("name", "tag");
@@ -112,12 +117,16 @@ public sealed class NodeContext
                 if (val is string strVal)
                 {
                     string s = strVal.Trim();
-                    if (!string.IsNullOrEmpty(s)) return s;
+                    if (!string.IsNullOrEmpty(s))
+                        return s;
                 }
-                else if (val is not (System.Collections.IDictionary or System.Collections.IEnumerable))
+                else if (
+                    val is not (System.Collections.IDictionary or System.Collections.IEnumerable)
+                )
                 {
                     string s = val.ToString()?.Trim() ?? string.Empty;
-                    if (!string.IsNullOrEmpty(s)) return s;
+                    if (!string.IsNullOrEmpty(s))
+                        return s;
                 }
                 else
                 {
@@ -138,8 +147,10 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? raw = ResolveValue(alias);
-            if (raw is string value) return value;
-            if (raw != null) throw new FormatException($"Expected string credential for {alias}");
+            if (raw is string value)
+                return value;
+            if (raw != null)
+                throw new FormatException($"Expected string credential for {alias}");
         }
         return string.Empty;
     }
@@ -149,22 +160,28 @@ public sealed class NodeContext
         object? raw = GetRaw("packet_network") ?? GetRaw("packet-network") ?? GetRaw("network");
         if (raw is string text)
         {
-            if (text is "tcp" or "udp") return text;
-            if (text is "ws" or "websocket" or "http" or "h2" or "grpc" or "quic" or "httpupgrade") return null;
-            if (text.Length == 0) return null;
+            if (text is "tcp" or "udp")
+                return text;
+            if (text is "ws" or "websocket" or "http" or "h2" or "grpc" or "quic" or "httpupgrade")
+                return null;
+            if (text.Length == 0)
+                return null;
             throw new FormatException($"Unknown network: {text}");
         }
         if (raw is IEnumerable<object> list)
         {
             var values = list.Select(item => item.ToString() ?? string.Empty).ToArray();
-            if (values.Any(value => value is not ("tcp" or "udp"))) throw new FormatException("Unknown packet network");
+            if (values.Any(value => value is not ("tcp" or "udp")))
+                throw new FormatException("Unknown packet network");
             return values;
         }
-        if (raw != null) throw new FormatException("Expected a packet network string or list");
+        if (raw != null)
+            throw new FormatException("Expected a packet network string or list");
         return null;
     }
 
-    public int GetIntWithDefault(int defaultValue, params string[] aliases) => GetIntNullable(aliases) ?? defaultValue;
+    public int GetIntWithDefault(int defaultValue, params string[] aliases) =>
+        GetIntNullable(aliases) ?? defaultValue;
 
     public long GetLong(params string[] aliases) => GetLongNullable(aliases) ?? 0;
 
@@ -173,10 +190,22 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? value = ResolveValue(alias);
-            if (value == null) continue;
-            if (value is long number) return number;
-            if (value is int small) return small;
-            if (value is string text && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed)) return parsed;
+            if (value == null)
+                continue;
+            if (value is long number)
+                return number;
+            if (value is int small)
+                return small;
+            if (
+                value is string text
+                && long.TryParse(
+                    text,
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out long parsed
+                )
+            )
+                return parsed;
             throw new FormatException($"Expected int64 for {alias}");
         }
         return null;
@@ -187,12 +216,18 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? value = ResolveValue(alias);
-            if (value == null) continue;
-            if (value is string text) return text;
-            if (value is long number) return number;
-            if (value is int small) return (long)small;
-            if (value is uint integer) return (long)integer;
-            if (value is ulong unsigned && unsigned <= long.MaxValue) return (long)unsigned;
+            if (value == null)
+                continue;
+            if (value is string text)
+                return text;
+            if (value is long number)
+                return number;
+            if (value is int small)
+                return (long)small;
+            if (value is uint integer)
+                return (long)integer;
+            if (value is ulong unsigned && unsigned <= long.MaxValue)
+                return (long)unsigned;
             throw new FormatException($"Expected int64 bytes or a size string for {alias}");
         }
         return null;
@@ -203,10 +238,21 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? val = ResolveValue(alias);
-            if (val == null) continue;
-            if (val is int i) return i;
-            if (val is long l && l is >= int.MinValue and <= int.MaxValue) return (int)l;
-            if (int.TryParse(val.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed)) return parsed;
+            if (val == null)
+                continue;
+            if (val is int i)
+                return i;
+            if (val is long l && l is >= int.MinValue and <= int.MaxValue)
+                return (int)l;
+            if (
+                int.TryParse(
+                    val.ToString(),
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out int parsed
+                )
+            )
+                return parsed;
             throw new FormatException($"Expected int32 for {alias}");
         }
         return null;
@@ -217,15 +263,26 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? val = ResolveValue(alias);
-            if (val == null) continue;
+            if (val == null)
+                continue;
 
-            if (val is uint u) return u;
-            if (val is int i && i >= 0) return (uint)i;
-            if (val is long l && l is >= 0 and <= uint.MaxValue) return (uint)l;
+            if (val is uint u)
+                return u;
+            if (val is int i && i >= 0)
+                return (uint)i;
+            if (val is long l && l is >= 0 and <= uint.MaxValue)
+                return (uint)l;
 
             string strVal = val.ToString()?.Trim() ?? string.Empty;
-            if (strVal.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
-                uint.TryParse(strVal[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint hexParsed))
+            if (
+                strVal.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                && uint.TryParse(
+                    strVal[2..],
+                    NumberStyles.HexNumber,
+                    CultureInfo.InvariantCulture,
+                    out uint hexParsed
+                )
+            )
             {
                 return hexParsed;
             }
@@ -248,18 +305,33 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? val = ResolveValue(alias);
-            if (val == null) continue;
-            if (val is bool b) return b;
+            if (val == null)
+                continue;
+            if (val is bool b)
+                return b;
             string s = val.ToString()?.Trim() ?? string.Empty;
-            if (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal)) return true;
-            if (string.Equals(s, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "0", StringComparison.Ordinal)) return false;
-            if (string.Equals(alias, "tls", StringComparison.Ordinal) && string.Equals(s, "tls", StringComparison.OrdinalIgnoreCase)) return true;
+            if (
+                string.Equals(s, "true", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(s, "1", StringComparison.Ordinal)
+            )
+                return true;
+            if (
+                string.Equals(s, "false", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(s, "0", StringComparison.Ordinal)
+            )
+                return false;
+            if (
+                string.Equals(alias, "tls", StringComparison.Ordinal)
+                && string.Equals(s, "tls", StringComparison.OrdinalIgnoreCase)
+            )
+                return true;
             throw new FormatException($"Expected boolean for {alias}");
         }
         return null;
     }
 
-    public bool GetBoolWithDefault(bool defaultValue, params string[] aliases) => GetBoolNullable(aliases) ?? defaultValue;
+    public bool GetBoolWithDefault(bool defaultValue, params string[] aliases) =>
+        GetBoolNullable(aliases) ?? defaultValue;
 
     /// <summary>
     /// 依次按别名获取去重后的非空字符串列表。
@@ -270,25 +342,41 @@ public sealed class NodeContext
         foreach (string alias in aliases)
         {
             object? val = ResolveValue(alias);
-            if (val == null) continue;
+            if (val == null)
+                continue;
 
             if (val is IEnumerable<object> list)
             {
                 foreach (object item in list)
                 {
                     string s = item?.ToString()?.Trim() ?? string.Empty;
-                    if (!string.IsNullOrEmpty(s) && !result.Contains(s, StringComparer.OrdinalIgnoreCase)) result.Add(s);
+                    if (
+                        !string.IsNullOrEmpty(s)
+                        && !result.Contains(s, StringComparer.OrdinalIgnoreCase)
+                    )
+                        result.Add(s);
                 }
-                if (result.Count > 0) return result;
+                if (result.Count > 0)
+                    return result;
             }
             else if (val is string str)
             {
-                foreach (string part in str.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                foreach (
+                    string part in str.Split(
+                        [',', ';'],
+                        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                    )
+                )
                 {
                     string s = part.Trim();
-                    if (!string.IsNullOrEmpty(s) && !result.Contains(s, StringComparer.OrdinalIgnoreCase)) result.Add(s);
+                    if (
+                        !string.IsNullOrEmpty(s)
+                        && !result.Contains(s, StringComparer.OrdinalIgnoreCase)
+                    )
+                        result.Add(s);
                 }
-                if (result.Count > 0) return result;
+                if (result.Count > 0)
+                    return result;
             }
         }
         return result;
@@ -309,7 +397,8 @@ public sealed class NodeContext
                 {
                     dict[kv.Key] = kv.Value?.ToString() ?? string.Empty;
                 }
-                if (dict.Count > 0) return dict;
+                if (dict.Count > 0)
+                    return dict;
             }
             else if (val is IDictionary<string, object?> strMap)
             {
@@ -317,7 +406,8 @@ public sealed class NodeContext
                 {
                     dict[kv.Key] = kv.Value?.ToString() ?? string.Empty;
                 }
-                if (dict.Count > 0) return dict;
+                if (dict.Count > 0)
+                    return dict;
             }
             else if (val is IDictionary<object, object> objMap)
             {
@@ -325,7 +415,8 @@ public sealed class NodeContext
                 {
                     dict[kv.Key?.ToString() ?? string.Empty] = kv.Value?.ToString() ?? string.Empty;
                 }
-                if (dict.Count > 0) return dict;
+                if (dict.Count > 0)
+                    return dict;
             }
         }
         return dict;
@@ -344,7 +435,8 @@ public sealed class NodeContext
 
     public static string SafeUrlDecode(string text)
     {
-        if (string.IsNullOrEmpty(text)) return string.Empty;
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
         string decoded = HttpUtility.UrlDecode(text);
         if (decoded.Contains('%', StringComparison.Ordinal))
         {
@@ -381,10 +473,12 @@ public sealed class NodeContext
             string decodedAuth = Uri.UnescapeDataString(authPart);
 
             // Hysteria 2、Trojan、AnyTLS 的 UserInfo 整体作为 password (避免密码含冒号被截断)
-            if (string.Equals(ctx.Protocol, "hy2", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(ctx.Protocol, "trojan", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(ctx.Protocol, "anytls", StringComparison.OrdinalIgnoreCase))
+            if (
+                string.Equals(ctx.Protocol, "hy2", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ctx.Protocol, "trojan", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ctx.Protocol, "anytls", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 ctx._properties["password"] = decodedAuth;
                 ctx._properties["auth"] = decodedAuth;
@@ -418,7 +512,8 @@ public sealed class NodeContext
 
     private static void ParseQueryParams(string queryPart, NodeContext ctx)
     {
-        if (string.IsNullOrEmpty(queryPart)) return;
+        if (string.IsNullOrEmpty(queryPart))
+            return;
 
         foreach (string pair in queryPart.Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
@@ -438,8 +533,10 @@ public sealed class NodeContext
 
     private object? ResolveValue(string path)
     {
-        if (_properties.TryGetValue(path, out object? direct)) return direct;
-        if (!path.Contains('.', StringComparison.Ordinal)) return null;
+        if (_properties.TryGetValue(path, out object? direct))
+            return direct;
+        if (!path.Contains('.', StringComparison.Ordinal))
+            return null;
 
         string[] segments = path.Split('.', StringSplitOptions.RemoveEmptyEntries);
         object? current = _properties;
@@ -448,11 +545,13 @@ public sealed class NodeContext
         {
             if (current is IReadOnlyDictionary<string, object?> roMap)
             {
-                if (!roMap.TryGetValue(seg, out current)) return null;
+                if (!roMap.TryGetValue(seg, out current))
+                    return null;
             }
             else if (current is IDictionary<string, object?> strMap)
             {
-                if (!strMap.TryGetValue(seg, out current)) return null;
+                if (!strMap.TryGetValue(seg, out current))
+                    return null;
             }
             else if (current is IDictionary<object, object> objMap)
             {
@@ -465,7 +564,8 @@ public sealed class NodeContext
                         break;
                     }
                 }
-                if (found == null) return null;
+                if (found == null)
+                    return null;
                 current = found;
             }
             else
@@ -504,13 +604,21 @@ public sealed class NodeContext
         string remainder = mainPart[(atIndex + 1)..];
         string plainUserInfo = Base64Utils.Decode(userInfo);
 
-        ApplySsCredentials(plainUserInfo.Contains(':', StringComparison.Ordinal) ? plainUserInfo : Uri.UnescapeDataString(userInfo), ctx);
+        ApplySsCredentials(
+            plainUserInfo.Contains(':', StringComparison.Ordinal)
+                ? plainUserInfo
+                : Uri.UnescapeDataString(userInfo),
+            ctx
+        );
         ParseHostAndPort(remainder, ctx);
     }
 
     private static void HandleSsPluginParam(NodeContext ctx)
     {
-        if (ctx._properties.TryGetValue("plugin", out object? pluginObj) && pluginObj is string pluginStr)
+        if (
+            ctx._properties.TryGetValue("plugin", out object? pluginObj)
+            && pluginObj is string pluginStr
+        )
         {
             // 注意：query 解析时已经解码过一次，严禁二次解码，否则会破坏诸如 /a+b 或 /a%2Fb 等合法路径参数
             string rawPlugin = pluginStr.Trim();
@@ -561,7 +669,8 @@ public sealed class NodeContext
                 if (closeBracket + 1 < cleaned.Length && cleaned[closeBracket + 1] == ':')
                 {
                     string portStr = cleaned[(closeBracket + 2)..];
-                    if (int.TryParse(portStr, CultureInfo.InvariantCulture, out int p)) ctx.ServerPort = p;
+                    if (int.TryParse(portStr, CultureInfo.InvariantCulture, out int p))
+                        ctx.ServerPort = p;
                 }
                 return;
             }

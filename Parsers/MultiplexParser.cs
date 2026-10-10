@@ -11,12 +11,18 @@ internal static class MultiplexParser
         {
             return NativeOptionsParser.Deserialize<OutboundMultiplexOptions>(native);
         }
-        if (!ctx.GetBool("mux", "smux.enabled")) return null;
+        if (!ctx.GetBool("mux", "smux.enabled"))
+            return null;
 
         string proto = ctx.GetString("smux.protocol", "mux.protocol");
-        if (string.IsNullOrEmpty(proto)) proto = "smux";
+        if (string.IsNullOrEmpty(proto))
+            proto = "smux";
 
-        long mc = ctx.GetLong("smux.max-connections", "mux.max-connections", "smux.max_connections");
+        long mc = ctx.GetLong(
+            "smux.max-connections",
+            "mux.max-connections",
+            "smux.max_connections"
+        );
         long minStreams = ctx.GetLong("smux.min-streams", "mux.min-streams", "smux.min_streams");
         long maxStreams = ctx.GetLong("smux.max-streams", "mux.max-streams", "smux.max_streams");
         bool padding = ctx.GetBool("smux.padding", "mux.padding");
@@ -31,20 +37,31 @@ internal static class MultiplexParser
             MinStreams = minStreams > 0 ? minStreams : null,
             MaxStreams = maxStreams > 0 ? maxStreams : null,
             Padding = padding,
-            Brutal = brutal
+            Brutal = brutal,
         };
     }
 
     private static BrutalOptions? ParseBrutal(NodeContext ctx)
     {
-        bool hasBrutalSection = ctx.HasProperty("smux.brutal") ||
-                                ctx.HasProperty("mux.brutal") ||
-                                ctx.GetRaw("smux.brutal") != null ||
-                                ctx.GetRaw("mux.brutal") != null;
+        bool hasBrutalSection =
+            ctx.HasProperty("smux.brutal")
+            || ctx.HasProperty("mux.brutal")
+            || ctx.GetRaw("smux.brutal") != null
+            || ctx.GetRaw("mux.brutal") != null;
 
         bool brutalEnabled = ctx.GetBool("smux.brutal.enabled", "mux.brutal.enabled");
-        long up = ctx.GetLong("smux.brutal.up_mbps", "mux.brutal.up_mbps", "smux.brutal.up-mbps", "mux.brutal.up-mbps");
-        long down = ctx.GetLong("smux.brutal.down_mbps", "mux.brutal.down_mbps", "smux.brutal.down-mbps", "mux.brutal.down-mbps");
+        long up = ctx.GetLong(
+            "smux.brutal.up_mbps",
+            "mux.brutal.up_mbps",
+            "smux.brutal.up-mbps",
+            "mux.brutal.up-mbps"
+        );
+        long down = ctx.GetLong(
+            "smux.brutal.down_mbps",
+            "mux.brutal.down_mbps",
+            "smux.brutal.down-mbps",
+            "mux.brutal.down-mbps"
+        );
 
         if (hasBrutalSection || brutalEnabled || up > 0 || down > 0)
         {
@@ -53,7 +70,7 @@ internal static class MultiplexParser
             {
                 Enabled = brutalEnabled,
                 UpMbps = up > 0 ? up : null,
-                DownMbps = down > 0 ? down : null
+                DownMbps = down > 0 ? down : null,
             };
         }
 

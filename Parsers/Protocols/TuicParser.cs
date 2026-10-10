@@ -15,7 +15,8 @@ public static class TuicParser
 
         string server = ctx.Server;
         int port = ctx.ServerPort;
-        if (port < 1 || port > 65535) return null;
+        if (port < 1 || port > 65535)
+            return null;
 
         string rawUuid = ctx.GetString("uuid", "username");
         if (string.IsNullOrWhiteSpace(rawUuid) || !Guid.TryParse(rawUuid, out Guid parsedGuid))
@@ -64,11 +65,19 @@ public static class TuicParser
             StreamReceiveWindow = q.StreamReceiveWindow,
             ConnectionReceiveWindow = q.ConnectionReceiveWindow,
             Network = ctx.GetPacketNetwork(),
-            Tls = tls
+            Tls = tls,
         };
     }
 
-    private static (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, long? InitialPacketSize, long? MaxConcurrentStreams, object? StreamReceiveWindow, object? ConnectionReceiveWindow) ReadQuicParams(NodeContext ctx)
+    private static (
+        string? IdleTimeout,
+        string? KeepAlivePeriod,
+        bool DisablePathMtuDiscovery,
+        long? InitialPacketSize,
+        long? MaxConcurrentStreams,
+        object? StreamReceiveWindow,
+        object? ConnectionReceiveWindow
+    ) ReadQuicParams(NodeContext ctx)
     {
         string idle = ctx.GetString("idle_timeout", "idle-timeout");
         string keepAlive = ctx.GetString("keep_alive_period", "keep-alive-period");
@@ -76,7 +85,10 @@ public static class TuicParser
         long initPkt = ctx.GetLong("initial_packet_size", "initial-packet-size");
         long maxStreams = ctx.GetLong("max_concurrent_streams", "max-concurrent-streams");
         object? streamRw = ctx.GetMemoryBytes("stream_receive_window", "stream-receive-window");
-        object? connRw = ctx.GetMemoryBytes("connection_receive_window", "connection-receive-window");
+        object? connRw = ctx.GetMemoryBytes(
+            "connection_receive_window",
+            "connection-receive-window"
+        );
 
         long? finalInitPkt = null;
         if (ctx.IsNativeConfig)
@@ -108,6 +120,4 @@ public static class TuicParser
             connRw
         );
     }
-
-
 }

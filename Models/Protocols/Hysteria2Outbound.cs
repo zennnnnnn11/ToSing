@@ -112,6 +112,7 @@ public sealed record class Hysteria2RealmOptions
     [JsonPropertyName("ip_version")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? IpVersion { get; init; }
+
     [JsonPropertyName("port_mapping")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Hysteria2RealmPortMappingOptions? PortMapping { get; init; }
@@ -132,6 +133,7 @@ public sealed record class Hysteria2ObfsOptions
 
     [JsonPropertyName("password")]
     public required string Password { get; init; }
+
     [JsonPropertyName("min_packet_size")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public long? MinPacketSize { get; init; }
@@ -139,7 +141,6 @@ public sealed record class Hysteria2ObfsOptions
     [JsonPropertyName("max_packet_size")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public long? MaxPacketSize { get; init; }
-
 }
 
 public sealed record class Hysteria2RealmPortMappingOptions
@@ -155,5 +156,4 @@ public sealed record class Hysteria2RealmPortMappingOptions
     [JsonPropertyName("lifetime")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Lifetime { get; init; }
-
 }

@@ -13,7 +13,12 @@ public static class TlsParser
     /// <summary>
     /// 从节点上下文解析 TLS 选项。
     /// </summary>
-    public static OutboundTLSOptions? Parse(NodeContext ctx, string defaultServer, bool allowUtls = true, bool forceTls = false)
+    public static OutboundTLSOptions? Parse(
+        NodeContext ctx,
+        string defaultServer,
+        bool allowUtls = true,
+        bool forceTls = false
+    )
     {
         ArgumentNullException.ThrowIfNull(ctx);
 
@@ -25,10 +30,12 @@ public static class TlsParser
             return nativeTls;
         }
 
-        if (!CheckTlsEnabled(ctx, forceTls)) return null;
+        if (!CheckTlsEnabled(ctx, forceTls))
+            return null;
 
         string serverName = ctx.GetString("sni", "servername", "peer");
-        if (string.IsNullOrEmpty(serverName)) serverName = defaultServer;
+        if (string.IsNullOrEmpty(serverName))
+            serverName = defaultServer;
 
         var alpnList = ctx.GetStringList("alpn");
         var cipherSuites = ctx.GetStringList("cipher_suites", "cipher-suites", "ciphers");
@@ -57,7 +64,7 @@ public static class TlsParser
             ClientCertificatePath = certs.ClientCertificatePath,
             ClientKey = certs.ClientKey,
             ClientKeyPath = certs.ClientKeyPath,
-            Ech = ParseEch(ctx)
+            Ech = ParseEch(ctx),
         };
     }
 
@@ -67,25 +74,46 @@ public static class TlsParser
         string tlsRaw = ctx.GetString("tls").ToLowerInvariant();
         string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key");
 
-        return forceTls ||
-               ctx.GetBool("tls") ||
-               string.Equals(tlsRaw, "tls", StringComparison.Ordinal) ||
-               string.Equals(tlsRaw, "1", StringComparison.Ordinal) ||
-               string.Equals(tlsRaw, "true", StringComparison.Ordinal) ||
-               string.Equals(security, "tls", StringComparison.Ordinal) ||
-               string.Equals(security, "reality", StringComparison.Ordinal) ||
-               !string.IsNullOrEmpty(pbk);
+        return forceTls
+            || ctx.GetBool("tls")
+            || string.Equals(tlsRaw, "tls", StringComparison.Ordinal)
+            || string.Equals(tlsRaw, "1", StringComparison.Ordinal)
+            || string.Equals(tlsRaw, "true", StringComparison.Ordinal)
+            || string.Equals(security, "tls", StringComparison.Ordinal)
+            || string.Equals(security, "reality", StringComparison.Ordinal)
+            || !string.IsNullOrEmpty(pbk);
     }
 
-    private static (IReadOnlyList<string>? Certificate, string? CertificatePath, IReadOnlyList<string>? CertificateSHA256, IReadOnlyList<string>? CertificatePublicKeySHA256, IReadOnlyList<string>? ClientCertificate, string? ClientCertificatePath, IReadOnlyList<string>? ClientKey, string? ClientKeyPath) ParseCertificates(NodeContext ctx)
+    private static (
+        IReadOnlyList<string>? Certificate,
+        string? CertificatePath,
+        IReadOnlyList<string>? CertificateSHA256,
+        IReadOnlyList<string>? CertificatePublicKeySHA256,
+        IReadOnlyList<string>? ClientCertificate,
+        string? ClientCertificatePath,
+        IReadOnlyList<string>? ClientKey,
+        string? ClientKeyPath
+    ) ParseCertificates(NodeContext ctx)
     {
         var certificate = ctx.GetStringList("certificate", "ca");
-        var certSha256 = ctx.GetStringList("certificate_sha256", "certificate-sha256", "cert-sha256");
-        var certPubKeySha256 = ctx.GetStringList("certificate_public_key_sha256", "certificate-public-key-sha256");
+        var certSha256 = ctx.GetStringList(
+            "certificate_sha256",
+            "certificate-sha256",
+            "cert-sha256"
+        );
+        var certPubKeySha256 = ctx.GetStringList(
+            "certificate_public_key_sha256",
+            "certificate-public-key-sha256"
+        );
         var clientCert = ctx.GetStringList("client_certificate", "client-certificate");
         var clientKey = ctx.GetStringList("client_key", "client-key");
 
-        string certPath = ctx.GetString("certificate_path", "certificate-path", "ca_path", "ca-path");
+        string certPath = ctx.GetString(
+            "certificate_path",
+            "certificate-path",
+            "ca_path",
+            "ca-path"
+        );
         string clientCertPath = ctx.GetString("client_certificate_path", "client-certificate-path");
         string clientKeyPath = ctx.GetString("client_key_path", "client-key-path");
 
@@ -119,7 +147,10 @@ public static class TlsParser
         string security = ctx.GetString("security").ToLowerInvariant();
         string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key");
 
-        if (!string.Equals(security, "reality", StringComparison.Ordinal) && string.IsNullOrEmpty(pbk))
+        if (
+            !string.Equals(security, "reality", StringComparison.Ordinal)
+            && string.IsNullOrEmpty(pbk)
+        )
         {
             return null;
         }
@@ -129,7 +160,7 @@ public static class TlsParser
         {
             Enabled = true,
             PublicKey = pbk,
-            ShortId = !string.IsNullOrEmpty(sid) ? sid : null
+            ShortId = !string.IsNullOrEmpty(sid) ? sid : null,
         };
     }
 
@@ -141,13 +172,19 @@ public static class TlsParser
             return options.Enabled == true ? options : null;
         }
         bool? echExplicit = ctx.GetBoolNullable("ech.enabled", "ech-enabled", "ech");
-        if (echExplicit == false) return null;
+        if (echExplicit == false)
+            return null;
 
         var echConfig = ctx.GetStringList("ech.config", "ech-config");
         string echConfigPath = ctx.GetString("ech.config_path", "ech-config-path");
         string echQuerySni = ctx.GetString("ech.query_server_name", "ech-query-server-name");
 
-        if (echExplicit != true && echConfig.Count == 0 && string.IsNullOrEmpty(echConfigPath) && string.IsNullOrEmpty(echQuerySni))
+        if (
+            echExplicit != true
+            && echConfig.Count == 0
+            && string.IsNullOrEmpty(echConfigPath)
+            && string.IsNullOrEmpty(echQuerySni)
+        )
         {
             return null;
         }
@@ -157,23 +194,22 @@ public static class TlsParser
             Enabled = true,
             Config = NormalizeEchConfig(echConfig),
             ConfigPath = !string.IsNullOrEmpty(echConfigPath) ? echConfigPath : null,
-            QueryServerName = !string.IsNullOrEmpty(echQuerySni) ? echQuerySni : null
+            QueryServerName = !string.IsNullOrEmpty(echQuerySni) ? echQuerySni : null,
         };
     }
 
     private static IReadOnlyList<string>? NormalizeEchConfig(IReadOnlyList<string> rawConfigs)
     {
-        if (rawConfigs.Count == 0) return null;
+        if (rawConfigs.Count == 0)
+            return null;
 
         foreach (string c in rawConfigs)
         {
-            if (c.Contains("BEGIN ECH CONFIGS", StringComparison.Ordinal)) return rawConfigs;
+            if (c.Contains("BEGIN ECH CONFIGS", StringComparison.Ordinal))
+                return rawConfigs;
         }
 
-        var result = new List<string>(rawConfigs.Count + 2)
-        {
-            "-----BEGIN ECH CONFIGS-----"
-        };
+        var result = new List<string>(rawConfigs.Count + 2) { "-----BEGIN ECH CONFIGS-----" };
         result.AddRange(rawConfigs);
         result.Add("-----END ECH CONFIGS-----");
         return result;

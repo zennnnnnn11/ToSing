@@ -99,25 +99,27 @@ public static class Base64Utils
 
         string trimmed = input.Trim();
 
-        if (trimmed.StartsWith("vless://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("ss://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("hy2://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("hysteria2://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("trojan://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("tuic://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("anytls://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("proxies:", StringComparison.OrdinalIgnoreCase))
+        if (
+            trimmed.StartsWith("vless://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("ss://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("hy2://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("hysteria2://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("trojan://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("tuic://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("anytls://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("proxies:", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return false;
         }
 
         if (TryDecode(trimmed, out string? decoded))
         {
-            return decoded.Contains("://", StringComparison.Ordinal) ||
-                   decoded.Contains("proxies:", StringComparison.OrdinalIgnoreCase);
+            return decoded.Contains("://", StringComparison.Ordinal)
+                || decoded.Contains("proxies:", StringComparison.OrdinalIgnoreCase);
         }
 
         return false;
@@ -134,7 +136,7 @@ public static class Base64Utils
                 {
                     '-' => '+',
                     '_' => '/',
-                    _ => c
+                    _ => c,
                 };
                 sb.Append(replaced);
             }

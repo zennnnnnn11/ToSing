@@ -9,7 +9,9 @@ using System.Collections.Generic;
 /// </summary>
 public static class SingboxUtlsUtils
 {
-    private static readonly FrozenSet<string> ValidFingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly FrozenSet<string> ValidFingerprints = new HashSet<string>(
+        StringComparer.OrdinalIgnoreCase
+    )
     {
         "chrome_psk",
         "chrome_psk_shuffle",
@@ -25,7 +27,7 @@ public static class SingboxUtlsUtils
         "ios",
         "android",
         "random",
-        "randomized"
+        "randomized",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -33,7 +35,8 @@ public static class SingboxUtlsUtils
     /// </summary>
     public static string? NormalizeFingerprint(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(raw)) return null;
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
 
         string normalized = raw.Trim().ToLowerInvariant();
         return ValidFingerprints.Contains(normalized) ? normalized : null;

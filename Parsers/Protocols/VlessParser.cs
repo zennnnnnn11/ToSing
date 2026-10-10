@@ -16,10 +16,12 @@ public static class VlessParser
 
         string server = ctx.Server;
         int port = ctx.ServerPort;
-        if (port < 1 || port > 65535) return null;
+        if (port < 1 || port > 65535)
+            return null;
 
         string uuid = ctx.GetString("uuid", "password");
-        if (string.IsNullOrWhiteSpace(uuid)) return null;
+        if (string.IsNullOrWhiteSpace(uuid))
+            return null;
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VLESS {server}:{port}";
         string rawFlow = ctx.GetString("flow").Trim();
@@ -28,8 +30,10 @@ public static class VlessParser
         if (!string.IsNullOrEmpty(rawFlow))
         {
             string lowerFlow = rawFlow.ToLowerInvariant();
-            if (string.Equals(lowerFlow, "xtls-rprx-vision", StringComparison.Ordinal) ||
-                string.Equals(lowerFlow, "xtls-rprx-vision-udp443", StringComparison.Ordinal))
+            if (
+                string.Equals(lowerFlow, "xtls-rprx-vision", StringComparison.Ordinal)
+                || string.Equals(lowerFlow, "xtls-rprx-vision-udp443", StringComparison.Ordinal)
+            )
             {
                 // 内核只支持小写标准 xtls-rprx-vision
                 flow = "xtls-rprx-vision";
@@ -67,7 +71,7 @@ public static class VlessParser
             Tls = tls,
             Transport = transport,
             PacketEncoding = packetEncoding,
-            Multiplex = multiplex
+            Multiplex = multiplex,
         };
     }
 
@@ -81,8 +85,10 @@ public static class VlessParser
                 // 显式提供空字符串 packet_encoding=""
                 return ("", true);
             }
-            if (string.Equals(pe, "xudp", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(pe, "packetaddr", StringComparison.OrdinalIgnoreCase))
+            if (
+                string.Equals(pe, "xudp", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(pe, "packetaddr", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 return (pe.ToLowerInvariant(), true);
             }
@@ -90,13 +96,12 @@ public static class VlessParser
             return (null, false);
         }
 
-        if (ctx.GetBool("xudp")) return ("xudp", true);
-        if (ctx.GetBool("packet-addr")) return ("packetaddr", true);
+        if (ctx.GetBool("xudp"))
+            return ("xudp", true);
+        if (ctx.GetBool("packet-addr"))
+            return ("packetaddr", true);
 
         // 未提供时为 null（sing-box 默认行为）
         return (null, true);
     }
-
-
-
 }

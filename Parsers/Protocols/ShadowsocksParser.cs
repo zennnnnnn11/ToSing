@@ -17,11 +17,13 @@ public static class ShadowsocksParser
 
         string server = ctx.Server;
         int port = ctx.ServerPort;
-        if (port < 1 || port > 65535) return null;
+        if (port < 1 || port > 65535)
+            return null;
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"SS {server}:{port}";
 
         string method = ctx.GetString("method", "cipher");
-        if (string.IsNullOrEmpty(method)) method = "aes-256-gcm";
+        if (string.IsNullOrEmpty(method))
+            method = "aes-256-gcm";
 
         string password = ctx.GetSecretString("password");
         string plugin = ctx.GetString("plugin");
@@ -39,11 +41,7 @@ public static class ShadowsocksParser
         else if (ctx.GetBool("udp_over_tcp", "udp-over-tcp", "uot"))
         {
             int ver = ctx.GetInt("uot_version", "uot-version");
-            uot = new UdpOverTcpOptions
-            {
-                Enabled = true,
-                Version = ver > 0 ? ver : 2
-            };
+            uot = new UdpOverTcpOptions { Enabled = true, Version = ver > 0 ? ver : 2 };
         }
 
         OutboundMultiplexOptions? multiplex = MultiplexParser.ParseMultiplex(ctx);
@@ -59,14 +57,15 @@ public static class ShadowsocksParser
             Plugin = !string.IsNullOrEmpty(plugin) ? plugin : null,
             PluginOptions = pluginOpts,
             UdpOverTcp = uot,
-            Multiplex = multiplex
+            Multiplex = multiplex,
         };
     }
 
     private static string? ParsePluginOptions(NodeContext ctx)
     {
         object? raw = ctx.GetRaw("plugin_opts") ?? ctx.GetRaw("plugin-opts");
-        if (raw == null) return null;
+        if (raw == null)
+            return null;
 
         if (raw is string rawStr && !string.IsNullOrWhiteSpace(rawStr))
         {
@@ -110,7 +109,8 @@ public static class ShadowsocksParser
             string key = kv.Key;
             object? val = kv.Value;
 
-            if (val is null) continue;
+            if (val is null)
+                continue;
 
             if (val is bool b)
             {
@@ -148,7 +148,8 @@ public static class ShadowsocksParser
 
     private static string EscapeSip003Key(string text)
     {
-        if (string.IsNullOrEmpty(text)) return string.Empty;
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
         var sb = new StringBuilder(text.Length + 4);
         foreach (char c in text)
         {
@@ -163,7 +164,8 @@ public static class ShadowsocksParser
 
     private static string EscapeSip003Value(string text)
     {
-        if (string.IsNullOrEmpty(text)) return string.Empty;
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
         var sb = new StringBuilder(text.Length + 4);
         foreach (char c in text)
         {

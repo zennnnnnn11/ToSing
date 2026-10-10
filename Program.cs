@@ -13,18 +13,19 @@ if (args.Length == 0)
 string input = args[0];
 string content;
 
-if (Uri.TryCreate(input, UriKind.Absolute, out Uri? uri) &&
-    (string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-     string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+if (
+    Uri.TryCreate(input, UriKind.Absolute, out Uri? uri)
+    && (
+        string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+    )
+)
 {
     using var handler = new SocketsHttpHandler
     {
-        PooledConnectionLifetime = TimeSpan.FromMinutes(1)
+        PooledConnectionLifetime = TimeSpan.FromMinutes(1),
     };
-    using var client = new HttpClient(handler)
-    {
-        Timeout = TimeSpan.FromSeconds(20)
-    };
+    using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
     client.DefaultRequestHeaders.UserAgent.ParseAdd("clash.meta");
     content = await client.GetStringAsync(uri).ConfigureAwait(false);
 }
@@ -39,10 +40,7 @@ else
 
 var outbounds = UniversalParser.ParseSubscription(content);
 
-var options = new JsonSerializerOptions
-{
-    WriteIndented = true
-};
+var options = new JsonSerializerOptions { WriteIndented = true };
 
 string json = JsonSerializer.Serialize(outbounds, options);
 Console.WriteLine(json);
