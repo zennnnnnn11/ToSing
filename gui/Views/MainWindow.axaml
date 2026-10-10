@@ -350,6 +350,9 @@
                                         BorderThickness="1"
                                         CornerRadius="4"
                                         Padding="6,2"
+                                        Cursor="Hand"
+                                        ToolTip.Placement="Bottom"
+                                        ToolTip.ShowDelay="80"
                                     >
                                         <TextBlock
                                             Name="NodeCountText"

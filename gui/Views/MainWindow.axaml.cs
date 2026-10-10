@@ -6,11 +6,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using SubParser.Models;
+using SubParser.Models.Protocols;
 using SubParser.Parsers;
 
 namespace SubParser.Gui.Views;
@@ -154,6 +157,7 @@ public partial class MainWindow : Window
         InitialBadge.IsVisible = true;
         NodeCountBadge.IsVisible = false;
         FilteredBadge.IsVisible = false;
+        ToolTip.SetTip(NodeCountBadge, null);
     }
 
     private async void OnConvertClick(object? sender, RoutedEventArgs e)
@@ -212,6 +216,7 @@ public partial class MainWindow : Window
             InitialBadge.IsVisible = false;
             NodeCountBadge.IsVisible = true;
             NodeCountText.Text = $"{nodeCount} 个有效节点";
+            UpdateProtocolDistributionTooltip(outbounds);
 
             if (filterAds && filteredCount > 0)
             {
@@ -232,6 +237,143 @@ public partial class MainWindow : Window
             ConvertButton.IsEnabled = true;
             ConvertButtonText.Text = "解析并转换";
         }
+    }
+
+    private void UpdateProtocolDistributionTooltip(IReadOnlyList<SingboxOutbound> outbounds)
+    {
+        // 7 个已知出站类型 + 1 个未知
+        var orderedKeys = new[]
+        {
+            "VLESS",
+            "VMess",
+            "Trojan",
+            "Shadowsocks",
+            "Hysteria2",
+            "TUIC",
+            "AnyTLS",
+            "未知出站",
+        };
+
+        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["VLESS"] = 0,
+            ["VMess"] = 0,
+            ["Trojan"] = 0,
+            ["Shadowsocks"] = 0,
+            ["Hysteria2"] = 0,
+            ["TUIC"] = 0,
+            ["AnyTLS"] = 0,
+            ["未知出站"] = 0,
+        };
+
+        foreach (var outbound in outbounds)
+        {
+            string type = outbound switch
+            {
+                VlessOutbound => "VLESS",
+                VmessOutbound => "VMess",
+                TrojanOutbound => "Trojan",
+                ShadowsocksOutbound => "Shadowsocks",
+                Hysteria2Outbound => "Hysteria2",
+                TuicOutbound => "TUIC",
+                AnyTlsOutbound => "AnyTLS",
+                _ => "未知出站",
+            };
+            counts[type]++;
+        }
+
+        var panel = new StackPanel { Spacing = 4, MinWidth = 150 };
+
+        panel.Children.Add(
+            new TextBlock
+            {
+                Text = "出站协议分布",
+                FontSize = 11.5,
+                FontWeight = FontWeight.SemiBold,
+                Foreground = Brush.Parse("#1E293B"),
+                Margin = new Thickness(0, 0, 0, 4),
+            }
+        );
+
+        panel.Children.Add(
+            new Border
+            {
+                Height = 1,
+                Background = Brush.Parse("#E2E8F0"),
+                Margin = new Thickness(0, 0, 0, 4),
+            }
+        );
+
+        int activeTypes = 0;
+        foreach (string key in orderedKeys)
+        {
+            int count = counts[key];
+            if (count <= 0) // 没有的话绝对不展示！
+                continue;
+
+            activeTypes++;
+
+            var row = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitions("Auto, *, Auto"),
+                Margin = new Thickness(0, 2),
+            };
+
+            var tagBorder = new Border
+            {
+                Background = Brush.Parse("#F8FAFC"),
+                BorderBrush = Brush.Parse("#E2E8F0"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(3),
+                Padding = new Thickness(5, 1.5),
+            };
+            tagBorder.Child = new TextBlock
+            {
+                Text = key,
+                FontSize = 11,
+                FontWeight = FontWeight.Medium,
+                Foreground = Brush.Parse("#334155"),
+            };
+
+            var countText = new TextBlock
+            {
+                Text = $"{count} 个",
+                FontSize = 11,
+                Foreground = Brush.Parse("#64748B"),
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            };
+            Grid.SetColumn(countText, 2);
+
+            row.Children.Add(tagBorder);
+            row.Children.Add(countText);
+            panel.Children.Add(row);
+        }
+
+        if (activeTypes == 0)
+        {
+            ToolTip.SetTip(NodeCountBadge, null);
+            return;
+        }
+
+        var container = new Border
+        {
+            Background = Brush.Parse("#FFFFFF"),
+            BorderBrush = Brush.Parse("#CBD5E1"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(10, 8),
+            BoxShadow = new BoxShadows(
+                new BoxShadow
+                {
+                    Blur = 12,
+                    OffsetY = 4,
+                    Color = Color.FromArgb(30, 0, 0, 0),
+                }
+            ),
+            Child = panel,
+        };
+
+        ToolTip.SetTip(NodeCountBadge, container);
     }
 
     private async void OnCopyClick(object? sender, RoutedEventArgs e)
