@@ -8,7 +8,7 @@ using SubParser.Parsers;
 using SubParser.Utils;
 
 Console.WriteLine("=================================================================");
-Console.WriteLine("  开始运行 7 大协议工业级双路径映射、避坑防线与内核终极质检验证");
+Console.WriteLine("  开始运行 7 大协议工业级双路径映射、全套避坑防线与内核终极质检验证");
 Console.WriteLine("=================================================================");
 
 int total = 0;
@@ -128,11 +128,11 @@ Console.WriteLine("\n[阶段一] 验证 7 大协议单链接 (URI) 解析与模�
 }
 
 // -------------------------------------------------------------
-// 测试 2: Sub-Store 踩坑经验防线专项测试 (重名消重、端口非法、指纹白名单)
+// 测试 2: 全套实战避坑护城河专项测试
 // -------------------------------------------------------------
-Console.WriteLine("\n[阶段二] 验证 Sub-Store 踩坑防御护城河...");
+Console.WriteLine("\n[阶段二] 验证全套实战避坑护城河...");
 
-// 2.1 重名节点自动编号消重测试 (防止 sing-box 启动 duplicate tag 报错闪退)
+// 2.1 重名节点自动编号消重测试
 {
     string multilineDupes = """
     vless://uuid1@1.1.1.1:443#香港专线
@@ -146,7 +146,7 @@ Console.WriteLine("\n[阶段二] 验证 Sub-Store 踩坑防御护城河...");
         string.Equals(deduped[2].Tag, "香港专线 (2)", StringComparison.Ordinal));
 }
 
-// 2.2 非法端口节点拦截 (1 <= port <= 65535)
+// 2.2 非法端口节点拦截
 {
     string badPortUri1 = "vless://uuid@1.1.1.1:0#零端口节点";
     string badPortUri2 = "vless://uuid@1.1.1.1:70000#超大端口节点";
@@ -155,7 +155,7 @@ Console.WriteLine("\n[阶段二] 验证 Sub-Store 踩坑防御护城河...");
     Assert("2.2 非法端口 (0 或 70000) 成功拦截不进入模型", n1 == null && n2 == null);
 }
 
-// 2.3 uTLS 指纹大小写自动纠正与未知指纹安全过滤
+// 2.3 uTLS 指纹大小写自动纠偏与未知指纹安全过滤
 {
     string upperFpUri = "vless://uuid@1.1.1.1:443?security=tls&fp=Chrome#大写指纹";
     string fakeFpUri = "vless://uuid@1.1.1.1:443?security=tls&fp=MyWeirdFp#非法指纹";
@@ -163,6 +163,28 @@ Console.WriteLine("\n[阶段二] 验证 Sub-Store 踩坑防御护城河...");
     var nodeFake = UniversalParser.ParseLine(fakeFpUri) as VlessOutbound;
     Assert("2.3 大写 Chrome 自动纠偏为 chrome", string.Equals(nodeUpper?.Tls?.Utls?.Fingerprint, "chrome", StringComparison.Ordinal));
     Assert("2.3 非法指纹安全丢弃不传给内核", nodeFake?.Tls?.Utls == null);
+}
+
+// 2.4 UTF-8 BOM 隐形头与注释行跳过
+{
+    string bomText = "\uFEFF# 这是一行纯注释说明\r\n// 另外一行纯注释\r\nvless://bf000d23@1.1.1.1:443#正常节点\r\n";
+    var nodes = UniversalParser.ParseSubscription(bomText);
+    Assert("2.4 UTF-8 BOM 隐形头成功拔除且注释行精准跳过", nodes.Count == 1 && string.Equals(nodes[0].Tag, "正常节点", StringComparison.Ordinal));
+}
+
+// 2.5 VMess chacha20-ietf-poly1305 算法自动矫正为 chacha20-poly1305
+{
+    string rawJson = """{"v":"2","ps":"IETF算法节点","add":"1.1.1.1","port":"443","id":"a3b2c1d0-1234-5678-9abc-def012345678","scy":"chacha20-ietf-poly1305"}""";
+    string uri = "vmess://" + Base64Utils.Encode(rawJson);
+    var vmessNode = UniversalParser.ParseLine(uri) as VmessOutbound;
+    Assert("2.5 chacha20-ietf-poly1305 算法成功规范化为 chacha20-poly1305", string.Equals(vmessNode?.Security, "chacha20-poly1305", StringComparison.Ordinal));
+}
+
+// 2.6 WebSocket 路径 ?ed=2048 污染剥离
+{
+    string wsEarlyDataUri = "vless://bf000d23@1.1.1.1:443?type=ws&path=/ray?ed=2048#WS早期数据节点";
+    var vlessWs = UniversalParser.ParseLine(wsEarlyDataUri) as VlessOutbound;
+    Assert("2.6 WebSocket 路径 ?ed=2048 成功纯化为 /ray", string.Equals(vlessWs?.Transport?.Path, "/ray", StringComparison.Ordinal));
 }
 
 // -------------------------------------------------------------
@@ -210,10 +232,10 @@ proxies:
     port: 443
     uuid: a3b2c1d0-1234-5678-9abc-def012345678
     alterId: 0
-    cipher: auto
+    cipher: chacha20-ietf-poly1305
     network: ws
     ws-opts:
-      path: /vmess
+      path: /vmess?ed=2048
       headers:
         Host: us.example.com
 
@@ -249,6 +271,7 @@ Assert("3.1 成功从 Clash YAML 提取 7 个真实节点并过滤假流量节�
 Assert("3.2 Clash VLESS Reality 嵌套 opts 解析成功并自动小写指纹", clashNodes.OfType<VlessOutbound>().Any(v => v.Tls?.Reality?.PublicKey != null && string.Equals(v.Tls.Utls?.Fingerprint, "chrome", StringComparison.Ordinal)));
 Assert("3.3 Clash SS cipher/udp-over-tcp 别名解析成功", clashNodes.OfType<ShadowsocksOutbound>().Any(s => string.Equals(s.Method, "aes-256-gcm", StringComparison.Ordinal) && s.UdpOverTcp?.Enabled == true));
 Assert("3.4 Clash Hysteria2 带宽别名解析成功", clashNodes.OfType<Hysteria2Outbound>().Any(h => h.UpMbps == 30 && h.DownMbps == 100));
+Assert("3.5 Clash VMess chacha20-ietf 与 ws ?ed=2048 双重纯化成功", clashNodes.OfType<VmessOutbound>().Any(v => string.Equals(v.Security, "chacha20-poly1305", StringComparison.Ordinal) && string.Equals(v.Transport?.Path, "/vmess", StringComparison.Ordinal)));
 
 // -------------------------------------------------------------
 // 测试 4: 生成纯净 sing-box 配置并调用官方 sing-box.exe 深度质检

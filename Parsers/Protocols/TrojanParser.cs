@@ -38,10 +38,10 @@ public static class TrojanParser
 
     private static V2RayTransportOptions? ParseTransport(NodeContext ctx)
     {
-        string netType = ctx.GetString("type", "network").ToLowerInvariant();
+        string netType = GetTransportNetType(ctx);
         if (string.Equals(netType, "ws", StringComparison.Ordinal) || string.Equals(netType, "websocket", StringComparison.Ordinal))
         {
-            string path = ctx.GetString("path", "ws-opts.path", "ws-path");
+            string path = SanitizeWsPath(ctx.GetString("path", "ws-opts.path", "ws-path"));
             var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             string host = ctx.GetString("host", "ws-opts.headers.Host", "ws-headers.Host");
             if (!string.IsNullOrEmpty(host)) headers["Host"] = host;
@@ -49,7 +49,7 @@ public static class TrojanParser
             return new V2RayTransportOptions
             {
                 Type = "ws",
-                Path = !string.IsNullOrEmpty(path) ? path : "/",
+                Path = path,
                 Headers = headers.Count > 0 ? headers : null
             };
         }
@@ -93,5 +93,39 @@ public static class TrojanParser
             Enabled = true,
             Protocol = "smux"
         };
+    }
+
+    private static string SanitizeWsPath(string rawPath)
+    {
+        if (string.IsNullOrWhiteSpace(rawPath)) return "/";
+        string path = rawPath.Trim();
+        int qIndex = path.IndexOf('?', StringComparison.Ordinal);
+        if (qIndex >= 0)
+        {
+            path = path[..qIndex];
+        }
+        if (path.Length == 0 || path[0] != '/')
+        {
+            path = "/" + path;
+        }
+        return string.IsNullOrWhiteSpace(path) ? "/" : path;
+    }
+
+    private static string GetTransportNetType(NodeContext ctx)
+    {
+        string net = ctx.GetString("network", "net");
+        if (!string.IsNullOrEmpty(net)) return net.ToLowerInvariant();
+
+        string type = ctx.GetString("type");
+        if (string.Equals(type, "ws", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(type, "websocket", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(type, "grpc", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(type, "http", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(type, "h2", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(type, "httpupgrade", StringComparison.OrdinalIgnoreCase))
+        {
+            return type.ToLowerInvariant();
+        }
+        return string.Empty;
     }
 }
