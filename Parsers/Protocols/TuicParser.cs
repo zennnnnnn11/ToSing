@@ -37,7 +37,7 @@ public static class TuicParser
 
         string heartbeat = ctx.GetString("heartbeat");
         bool zeroRtt = ctx.GetBool("zero_rtt_handshake", "zero-rtt-handshake", "reduce-rtt");
-        var tls = ParseTls(ctx, server);
+        var tls = TlsParser.Parse(ctx, server, allowUtls: false, forceTls: true);
         var q = ReadQuicParams(ctx);
 
         return new TuicOutbound
@@ -87,23 +87,5 @@ public static class TuicParser
         );
     }
 
-    private static OutboundTLSOptions ParseTls(NodeContext ctx, string server)
-    {
-        string serverName = ctx.GetString("sni", "servername", "peer");
-        if (string.IsNullOrEmpty(serverName)) serverName = server;
 
-        bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
-        var alpnList = ctx.GetStringList("alpn");
-
-        // 注意：QUIC 协议栈不支持 uTLS，严禁输出 tls.utls
-
-        return new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = serverName,
-            Insecure = insecure,
-            Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = null
-        };
-    }
 }

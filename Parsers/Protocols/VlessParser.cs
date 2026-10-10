@@ -53,7 +53,7 @@ public static class VlessParser
             return null;
         }
 
-        var tls = ParseTls(ctx, server);
+        var tls = TlsParser.Parse(ctx, server);
         var multiplex = MultiplexParser.ParseMultiplex(ctx);
 
         return new VlessOutbound
@@ -96,53 +96,6 @@ public static class VlessParser
         return (null, true);
     }
 
-    private static OutboundTLSOptions? ParseTls(NodeContext ctx, string server)
-    {
-        string security = ctx.GetString("security").ToLowerInvariant();
-        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key");
-        bool hasTls = ctx.GetBool("tls") ||
-                      string.Equals(security, "tls", StringComparison.Ordinal) ||
-                      string.Equals(security, "reality", StringComparison.Ordinal) ||
-                      !string.IsNullOrEmpty(pbk);
 
-        if (!hasTls) return null;
-
-        string serverName = ctx.GetString("sni", "servername", "peer");
-        if (string.IsNullOrEmpty(serverName)) serverName = server;
-
-        bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
-        bool disableSni = ctx.GetBool("disable_sni", "disable-sni");
-        string minVersion = ctx.GetString("min_version", "min-version");
-        string maxVersion = ctx.GetString("max_version", "max-version");
-
-        var alpnList = ctx.GetStringList("alpn");
-        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
-        string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
-
-        OutboundRealityOptions? reality = null;
-        if (string.Equals(security, "reality", StringComparison.Ordinal) || !string.IsNullOrEmpty(pbk))
-        {
-            string sid = ctx.GetString("sid", "short-id", "reality-opts.short-id");
-            reality = new OutboundRealityOptions
-            {
-                Enabled = true,
-                PublicKey = pbk,
-                ShortId = !string.IsNullOrEmpty(sid) ? sid : null
-            };
-        }
-
-        return new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = serverName,
-            Insecure = insecure,
-            DisableSNI = disableSni,
-            MinVersion = !string.IsNullOrEmpty(minVersion) ? minVersion : null,
-            MaxVersion = !string.IsNullOrEmpty(maxVersion) ? maxVersion : null,
-            Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null,
-            Reality = reality
-        };
-    }
 
 }

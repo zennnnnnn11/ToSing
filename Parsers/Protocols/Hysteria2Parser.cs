@@ -14,40 +14,66 @@ public static class Hysteria2Parser
     {
         ArgumentNullException.ThrowIfNull(ctx);
 
+        var realm = ParseRealm(ctx);
         string server = ctx.Server;
         int port = ctx.ServerPort;
-        if (port < 1 || port > 65535) return null;
 
-        string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"HY2 {server}:{port}";
-        string password = ctx.GetString("password", "auth");
-
-        var rawPorts = ctx.GetStringList("server_ports", "ports", "mport");
-        var serverPorts = NormalizeServerPorts(rawPorts);
-
-        string hopInterval = ctx.GetString("hop_interval", "hop-interval");
-        string hopIntervalMax = ctx.GetString("hop_interval_max", "hop-interval-max");
-
-        int upMbps = ctx.GetInt("up_mbps", "upmbps", "up");
-        int downMbps = ctx.GetInt("down_mbps", "downmbps", "down");
-
-        string bbrProfile = ctx.GetString("bbr_profile", "bbr-profile");
-        bool brutalDebug = ctx.GetBool("brutal_debug", "brutal-debug");
-        bool disableChromeParrot = ctx.GetBool("disable_chrome_parrot", "disable-chrome-parrot");
-
-        var (obfs, obfsValid) = ParseObfs(ctx);
-        if (!obfsValid)
+        if (realm == null && (port < 1 || port > 65535))
         {
             return null;
         }
 
-        var tls = ParseTls(ctx, server);
+        string defaultSni = server;
+        if (realm != null)
+        {
+            if (Uri.TryCreate(realm.ServerUrl, UriKind.Absolute, out Uri? realmUri))
+            {
+                defaultSni = realmUri.Host;
+            }
+            server = null!;
+            port = 0;
+        }
+
+        string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : (realm != null ? $"HY2 {realm.RealmId}" : $"HY2 {server}:{port}");
+        string password = ctx.GetString("password", "auth");
+
+        var rawPorts = ctx.GetStringList("server_ports", "ports", "mport");
+        var serverPorts = realm != null ? [] : NormalizeServerPorts(rawPorts);
+
+        var (obfs, obfsValid) = ParseObfs(ctx);
+        if (!obfsValid) return null;
+
+        var tls = TlsParser.Parse(ctx, defaultSni, allowUtls: false, forceTls: true);
         var q = ReadQuicParams(ctx);
+
+        return CreateOutbound(ctx, tag, server, port, password, serverPorts, obfs, tls, q, realm);
+    }
+
+    private static Hysteria2Outbound CreateOutbound(
+        NodeContext ctx,
+        string tag,
+        string server,
+        int port,
+        string password,
+        List<string> serverPorts,
+        Hysteria2ObfsOptions? obfs,
+        OutboundTLSOptions? tls,
+        (string? IdleTimeout, string? KeepAlivePeriod, bool DisablePathMtuDiscovery, int? InitialPacketSize, int? MaxConcurrentStreams, string? StreamReceiveWindow, string? ConnectionReceiveWindow, string? Network) q,
+        Hysteria2RealmOptions? realm)
+    {
+        string hopInterval = ctx.GetString("hop_interval", "hop-interval");
+        string hopIntervalMax = ctx.GetString("hop_interval_max", "hop-interval-max");
+        int upMbps = ctx.GetInt("up_mbps", "upmbps", "up");
+        int downMbps = ctx.GetInt("down_mbps", "downmbps", "down");
+        string bbrProfile = ctx.GetString("bbr_profile", "bbr-profile");
+        bool brutalDebug = ctx.GetBool("brutal_debug", "brutal-debug");
+        bool disableChromeParrot = ctx.GetBool("disable_chrome_parrot", "disable-chrome-parrot");
 
         return new Hysteria2Outbound
         {
             Tag = tag,
             Server = server,
-            ServerPort = port,
+            ServerPort = port > 0 ? port : null,
             Password = password,
             ServerPorts = serverPorts.Count > 0 ? serverPorts : null,
             HopInterval = !string.IsNullOrEmpty(hopInterval) ? hopInterval : null,
@@ -66,7 +92,8 @@ public static class Hysteria2Parser
             ConnectionReceiveWindow = q.ConnectionReceiveWindow,
             Network = q.Network,
             Obfs = obfs,
-            Tls = tls
+            Tls = tls,
+            Realm = realm
         };
     }
 
@@ -134,23 +161,27 @@ public static class Hysteria2Parser
         return result;
     }
 
-    private static OutboundTLSOptions ParseTls(NodeContext ctx, string server)
+    private static Hysteria2RealmOptions? ParseRealm(NodeContext ctx)
     {
-        string serverName = ctx.GetString("sni", "servername", "peer");
-        if (string.IsNullOrEmpty(serverName)) serverName = server;
+        string serverUrl = ctx.GetString("realm.server_url", "realm.server-url", "realm-server-url");
+        string realmId = ctx.GetString("realm.realm_id", "realm.realm-id", "realm-id");
+        var stunServers = ctx.GetStringList("realm.stun_servers", "realm.stun-servers", "realm-stun-servers");
 
-        bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
-        var alpnList = ctx.GetStringList("alpn");
-
-        // 注意：QUIC 协议栈不支持 uTLS，因此严禁输出 tls.utls
-
-        return new OutboundTLSOptions
+        if (string.IsNullOrEmpty(serverUrl) || string.IsNullOrEmpty(realmId) || stunServers.Count == 0)
         {
-            Enabled = true,
-            ServerName = serverName,
-            Insecure = insecure,
-            Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = null
+            return null;
+        }
+
+        string token = ctx.GetString("realm.token", "realm-token");
+        int? ipVersion = ctx.GetIntNullable("realm.ip_version", "realm.ip-version", "realm-ip-version");
+
+        return new Hysteria2RealmOptions
+        {
+            ServerUrl = serverUrl,
+            RealmId = realmId,
+            StunServers = stunServers,
+            Token = !string.IsNullOrEmpty(token) ? token : null,
+            IpVersion = ipVersion
         };
     }
 }

@@ -26,7 +26,7 @@ public static class AnyTlsParser
         string maxIdleTime = ctx.GetString("idle_session_timeout", "idle-session-timeout");
         int minIdleSession = ctx.GetInt("min_idle_session", "min-idle-session");
 
-        var tls = ParseTls(ctx, server);
+        var tls = TlsParser.Parse(ctx, server, allowUtls: true, forceTls: true);
 
         return new AnyTlsOutbound
         {
@@ -42,30 +42,5 @@ public static class AnyTlsParser
         };
     }
 
-    private static OutboundTLSOptions ParseTls(NodeContext ctx, string server)
-    {
-        string serverName = ctx.GetString("sni", "servername", "peer");
-        if (string.IsNullOrEmpty(serverName)) serverName = server;
 
-        bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
-        bool disableSni = ctx.GetBool("disable_sni", "disable-sni");
-        string minVersion = ctx.GetString("min_version", "min-version");
-        string maxVersion = ctx.GetString("max_version", "max-version");
-
-        var alpnList = ctx.GetStringList("alpn");
-        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
-        string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
-
-        return new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = serverName,
-            Insecure = insecure,
-            DisableSNI = disableSni,
-            MinVersion = !string.IsNullOrEmpty(minVersion) ? minVersion : null,
-            MaxVersion = !string.IsNullOrEmpty(maxVersion) ? maxVersion : null,
-            Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null
-        };
-    }
 }

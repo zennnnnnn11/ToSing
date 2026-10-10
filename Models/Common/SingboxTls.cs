@@ -36,6 +36,46 @@ public sealed record class OutboundTLSOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? MaxVersion { get; init; }
 
+    [JsonPropertyName("cipher_suites")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? CipherSuites { get; init; }
+
+    [JsonPropertyName("certificate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? Certificate { get; init; }
+
+    [JsonPropertyName("certificate_path")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CertificatePath { get; init; }
+
+    [JsonPropertyName("certificate_sha256")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? CertificateSHA256 { get; init; }
+
+    [JsonPropertyName("certificate_public_key_sha256")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? CertificatePublicKeySHA256 { get; init; }
+
+    [JsonPropertyName("client_certificate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? ClientCertificate { get; init; }
+
+    [JsonPropertyName("client_certificate_path")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ClientCertificatePath { get; init; }
+
+    [JsonPropertyName("client_key")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? ClientKey { get; init; }
+
+    [JsonPropertyName("client_key_path")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ClientKeyPath { get; init; }
+
+    [JsonPropertyName("ech")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public OutboundECHOptions? Ech { get; init; }
+
     [JsonPropertyName("utls")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public OutboundUTLSOptions? Utls { get; init; }
@@ -81,6 +121,31 @@ public sealed record class OutboundRealityOptions
     [JsonPropertyName("short_id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ShortId { get; init; }
+
+    [JsonExtensionData]
+    public IDictionary<string, JsonElement>? ExtensionData { get; set; }
+}
+
+/// <summary>
+/// ECH (Encrypted Client Hello) 配置。
+/// </summary>
+public sealed record class OutboundECHOptions
+{
+    [JsonPropertyName("enabled")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Enabled { get; init; }
+
+    [JsonPropertyName("config")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? Config { get; init; }
+
+    [JsonPropertyName("config_path")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ConfigPath { get; init; }
+
+    [JsonPropertyName("query_server_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? QueryServerName { get; init; }
 
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }

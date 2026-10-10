@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using SubParser.Models;
 using SubParser.Parsers.Protocols;
 using SubParser.Utils;
@@ -13,7 +14,7 @@ using YamlDotNet.Serialization;
 /// 通用订阅与节点解析调度引擎。
 /// 支持处理单链接、多行链接、Base64 订阅及 Clash YAML 配置中的 proxies 列表。
 /// </summary>
-public static class UniversalParser
+public static partial class UniversalParser
 {
     private static readonly IDeserializer YamlDeserializer = new DeserializerBuilder()
         .IgnoreUnmatchedProperties()
@@ -27,7 +28,7 @@ public static class UniversalParser
         ArgumentNullException.ThrowIfNull(ctx);
 
         string proto = ctx.Protocol.ToLowerInvariant();
-        return proto switch
+        SingboxOutbound? outbound = proto switch
         {
             "vless" => VlessParser.Parse(ctx),
             "ss" or "shadowsocks" => ShadowsocksParser.Parse(ctx),
@@ -38,6 +39,9 @@ public static class UniversalParser
             "anytls" => AnyTlsParser.Parse(ctx),
             _ => null
         };
+
+        if (outbound == null) return null;
+        return ApplyCommonDialerOptions(outbound, ctx);
     }
 
     /// <summary>
@@ -53,7 +57,7 @@ public static class UniversalParser
         if (trimmed.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase))
         {
             var ctx = VmessParser.ParseVmessJsonUri(trimmed);
-            return VmessParser.Parse(ctx);
+            return ParseContext(ctx);
         }
 
         try
@@ -187,6 +191,38 @@ public static class UniversalParser
         return result;
     }
 
+    private static SingboxOutbound ApplyCommonDialerOptions(SingboxOutbound node, NodeContext ctx)
+    {
+        string detour = ctx.GetString("detour");
+        string domainStrategy = ctx.GetString("domain_strategy", "domain-strategy");
+        bool tcpFastOpen = ctx.GetBool("tcp_fast_open", "tcp-fast-open", "tfo");
+        string connectTimeout = ctx.GetString("connect_timeout", "connect-timeout");
+        string bindInterface = ctx.GetString("bind_interface", "bind-interface", "interface-name");
+        string inet4 = ctx.GetString("inet4_bind_address", "inet4-bind-address");
+        string inet6 = ctx.GetString("inet6_bind_address", "inet6-bind-address");
+        uint? routingMark = ctx.GetUIntNullable("routing_mark", "routing-mark");
+        bool reuseAddr = ctx.GetBool("reuse_addr", "reuse-addr");
+        bool tcpMultiPath = ctx.GetBool("tcp_multi_path", "tcp-multi-path", "mptcp");
+        bool? udpFragment = ctx.GetBoolNullable("udp_fragment", "udp-fragment");
+        object? domainResolver = NormalizeDomainResolver(ctx.GetRaw("domain_resolver") ?? ctx.GetRaw("domain-resolver"));
+
+        return node with
+        {
+            Detour = !string.IsNullOrEmpty(detour) ? detour : node.Detour,
+            DomainStrategy = !string.IsNullOrEmpty(domainStrategy) ? domainStrategy : node.DomainStrategy,
+            TcpFastOpen = tcpFastOpen || node.TcpFastOpen,
+            ConnectTimeout = !string.IsNullOrEmpty(connectTimeout) ? connectTimeout : node.ConnectTimeout,
+            BindInterface = !string.IsNullOrEmpty(bindInterface) ? bindInterface : node.BindInterface,
+            Inet4BindAddress = !string.IsNullOrEmpty(inet4) ? inet4 : node.Inet4BindAddress,
+            Inet6BindAddress = !string.IsNullOrEmpty(inet6) ? inet6 : node.Inet6BindAddress,
+            RoutingMark = routingMark ?? node.RoutingMark,
+            ReuseAddr = reuseAddr || node.ReuseAddr,
+            TcpMultiPath = tcpMultiPath || node.TcpMultiPath,
+            UdpFragment = udpFragment ?? node.UdpFragment,
+            DomainResolver = domainResolver ?? node.DomainResolver
+        };
+    }
+
     private static object? NormalizeYamlObject(object? obj)
     {
         if (obj is IDictionary<object, object> dict)
@@ -213,6 +249,37 @@ public static class UniversalParser
         return obj;
     }
 
+    private static object? NormalizeDomainResolver(object? raw)
+    {
+        if (raw == null) return null;
+        if (raw is string str) return str;
+        if (raw is IDictionary<string, object?> map)
+        {
+            var res = new Dictionary<string, object?>(map.Count, StringComparer.Ordinal);
+            foreach (var (k, v) in map)
+            {
+                if (string.Equals(k, "disable_cache", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(k, "disable_optimistic_cache", StringComparison.OrdinalIgnoreCase))
+                {
+                    res[k] = v is bool b ? b : (v is string s && (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal)));
+                }
+                else if (string.Equals(k, "rewrite_ttl", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (v is uint u) res[k] = u;
+                    else if (v is int i && i >= 0) res[k] = (uint)i;
+                    else if (v is string s && uint.TryParse(s, CultureInfo.InvariantCulture, out uint parsedTtl)) res[k] = parsedTtl;
+                    else res[k] = v;
+                }
+                else
+                {
+                    res[k] = v;
+                }
+            }
+            return res;
+        }
+        return raw;
+    }
+
     /// <summary>
     /// 移除 UTF-8 BOM 及首尾空白字符。
     /// </summary>
@@ -231,17 +298,15 @@ public static class UniversalParser
         return startsWithComment && !line.Contains("://", StringComparison.Ordinal);
     }
 
+    [GeneratedRegex(
+        @"(?i)(?:网址|官网|发布页|流量|剩余|到期|时间|重置|过期|通知|公告|bandwidth|traffic|expire)",
+        RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture,
+        matchTimeoutMilliseconds: 1000)]
+    private static partial Regex FakeOrAdNodeRegex();
+
     private static bool IsFakeOrAdNode(string? tag)
     {
         if (string.IsNullOrWhiteSpace(tag)) return false;
-
-        string lower = tag.ToLowerInvariant();
-        return lower.Contains("剩余流量", StringComparison.Ordinal) ||
-               lower.Contains("到期时间", StringComparison.Ordinal) ||
-               lower.Contains("重置日", StringComparison.Ordinal) ||
-               lower.Contains("官网", StringComparison.Ordinal) ||
-               lower.Contains("通知", StringComparison.Ordinal) ||
-               lower.Contains("traffic", StringComparison.Ordinal) ||
-               lower.Contains("expire", StringComparison.Ordinal);
+        return FakeOrAdNodeRegex().IsMatch(tag);
     }
 }

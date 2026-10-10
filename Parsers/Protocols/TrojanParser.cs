@@ -24,7 +24,7 @@ public static class TrojanParser
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"Trojan {server}:{port}";
 
         var transport = TransportParser.ParseTransport(ctx);
-        var tls = ParseTls(ctx, server);
+        var tls = TlsParser.Parse(ctx, server, allowUtls: true, forceTls: true);
         var multiplex = MultiplexParser.ParseMultiplex(ctx);
 
         return new TrojanOutbound
@@ -39,31 +39,6 @@ public static class TrojanParser
         };
     }
 
-    private static OutboundTLSOptions ParseTls(NodeContext ctx, string server)
-    {
-        string serverName = ctx.GetString("sni", "servername", "peer");
-        if (string.IsNullOrEmpty(serverName)) serverName = server;
 
-        bool insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure");
-        bool disableSni = ctx.GetBool("disable_sni", "disable-sni");
-        string minVersion = ctx.GetString("min_version", "min-version");
-        string maxVersion = ctx.GetString("max_version", "max-version");
-
-        var alpnList = ctx.GetStringList("alpn");
-        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
-        string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
-
-        return new OutboundTLSOptions
-        {
-            Enabled = true,
-            ServerName = serverName,
-            Insecure = insecure,
-            DisableSNI = disableSni,
-            MinVersion = !string.IsNullOrEmpty(minVersion) ? minVersion : null,
-            MaxVersion = !string.IsNullOrEmpty(maxVersion) ? maxVersion : null,
-            Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null
-        };
-    }
 
 }

@@ -149,10 +149,83 @@ public sealed class NodeContext
         return defaultValue;
     }
 
+    public int? GetIntNullable(params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            object? val = ResolveValue(alias);
+            if (val != null)
+            {
+                if (val is int i) return i;
+                if (val is long l) return (int)l;
+                if (int.TryParse(val.ToString(), CultureInfo.InvariantCulture, out int parsed))
+                {
+                    return parsed;
+                }
+                string strVal = val.ToString()?.Trim() ?? string.Empty;
+                if (double.TryParse(strVal, CultureInfo.InvariantCulture, out double d) && !double.IsNaN(d) && !double.IsInfinity(d))
+                {
+                    return (int)d;
+                }
+            }
+        }
+        return null;
+    }
+
+    public uint? GetUIntNullable(params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            object? val = ResolveValue(alias);
+            if (val == null) continue;
+
+            if (val is uint u) return u;
+            if (val is int i && i >= 0) return (uint)i;
+            if (val is long l && l is >= 0 and <= uint.MaxValue) return (uint)l;
+
+            string strVal = val.ToString()?.Trim() ?? string.Empty;
+            if (strVal.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (uint.TryParse(strVal[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint hexParsed))
+                {
+                    return hexParsed;
+                }
+            }
+
+            if (uint.TryParse(strVal, CultureInfo.InvariantCulture, out uint parsed))
+            {
+                return parsed;
+            }
+        }
+        return null;
+    }
+
     /// <summary>
     /// 依次按别名获取布尔值。
     /// </summary>
     public bool GetBool(params string[] aliases) => GetBoolWithDefault(false, aliases);
+
+    public bool? GetBoolNullable(params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            object? val = ResolveValue(alias);
+            if (val != null)
+            {
+                if (val is bool b) return b;
+                string s = val.ToString()?.Trim() ?? string.Empty;
+                if (string.Equals(s, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "1", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+                if (string.Equals(s, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(s, "0", StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+        }
+        return null;
+    }
 
     public bool GetBoolWithDefault(bool defaultValue, params string[] aliases)
     {
