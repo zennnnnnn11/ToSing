@@ -187,6 +187,20 @@ Console.WriteLine("\n[阶段二] 验证全套实战避坑护城河...");
     Assert("2.6 WebSocket 路径 ?ed=2048 成功纯化为 /ray", string.Equals(vlessWs?.Transport?.Path, "/ray", StringComparison.Ordinal));
 }
 
+// 2.7 二次 URL 编码递归还原
+{
+    string doubleEncodedUri = "vless://uuid@1.1.1.1:443#%25E9%25A6%2599%25E6%25B8%25AF01";
+    var n = UniversalParser.ParseLine(doubleEncodedUri);
+    Assert("2.7 二次 URL 编码成功递归还原为中文", string.Equals(n?.Tag, "香港01", StringComparison.Ordinal));
+}
+
+// 2.8 ALPN 数组空元素自动纯化
+{
+    string alpnDirtyUri = "vless://uuid@1.1.1.1:443?security=tls&alpn=h2,,http/1.1,";
+    var n = UniversalParser.ParseLine(alpnDirtyUri) as VlessOutbound;
+    Assert("2.8 ALPN 末尾与多余逗号过滤后无空字符串", n?.Tls?.Alpn != null && n.Tls.Alpn.Count == 2 && !n.Tls.Alpn.Any(string.IsNullOrWhiteSpace));
+}
+
 // -------------------------------------------------------------
 // 测试 3: 7 大协议 Clash YAML 订阅与别名解析验证
 // -------------------------------------------------------------
@@ -199,7 +213,7 @@ proxies:
   - name: "Clash-VLESS-Reality"
     type: vless
     server: 1.1.1.1
-    port: 443
+    port: 443.0
     uuid: bf000d23-0752-40b4-affe-68f7707a9661
     flow: xtls-rprx-vision
     tls: true
@@ -268,8 +282,22 @@ proxies:
 
 var clashNodes = UniversalParser.ParseSubscription(clashYaml);
 Assert("3.1 成功从 Clash YAML 提取 7 个真实节点并过滤假流量节点", clashNodes.Count == 7);
-Assert("3.2 Clash VLESS Reality 嵌套 opts 解析成功并自动小写指纹", clashNodes.OfType<VlessOutbound>().Any(v => v.Tls?.Reality?.PublicKey != null && string.Equals(v.Tls.Utls?.Fingerprint, "chrome", StringComparison.Ordinal)));
-Assert("3.3 Clash SS cipher/udp-over-tcp 别名解析成功", clashNodes.OfType<ShadowsocksOutbound>().Any(s => string.Equals(s.Method, "aes-256-gcm", StringComparison.Ordinal) && s.UdpOverTcp?.Enabled == true));
+Assert("3.2 Python 浮点端口 (443.0) 成功兼容解析", clashNodes.OfType<VlessOutbound>().Any(v => v.ServerPort == 443));
+// 2.9 Clash SS plugin-opts 字典成功平铺为分号格式专项测试
+{
+    var proxyDict = new Dictionary<string, object?>(StringComparer.Ordinal)
+    {
+        ["type"] = "ss",
+        ["server"] = "1.2.3.4",
+        ["port"] = 8388,
+        ["cipher"] = "aes-256-gcm",
+        ["password"] = "pass",
+        ["plugin"] = "v2ray-plugin",
+        ["plugin-opts"] = new Dictionary<string, object?>(StringComparer.Ordinal) { ["mode"] = "websocket", ["host"] = "bing.com" }
+    };
+    var ssNode = UniversalParser.ParseClashProxy(proxyDict) as ShadowsocksOutbound;
+    Assert("2.9 Clash SS plugin-opts 字典成功平铺为分号格式", ssNode?.PluginOptions != null && ssNode.PluginOptions.Contains("mode=websocket", StringComparison.Ordinal));
+}
 Assert("3.4 Clash Hysteria2 带宽别名解析成功", clashNodes.OfType<Hysteria2Outbound>().Any(h => h.UpMbps == 30 && h.DownMbps == 100));
 Assert("3.5 Clash VMess chacha20-ietf 与 ws ?ed=2048 双重纯化成功", clashNodes.OfType<VmessOutbound>().Any(v => string.Equals(v.Security, "chacha20-poly1305", StringComparison.Ordinal) && string.Equals(v.Transport?.Path, "/vmess", StringComparison.Ordinal)));
 

@@ -86,8 +86,16 @@ public sealed class NodeContext
             object? val = ResolveValue(alias);
             if (val != null)
             {
-                string s = val.ToString()?.Trim() ?? string.Empty;
-                if (!string.IsNullOrEmpty(s)) return s;
+                if (val is string strVal)
+                {
+                    string s = strVal.Trim();
+                    if (!string.IsNullOrEmpty(s)) return s;
+                }
+                else if (val is not (System.Collections.IDictionary or System.Collections.IEnumerable))
+                {
+                    string s = val.ToString()?.Trim() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(s)) return s;
+                }
             }
         }
         return string.Empty;
@@ -107,6 +115,11 @@ public sealed class NodeContext
                 if (int.TryParse(val.ToString(), CultureInfo.InvariantCulture, out int parsed))
                 {
                     return parsed;
+                }
+                string strVal = val.ToString()?.Trim() ?? string.Empty;
+                if (double.TryParse(strVal, CultureInfo.InvariantCulture, out double d) && !double.IsNaN(d) && !double.IsInfinity(d))
+                {
+                    return (int)d;
                 }
             }
         }
@@ -150,7 +163,7 @@ public sealed class NodeContext
                 foreach (object item in list)
                 {
                     string s = item?.ToString()?.Trim() ?? string.Empty;
-                    if (!string.IsNullOrEmpty(s)) result.Add(s);
+                    if (!string.IsNullOrEmpty(s) && !result.Contains(s, StringComparer.OrdinalIgnoreCase)) result.Add(s);
                 }
                 if (result.Count > 0) return result;
             }
@@ -158,7 +171,8 @@ public sealed class NodeContext
             {
                 foreach (string part in str.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
-                    result.Add(part);
+                    string s = part.Trim();
+                    if (!string.IsNullOrEmpty(s) && !result.Contains(s, StringComparer.OrdinalIgnoreCase)) result.Add(s);
                 }
                 if (result.Count > 0) return result;
             }
@@ -197,10 +211,35 @@ public sealed class NodeContext
         int fragmentIndex = raw.IndexOf('#', StringComparison.Ordinal);
         if (fragmentIndex >= 0)
         {
-            ctx.Tag = HttpUtility.UrlDecode(raw[(fragmentIndex + 1)..]);
+            ctx.Tag = SafeUrlDecode(raw[(fragmentIndex + 1)..]);
             return raw[..fragmentIndex];
         }
         return raw;
+    }
+
+    /// <summary>
+    /// 递归还原二次 URL 编码的节点名字 (解决 %25E9%25A6... 百分号乱码)
+    /// </summary>
+    public static string SafeUrlDecode(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        string decoded = HttpUtility.UrlDecode(text);
+        if (decoded.Contains('%', StringComparison.Ordinal))
+        {
+            try
+            {
+                string doubleDecoded = HttpUtility.UrlDecode(decoded);
+                if (!string.Equals(doubleDecoded, decoded, StringComparison.Ordinal))
+                {
+                    return doubleDecoded;
+                }
+            }
+            catch
+            {
+                // 忽略异常
+            }
+        }
+        return decoded;
     }
 
     private static void ParseStandardUriRest(string rest, NodeContext ctx)

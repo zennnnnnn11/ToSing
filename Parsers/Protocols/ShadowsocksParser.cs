@@ -1,6 +1,7 @@
 namespace SubParser.Parsers.Protocols;
 
 using System;
+using System.Linq;
 using SubParser.Models.Common;
 using SubParser.Models.Protocols;
 
@@ -23,7 +24,7 @@ public static class ShadowsocksParser
 
         string password = ctx.GetString("password");
         string plugin = ctx.GetString("plugin");
-        string pluginOpts = ctx.GetString("plugin_opts", "plugin-opts");
+        string? pluginOpts = ParsePluginOptions(ctx);
 
         UdpOverTcpOptions? uot = null;
         if (ctx.GetBool("udp_over_tcp", "udp-over-tcp", "uot"))
@@ -58,5 +59,19 @@ public static class ShadowsocksParser
             UdpOverTcp = uot,
             Multiplex = multiplex
         };
+    }
+
+    private static string? ParsePluginOptions(NodeContext ctx)
+    {
+        string rawStr = ctx.GetString("plugin_opts", "plugin-opts");
+        if (!string.IsNullOrEmpty(rawStr)) return rawStr;
+
+        var dict = ctx.GetStringDictionary("plugin_opts", "plugin-opts");
+        if (dict.Count > 0)
+        {
+            return string.Join(";", dict.Select(kv => $"{kv.Key}={kv.Value}"));
+        }
+
+        return null;
     }
 }
