@@ -26,6 +26,10 @@ public sealed record class ShadowsocksOutbound : SingboxOutbound
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Network { get; init; }
 
+    [JsonPropertyName("udp_over_tcp")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public UdpOverTcpOptions? UdpOverTcp { get; init; }
+
     [JsonPropertyName("multiplex")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public OutboundMultiplexOptions? Multiplex { get; init; }

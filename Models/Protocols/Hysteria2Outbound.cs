@@ -11,6 +11,10 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
     [JsonPropertyName("password")]
     public required string Password { get; init; }
 
+    [JsonPropertyName("network")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Network { get; init; }
+
     [JsonPropertyName("server_ports")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? ServerPorts { get; init; }
@@ -18,6 +22,10 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
     [JsonPropertyName("hop_interval")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? HopInterval { get; init; }
+
+    [JsonPropertyName("hop_interval_max")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? HopIntervalMax { get; init; }
 
     [JsonPropertyName("up_mbps")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

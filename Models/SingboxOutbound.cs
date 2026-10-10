@@ -35,6 +35,34 @@ public abstract record class SingboxOutbound
     public required int ServerPort { get; init; }
 
     /// <summary>
+    /// 前置代理 / 链式代理出站标签 (对齐 DialerOptions.Detour)
+    /// </summary>
+    [JsonPropertyName("detour")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Detour { get; init; }
+
+    /// <summary>
+    /// 域名解析策略 (对齐 DialerOptions.DomainStrategy: prefer_ipv4, prefer_ipv6, ipv4_only, ipv6_only)
+    /// </summary>
+    [JsonPropertyName("domain_strategy")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DomainStrategy { get; init; }
+
+    /// <summary>
+    /// TCP Fast Open (对齐 AbstractDialerOptions.TCPFastOpen)
+    /// </summary>
+    [JsonPropertyName("tcp_fast_open")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool TcpFastOpen { get; init; }
+
+    /// <summary>
+    /// 连接超时时长 (对齐 AbstractDialerOptions.ConnectTimeout，例如 "5s")
+    /// </summary>
+    [JsonPropertyName("connect_timeout")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ConnectTimeout { get; init; }
+
+    /// <summary>
     /// 额外信息备用口袋（比如国家地区、原始行内容、节点分组等，序列化时忽略，绝不污染 JSON）
     /// </summary>
     [JsonIgnore]
