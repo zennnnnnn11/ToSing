@@ -2,7 +2,6 @@ namespace SubParser.Models.Common;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubParser.Models.Converters;
 
 /// <summary>
 /// 对齐 sing-box 官方 option/v2ray_transport.go 中的 V2RayTransportOptions 定义
@@ -18,9 +17,8 @@ public sealed record class V2RayTransportOptions
     public string? Path { get; init; }
 
     [JsonPropertyName("headers")]
-    [JsonConverter(typeof(HttpHeadersConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyDictionary<string, IReadOnlyList<string>>? Headers { get; init; }
+    public IReadOnlyDictionary<string, string>? Headers { get; init; }
 
     [JsonPropertyName("max_early_data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -47,15 +45,11 @@ public sealed record class V2RayTransportOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool PermitWithoutStream { get; init; }
 
-    // HTTP / HTTPUpgrade 专属 Host (对齐 badoption.Listable[string]，支持单个字符串或数组)
+    // HTTP / HTTPUpgrade 专属 Host
     [JsonPropertyName("host")]
-    [JsonConverter(typeof(SingleOrListConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyList<string>? Host { get; init; }
+    public string? Host { get; init; }
 
-    /// <summary>
-    /// 未显式建模的传输层额外字段无损保存在此
-    /// </summary>
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }
 }

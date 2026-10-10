@@ -2,23 +2,23 @@ namespace SubParser.Models;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubParser.Models.Converters;
 using SubParser.Models.Protocols;
 
 /// <summary>
 /// sing-box 出站节点基类 (对应 option/outbound.go 中的 ServerOptions 与多态 Outbound)
 /// </summary>
-[JsonConverter(typeof(SingboxOutboundConverter))]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(VlessOutbound), "vless")]
+[JsonDerivedType(typeof(ShadowsocksOutbound), "shadowsocks")]
+[JsonDerivedType(typeof(Hysteria2Outbound), "hysteria2")]
+[JsonDerivedType(typeof(VmessOutbound), "vmess")]
+[JsonDerivedType(typeof(TrojanOutbound), "trojan")]
+[JsonDerivedType(typeof(TuicOutbound), "tuic")]
+[JsonDerivedType(typeof(AnyTlsOutbound), "anytls")]
 public abstract record class SingboxOutbound
 {
     /// <summary>
-    /// 协议类型 (用于序列化识别)
-    /// </summary>
-    [JsonPropertyName("type")]
-    public abstract string Type { get; }
-
-    /// <summary>
-    /// 节点名称 (sing-box 规则中多数必填，但在部分内联节点或测试用例中可缺省)
+    /// 节点名称 (全局唯一，sing-box 必填，内联节点可缺省)
     /// </summary>
     [JsonPropertyName("tag")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -66,7 +66,7 @@ public abstract record class SingboxOutbound
     public string? ConnectTimeout { get; init; }
 
     /// <summary>
-    /// 未显式建模的顶层扩展字段无损保存在此，序列化时原样输出
+    /// 未显式建模的高级扩展字段，序列化时原样输出
     /// </summary>
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }

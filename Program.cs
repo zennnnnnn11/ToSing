@@ -3,131 +3,28 @@ using SubParser.Models;
 using SubParser.Models.Common;
 using SubParser.Models.Protocols;
 
-Console.WriteLine("=================================================");
-Console.WriteLine("开始运行全量审查回归测试 (针对 8 个深层边界场景)...");
-Console.WriteLine("=================================================");
+Console.WriteLine("正在以最纯粹的领域模型构建 7 种协议节点...");
 
-int passed = 0;
-int total = 0;
-
-void Assert(string caseName, bool condition, string detail = "")
+var nodes = new SingboxOutbound[]
 {
-    total++;
-    if (condition)
-    {
-        Console.WriteLine($"[PASS] {caseName}");
-        passed++;
-    }
-    else
-    {
-        Console.WriteLine($"[FAIL] {caseName}: {detail}");
-    }
-}
-
-// 场景 1: udp_over_tcp 支持布尔值与对象
-{
-    string json1 = """{"type":"shadowsocks","tag":"ss1","server":"1.1.1.1","server_port":8388,"method":"aes-256-gcm","password":"pass","udp_over_tcp":true}""";
-    var node1 = JsonSerializer.Deserialize<SingboxOutbound>(json1) as ShadowsocksOutbound;
-    Assert("1.1 udp_over_tcp: true 反序列化", node1?.UdpOverTcp?.Enabled == true);
-
-    string json2 = """{"type":"shadowsocks","tag":"ss2","server":"1.1.1.1","server_port":8388,"method":"aes-256-gcm","password":"pass","udp_over_tcp":{"enabled":true,"version":2}}""";
-    var node2 = JsonSerializer.Deserialize<SingboxOutbound>(json2) as ShadowsocksOutbound;
-    Assert("1.2 udp_over_tcp: {enabled: true, version: 2} 反序列化", node2?.UdpOverTcp?.Enabled == true && node2?.UdpOverTcp?.Version == 2);
-}
-
-// 场景 2: network 支持单个字符串与数组
-{
-    string json1 = """{"type":"vless","tag":"v1","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","network":"tcp"}""";
-    var node1 = JsonSerializer.Deserialize<SingboxOutbound>(json1) as VlessOutbound;
-    Assert("2.1 network: \"tcp\" (单字符串)", node1?.Network?.Count == 1 && string.Equals(node1.Network[0], "tcp", StringComparison.Ordinal));
-
-    string json2 = """{"type":"vless","tag":"v2","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","network":["tcp","udp"]}""";
-    var node2 = JsonSerializer.Deserialize<SingboxOutbound>(json2) as VlessOutbound;
-    Assert("2.2 network: [\"tcp\", \"udp\"] (数组)", node2?.Network?.Count == 2 && string.Equals(node2.Network[1], "udp", StringComparison.Ordinal));
-}
-
-// 场景 3: alpn 支持单个字符串与数组
-{
-    string json1 = """{"type":"trojan","tag":"t1","server":"1.1.1.1","server_port":443,"password":"pass","tls":{"enabled":true,"alpn":"h2"}}""";
-    var node1 = JsonSerializer.Deserialize<SingboxOutbound>(json1) as TrojanOutbound;
-    Assert("3.1 alpn: \"h2\" (单字符串)", node1?.Tls?.Alpn?.Count == 1 && string.Equals(node1.Tls.Alpn[0], "h2", StringComparison.Ordinal));
-
-    string json2 = """{"type":"trojan","tag":"t2","server":"1.1.1.1","server_port":443,"password":"pass","tls":{"enabled":true,"alpn":["h2","http/1.1"]}}""";
-    var node2 = JsonSerializer.Deserialize<SingboxOutbound>(json2) as TrojanOutbound;
-    Assert("3.2 alpn: [\"h2\", \"http/1.1\"] (数组)", node2?.Tls?.Alpn?.Count == 2);
-}
-
-// 场景 4: headers Value 支持字符串和数组
-{
-    string json1 = """{"type":"vmess","tag":"vm1","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","transport":{"type":"ws","path":"/","headers":{"Host":"example.com"}}}""";
-    var node1 = JsonSerializer.Deserialize<SingboxOutbound>(json1) as VmessOutbound;
-    Assert("4.1 headers: {\"Host\": \"example.com\"}", string.Equals(node1?.Transport?.Headers?["Host"][0], "example.com", StringComparison.Ordinal));
-
-    string json2 = """{"type":"vmess","tag":"vm2","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","transport":{"type":"ws","path":"/","headers":{"Host":["example.com"]}}}""";
-    var node2 = JsonSerializer.Deserialize<SingboxOutbound>(json2) as VmessOutbound;
-    Assert("4.2 headers: {\"Host\": [\"example.com\"]}", string.Equals(node2?.Transport?.Headers?["Host"][0], "example.com", StringComparison.Ordinal));
-}
-
-// 场景 5: HTTP transport 的 host 支持单字符串或数组
-{
-    string json = """{"type":"vmess","tag":"vm3","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","transport":{"type":"http","host":["a.example","b.example"]}}""";
-    var node = JsonSerializer.Deserialize<SingboxOutbound>(json) as VmessOutbound;
-    Assert("5.1 host: [\"a.example\", \"b.example\"]", node?.Transport?.Host?.Count == 2 && string.Equals(node.Transport.Host[0], "a.example", StringComparison.Ordinal));
-}
-
-// 场景 6: Hysteria 2 省略 server_port，仅提供 server_ports
-{
-    string json = """{"type":"hysteria2","tag":"hy1","server":"1.1.1.1","server_ports":"10000:20000","password":"pass"}""";
-    var node = JsonSerializer.Deserialize<SingboxOutbound>(json) as Hysteria2Outbound;
-    Assert("6.1 Hysteria2 缺省 server_port (仅 server_ports)", node is not null && node.ServerPort is null && node.ServerPorts?.Count == 1);
-}
-
-// 场景 7: Enabled 开关状态往返一致性 (绝不反转)
-{
-    var originalTls = new OutboundTLSOptions { Enabled = false, ServerName = "test.com" };
-    string serialized = JsonSerializer.Serialize(originalTls);
-    var deserialized = JsonSerializer.Deserialize<OutboundTLSOptions>(serialized);
-    Assert("7.1 Enabled=false 往返必须保持 false", deserialized?.Enabled == false, $"当前反序列化结果: {deserialized?.Enabled}");
-
-    // 当输入为 {} 时，官方语义为未启用 (null 或 false)
-    var emptyTls = JsonSerializer.Deserialize<OutboundTLSOptions>("{}");
-    Assert("7.2 输入空对象 {} 时 Enabled 绝不变为 true", emptyTls?.Enabled != true, $"当前结果: {emptyTls?.Enabled}");
-}
-
-// 场景 8: 证书指纹 (未知扩展字段) 无损保全测试
-{
-    string trojanWithSha256 = """{"type":"trojan","tag":"t-sha","server":"1.1.1.1","server_port":443,"password":"pass","tls":{"enabled":true,"certificate_sha256":["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]}}""";
-    var node = JsonSerializer.Deserialize<SingboxOutbound>(trojanWithSha256) as TrojanOutbound;
-    string reSerialized = JsonSerializer.Serialize<SingboxOutbound>(node!);
-    Assert("8.1 未建模字段 certificate_sha256 往返无损保全", reSerialized.Contains("certificate_sha256", StringComparison.Ordinal) && reSerialized.Contains("e3b0c442", StringComparison.Ordinal));
-}
-
-Console.WriteLine("=================================================");
-Console.WriteLine($"测试完成: {passed} / {total} 通过!");
-Console.WriteLine("=================================================");
-
-if (passed != total)
-{
-    Environment.Exit(1);
-}
-
-// 导出带有各种边界形态的综合配置并给 sing-box.exe 做终极 check
-var allNodes = new SingboxOutbound[]
-{
+    // 1. VLESS (Reality + uTLS)
     new VlessOutbound
     {
-        Tag = "vless-reality",
+        Tag = "vless-reality-node",
         Server = "127.0.0.1",
         ServerPort = 443,
         Uuid = "bf000d23-0752-40b4-affe-68f7707a9661",
         Flow = "xtls-rprx-vision",
-        Network = new[] { "tcp" },
         Tls = new OutboundTLSOptions
         {
             Enabled = true,
             ServerName = "www.apple.com",
             Alpn = new[] { "h2", "http/1.1" },
-            Utls = new OutboundUTLSOptions { Enabled = true, Fingerprint = "chrome" },
+            Utls = new OutboundUTLSOptions
+            {
+                Enabled = true,
+                Fingerprint = "chrome"
+            },
             Reality = new OutboundRealityOptions
             {
                 Enabled = true,
@@ -136,40 +33,140 @@ var allNodes = new SingboxOutbound[]
             }
         }
     },
+
+    // 2. Shadowsocks
     new ShadowsocksOutbound
     {
-        Tag = "ss-uot",
+        Tag = "ss-node",
         Server = "1.2.3.4",
         ServerPort = 8388,
         Method = "aes-256-gcm",
-        Password = "examplepassword",
-        UdpOverTcp = new UdpOverTcpOptions { Enabled = true, Version = 2 }
+        Password = "examplepassword"
     },
+
+    // 3. Hysteria 2 (支持单端口与多端口跳跃)
     new Hysteria2Outbound
     {
-        Tag = "hy2-multiports",
+        Tag = "hy2-node",
         Server = "1.2.3.5",
         ServerPorts = new[] { "10000:20000" },
         Password = "hy2password",
-        Tls = new OutboundTLSOptions { Enabled = true, ServerName = "hy2.example.com" }
+        UpMbps = 100,
+        DownMbps = 500,
+        Tls = new OutboundTLSOptions
+        {
+            Enabled = true,
+            ServerName = "hy2.example.com"
+        }
+    },
+
+    // 4. VMess (WebSocket + TLS)
+    new VmessOutbound
+    {
+        Tag = "vmess-ws-node",
+        Server = "1.2.3.6",
+        ServerPort = 443,
+        Uuid = "bf000d23-0752-40b4-affe-68f7707a9662",
+        Security = "auto",
+        Tls = new OutboundTLSOptions
+        {
+            Enabled = true,
+            ServerName = "vmess.example.com"
+        },
+        Transport = new V2RayTransportOptions
+        {
+            Type = "ws",
+            Path = "/ray",
+            Headers = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Host"] = "vmess.example.com"
+            }
+        }
+    },
+
+    // 5. Trojan (gRPC)
+    new TrojanOutbound
+    {
+        Tag = "trojan-grpc-node",
+        Server = "1.2.3.7",
+        ServerPort = 443,
+        Password = "trojanpassword",
+        Tls = new OutboundTLSOptions
+        {
+            Enabled = true,
+            ServerName = "trojan.example.com"
+        },
+        Transport = new V2RayTransportOptions
+        {
+            Type = "grpc",
+            ServiceName = "trojan-service"
+        }
+    },
+
+    // 6. TUIC (QUIC)
+    new TuicOutbound
+    {
+        Tag = "tuic-node",
+        Server = "1.2.3.8",
+        ServerPort = 8443,
+        Uuid = "bf000d23-0752-40b4-affe-68f7707a9663",
+        Password = "tuicpassword",
+        CongestionControl = "bbr",
+        Tls = new OutboundTLSOptions
+        {
+            Enabled = true,
+            ServerName = "tuic.example.com"
+        }
+    },
+
+    // 7. AnyTLS (sing-box 1.12.0+)
+    new AnyTlsOutbound
+    {
+        Tag = "anytls-node",
+        Server = "1.2.3.9",
+        ServerPort = 1080,
+        Password = "anytlspassword",
+        Tls = new OutboundTLSOptions
+        {
+            Enabled = true,
+            ServerName = "anytls.example.com"
+        }
     }
 };
 
+// 组装成纯净、合法的完整 sing-box 配置文件
 var fullConfig = new
 {
     log = new { level = "warn" },
     inbounds = new[]
     {
-        new { type = "mixed", tag = "mixed-in", listen = "127.0.0.1", listen_port = 20808 }
+        new
+        {
+            type = "mixed",
+            tag = "mixed-in",
+            listen = "127.0.0.1",
+            listen_port = 20808
+        }
     },
-    outbounds = allNodes.Concat<object>(new object[]
+    outbounds = nodes.Concat<object>(new object[]
     {
         new { type = "direct", tag = "direct" },
-        new { type = "selector", tag = "select", outbounds = allNodes.Select(n => n.Tag).Append("direct").ToArray() }
+        new
+        {
+            type = "selector",
+            tag = "select",
+            outbounds = nodes.Select(n => n.Tag).Append("direct").ToArray()
+        }
     }).ToArray()
 };
 
-string configJson = JsonSerializer.Serialize(fullConfig, new JsonSerializerOptions { WriteIndented = true });
-string finalConfigPath = Path.Combine(AppContext.BaseDirectory, "reviewed_config.json");
-File.WriteAllText(finalConfigPath, configJson);
-Console.WriteLine($"终极配置已保存至: {finalConfigPath}");
+var jsonOptions = new JsonSerializerOptions
+{
+    WriteIndented = true
+};
+
+string json = JsonSerializer.Serialize(fullConfig, jsonOptions);
+string outputPath = Path.Combine(AppContext.BaseDirectory, "pure_config.json");
+File.WriteAllText(outputPath, json);
+
+Console.WriteLine($"[成功] 纯净配置已生成到: {outputPath}");

@@ -2,7 +2,6 @@ namespace SubParser.Models.Common;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubParser.Models.Converters;
 
 /// <summary>
 /// 对齐 sing-box 官方 option/tls.go 中的 OutboundTLSOptions 定义
@@ -22,7 +21,6 @@ public sealed record class OutboundTLSOptions
     public bool Insecure { get; init; }
 
     [JsonPropertyName("alpn")]
-    [JsonConverter(typeof(SingleOrListConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? Alpn { get; init; }
 
@@ -42,9 +40,6 @@ public sealed record class OutboundTLSOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public OutboundRealityOptions? Reality { get; init; }
 
-    /// <summary>
-    /// 未显式建模的高级证书字段（如 certificate_sha256, client_certificate 等）无损保存在此
-    /// </summary>
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }
 }
