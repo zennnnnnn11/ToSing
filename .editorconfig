@@ -1,0 +1,41 @@
+root = true
+
+# 所有文件的通用配置
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# C# 规则配置
+[*.cs]
+# -------------------------------------------------------------
+# 1. 关掉过度死板的“折磨型”规则（降噪）
+# -------------------------------------------------------------
+# 关闭硬编码字符串多语言警告（不要逼迫日常代码去建 .resx）
+dotnet_diagnostic.CA1303.severity = none
+# 关闭缺少 XML 注释的警告
+dotnet_diagnostic.CS1591.severity = none
+# 关闭文件名必须与类型名完全一致（允许一个小文件放多个相关 record）
+dotnet_diagnostic.MA0048.severity = none
+# 在启用了 Nullable 的现代代码中，关闭多余的手动参数 null 校验
+dotnet_diagnostic.CA1062.severity = none
+# 不需要处处写 ConfigureAwait(false)
+dotnet_diagnostic.CA2007.severity = none
+
+# -------------------------------------------------------------
+# 2. 严厉监控：多线程、防死锁与取消令牌（防隐蔽致命 Bug）
+# -------------------------------------------------------------
+# 严禁在异步代码里同步等待 .Result 或 .Wait()，防死锁
+dotnet_diagnostic.VSTHRD002.severity = warning
+dotnet_diagnostic.VSTHRD104.severity = warning
+# 避免 async void（除了 UI 事件），防异常无法捕获
+dotnet_diagnostic.VSTHRD100.severity = warning
+# 异步方法建议以 Async 结尾
+dotnet_diagnostic.VSTHRD200.severity = suggestion
+# 尽可能把 CancellationToken 透传到底
+dotnet_diagnostic.MA0040.severity = warning
+# 字符串比较指定 StringComparison（防不同系统语言 Bug）
+dotnet_diagnostic.MA0001.severity = warning
