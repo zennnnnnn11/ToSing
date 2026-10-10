@@ -9,6 +9,9 @@ using SubParser.Models.Converters;
 /// </summary>
 public sealed record class TuicOutbound : SingboxOutbound
 {
+    [JsonPropertyName("type")]
+    public override string Type => "tuic";
+
     [JsonPropertyName("uuid")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Uuid { get; init; }

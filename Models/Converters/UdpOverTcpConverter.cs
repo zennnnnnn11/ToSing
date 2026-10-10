@@ -5,7 +5,11 @@ using System.Text.Json.Serialization;
 using SubParser.Models.Common;
 
 /// <summary>
-/// 对齐 Go 的 option/udp_over_tcp.go，既支持布尔值 true/false，也支持对象 { "enabled": true, "version": 2 }
+/// 1:1 对齐 Go 的 option/udp_over_tcp.go：
+/// - 支持布尔值与对象形式
+/// - 遇到未知属性严格报错 (DisallowUnknownFields)
+/// - 未显式指定 enabled 时默认为 false (对齐 Go 零值)
+/// - Version 缺省或为 2 时按布尔值序列化，Version 为 1 时按对象序列化
 /// </summary>
 public sealed class UdpOverTcpConverter : JsonConverter<UdpOverTcpOptions>
 {
@@ -15,13 +19,14 @@ public sealed class UdpOverTcpConverter : JsonConverter<UdpOverTcpOptions>
         {
             return new UdpOverTcpOptions
             {
-                Enabled = reader.GetBoolean()
+                Enabled = reader.GetBoolean(),
+                Version = null
             };
         }
 
         if (reader.TokenType == JsonTokenType.StartObject)
         {
-            bool enabled = true;
+            bool? enabled = null;
             int? version = null;
 
             while (reader.Read())
@@ -44,25 +49,32 @@ public sealed class UdpOverTcpConverter : JsonConverter<UdpOverTcpOptions>
                     {
                         version = reader.GetInt32();
                     }
+                    else
+                    {
+                        // 对齐 Go 的 json.UnmarshalDisallowUnknownFields
+                        throw new JsonException($"Unknown field '{prop}' in udp_over_tcp is not allowed.");
+                    }
                 }
             }
 
             return new UdpOverTcpOptions
             {
-                Enabled = enabled,
+                // Go 的默认零值为 false
+                Enabled = enabled ?? false,
                 Version = version
             };
         }
 
-        return new UdpOverTcpOptions { Enabled = false };
+        throw new JsonException($"Expected boolean or object for udp_over_tcp, got {reader.TokenType}");
     }
 
     public override void Write(Utf8JsonWriter writer, UdpOverTcpOptions value, JsonSerializerOptions options)
     {
-        // 如果没有指定 version，官方默认直接序列化为布尔值
-        if (value.Version is null or 0)
+        int version = value.Version ?? 0;
+        // 对齐 Go: case 0, uot.Version (2): return json.Marshal(o.Enabled)
+        if (version is 0 or 2)
         {
-            writer.WriteBooleanValue(value.Enabled ?? true);
+            writer.WriteBooleanValue(value.Enabled ?? false);
         }
         else
         {
@@ -71,8 +83,12 @@ public sealed class UdpOverTcpConverter : JsonConverter<UdpOverTcpOptions>
             {
                 writer.WriteBoolean("enabled", value.Enabled.Value);
             }
+            else
+            {
+                writer.WriteBoolean("enabled", false);
+            }
 
-            writer.WriteNumber("version", value.Version.Value);
+            writer.WriteNumber("version", version);
             writer.WriteEndObject();
         }
     }

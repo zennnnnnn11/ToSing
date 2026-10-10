@@ -9,6 +9,9 @@ using SubParser.Models.Converters;
 /// </summary>
 public sealed record class VlessOutbound : SingboxOutbound
 {
+    [JsonPropertyName("type")]
+    public override string Type => "vless";
+
     [JsonPropertyName("uuid")]
     public required string Uuid { get; init; }
 

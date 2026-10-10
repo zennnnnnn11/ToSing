@@ -9,6 +9,9 @@ using SubParser.Models.Converters;
 /// </summary>
 public sealed record class TrojanOutbound : SingboxOutbound
 {
+    [JsonPropertyName("type")]
+    public override string Type => "trojan";
+
     [JsonPropertyName("password")]
     public required string Password { get; init; }
 

@@ -4,17 +4,18 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// 对齐 Go 的 badoption.HTTPHeader，Value 既支持单个字符串，也支持字符串数组
+/// 对齐 Go 的 badoption.HTTPHeader (map[string]badoption.Listable[string])
+/// 单值和多值数组全兼容，写出时 1 个值写成字符串，多个值写成数组
 /// </summary>
-public sealed class HttpHeadersConverter : JsonConverter<IReadOnlyDictionary<string, string>>
+public sealed class HttpHeadersConverter : JsonConverter<IReadOnlyDictionary<string, IReadOnlyList<string>>>
 {
-    public override IReadOnlyDictionary<string, string> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IReadOnlyDictionary<string, IReadOnlyList<string>> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
 
         if (reader.TokenType != JsonTokenType.StartObject)
         {
-            return result;
+            throw new JsonException($"Expected StartObject for HTTP headers, got {reader.TokenType}");
         }
 
         while (reader.Read())
@@ -31,11 +32,12 @@ public sealed class HttpHeadersConverter : JsonConverter<IReadOnlyDictionary<str
 
                 if (reader.TokenType == JsonTokenType.String)
                 {
-                    result[headerName] = reader.GetString() ?? string.Empty;
+                    string val = reader.GetString() ?? string.Empty;
+                    result[headerName] = new[] { val };
                 }
                 else if (reader.TokenType == JsonTokenType.StartArray)
                 {
-                    string firstValue = string.Empty;
+                    var values = new List<string>();
                     while (reader.Read())
                     {
                         if (reader.TokenType == JsonTokenType.EndArray)
@@ -43,13 +45,21 @@ public sealed class HttpHeadersConverter : JsonConverter<IReadOnlyDictionary<str
                             break;
                         }
 
-                        if (reader.TokenType == JsonTokenType.String && string.IsNullOrEmpty(firstValue))
+                        if (reader.TokenType == JsonTokenType.String)
                         {
-                            firstValue = reader.GetString() ?? string.Empty;
+                            values.Add(reader.GetString() ?? string.Empty);
+                        }
+                        else
+                        {
+                            throw new JsonException($"Expected string in header values array, got {reader.TokenType}");
                         }
                     }
 
-                    result[headerName] = firstValue;
+                    result[headerName] = values;
+                }
+                else
+                {
+                    throw new JsonException($"Expected string or array for header '{headerName}', got {reader.TokenType}");
                 }
             }
         }
@@ -57,12 +67,26 @@ public sealed class HttpHeadersConverter : JsonConverter<IReadOnlyDictionary<str
         return result;
     }
 
-    public override void Write(Utf8JsonWriter writer, IReadOnlyDictionary<string, string> value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IReadOnlyDictionary<string, IReadOnlyList<string>> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        foreach (KeyValuePair<string, string> pair in value)
+        foreach (KeyValuePair<string, IReadOnlyList<string>> pair in value)
         {
-            writer.WriteString(pair.Key, pair.Value);
+            writer.WritePropertyName(pair.Key);
+            if (pair.Value.Count == 1)
+            {
+                writer.WriteStringValue(pair.Value[0]);
+            }
+            else
+            {
+                writer.WriteStartArray();
+                foreach (string val in pair.Value)
+                {
+                    writer.WriteStringValue(val);
+                }
+
+                writer.WriteEndArray();
+            }
         }
 
         writer.WriteEndObject();

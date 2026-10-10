@@ -76,7 +76,8 @@ public sealed record class OutboundRealityOptions
     public bool? Enabled { get; init; }
 
     [JsonPropertyName("public_key")]
-    public required string PublicKey { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? PublicKey { get; init; }
 
     [JsonPropertyName("short_id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

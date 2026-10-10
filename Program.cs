@@ -61,11 +61,11 @@ void Assert(string caseName, bool condition, string detail = "")
 {
     string json1 = """{"type":"vmess","tag":"vm1","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","transport":{"type":"ws","path":"/","headers":{"Host":"example.com"}}}""";
     var node1 = JsonSerializer.Deserialize<SingboxOutbound>(json1) as VmessOutbound;
-    Assert("4.1 headers: {\"Host\": \"example.com\"}", string.Equals(node1?.Transport?.Headers?["Host"], "example.com", StringComparison.Ordinal));
+    Assert("4.1 headers: {\"Host\": \"example.com\"}", string.Equals(node1?.Transport?.Headers?["Host"][0], "example.com", StringComparison.Ordinal));
 
     string json2 = """{"type":"vmess","tag":"vm2","server":"1.1.1.1","server_port":443,"uuid":"bf000d23-0752-40b4-affe-68f7707a9661","transport":{"type":"ws","path":"/","headers":{"Host":["example.com"]}}}""";
     var node2 = JsonSerializer.Deserialize<SingboxOutbound>(json2) as VmessOutbound;
-    Assert("4.2 headers: {\"Host\": [\"example.com\"]}", string.Equals(node2?.Transport?.Headers?["Host"], "example.com", StringComparison.Ordinal));
+    Assert("4.2 headers: {\"Host\": [\"example.com\"]}", string.Equals(node2?.Transport?.Headers?["Host"][0], "example.com", StringComparison.Ordinal));
 }
 
 // 场景 5: HTTP transport 的 host 支持单字符串或数组

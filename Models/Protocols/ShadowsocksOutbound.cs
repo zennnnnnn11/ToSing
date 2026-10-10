@@ -9,6 +9,9 @@ using SubParser.Models.Converters;
 /// </summary>
 public sealed record class ShadowsocksOutbound : SingboxOutbound
 {
+    [JsonPropertyName("type")]
+    public override string Type => "shadowsocks";
+
     [JsonPropertyName("method")]
     public required string Method { get; init; } // e.g. "2022-blake3-aes-128-gcm", "aes-256-gcm", "chacha20-ietf-poly1305"
 

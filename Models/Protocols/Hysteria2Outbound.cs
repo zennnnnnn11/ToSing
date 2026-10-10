@@ -1,5 +1,6 @@
 namespace SubParser.Models.Protocols;
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using SubParser.Models.Common;
 using SubParser.Models.Converters;
@@ -9,6 +10,9 @@ using SubParser.Models.Converters;
 /// </summary>
 public sealed record class Hysteria2Outbound : SingboxOutbound
 {
+    [JsonPropertyName("type")]
+    public override string Type => "hysteria2";
+
     [JsonPropertyName("password")]
     public required string Password { get; init; }
 
@@ -58,4 +62,15 @@ public sealed record class Hysteria2ObfsOptions
 
     [JsonPropertyName("password")]
     public required string Password { get; init; }
+
+    [JsonPropertyName("min_packet_size")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MinPacketSize { get; init; }
+
+    [JsonPropertyName("max_packet_size")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxPacketSize { get; init; }
+
+    [JsonExtensionData]
+    public IDictionary<string, JsonElement>? ExtensionData { get; set; }
 }

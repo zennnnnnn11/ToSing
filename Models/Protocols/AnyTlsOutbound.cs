@@ -8,6 +8,9 @@ using SubParser.Models.Common;
 /// </summary>
 public sealed record class AnyTlsOutbound : SingboxOutbound
 {
+    [JsonPropertyName("type")]
+    public override string Type => "anytls";
+
     [JsonPropertyName("password")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Password { get; init; }

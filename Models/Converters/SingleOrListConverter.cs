@@ -34,6 +34,10 @@ public sealed class SingleOrListConverter : JsonConverter<IReadOnlyList<string>>
                         list.Add(item);
                     }
                 }
+                else
+                {
+                    throw new JsonException($"Expected string element in list, got {reader.TokenType}");
+                }
             }
 
             return list;
