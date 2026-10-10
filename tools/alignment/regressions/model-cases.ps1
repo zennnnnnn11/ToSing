@@ -61,4 +61,14 @@ proxies:
 "@
 Add-AuditCase 'model-mux-brutal' $taskBrutalOptions { param($n) $n[0].multiplex.brutal.enabled -eq $true -and $n[0].multiplex.brutal.up_mbps -eq 10 } { param($n) $n[0].multiplex.brutal = @{ enabled = $true; up_mbps = 10; down_mbps = 20 }; return ,$n }
 
+$taskTrojanNativeNoTls = @"
+proxies:
+  - tag: trojan-native-no-tls
+    type: trojan
+    server: 127.0.0.1
+    server_port: 443
+    password: test-password
+"@
+Add-AuditCase 'model-trojan-native-no-tls' $taskTrojanNativeNoTls { param($n) $null -eq $n[0].tls } { param($n) return ,$n }
+
 . (Join-Path $PSScriptRoot 'runner.ps1')

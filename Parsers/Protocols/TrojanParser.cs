@@ -26,7 +26,7 @@ public static class TrojanParser
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"Trojan {server}:{port}";
 
         var transport = TransportParser.ParseTransport(ctx);
-        var tls = TlsParser.Parse(ctx, server, allowUtls: true, forceTls: true);
+        var tls = TlsParser.Parse(ctx, server, allowUtls: true, forceTls: !ctx.IsNativeConfig);
         var multiplex = MultiplexParser.ParseMultiplex(ctx);
 
         return new TrojanOutbound
