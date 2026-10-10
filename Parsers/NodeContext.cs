@@ -420,16 +420,17 @@ public sealed class NodeContext
     {
         if (ctx._properties.TryGetValue("plugin", out object? pluginObj) && pluginObj is string pluginStr)
         {
-            string decodedPlugin = HttpUtility.UrlDecode(pluginStr);
-            int semicolon = decodedPlugin.IndexOf(';', StringComparison.Ordinal);
+            // 注意：query 解析时已经解码过一次，严禁二次解码，否则会破坏诸如 /a+b 或 /a%2Fb 等合法路径参数
+            string rawPlugin = pluginStr.Trim();
+            int semicolon = rawPlugin.IndexOf(';', StringComparison.Ordinal);
             if (semicolon >= 0)
             {
-                ctx._properties["plugin"] = decodedPlugin[..semicolon].Trim();
-                ctx._properties["plugin_opts"] = decodedPlugin[(semicolon + 1)..].Trim();
+                ctx._properties["plugin"] = rawPlugin[..semicolon].Trim();
+                ctx._properties["plugin_opts"] = rawPlugin[(semicolon + 1)..].Trim();
             }
             else
             {
-                ctx._properties["plugin"] = decodedPlugin.Trim();
+                ctx._properties["plugin"] = rawPlugin;
             }
         }
     }

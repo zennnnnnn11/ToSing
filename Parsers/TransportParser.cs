@@ -25,7 +25,7 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseWebsocket(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "ws-opts.path", "ws-path"));
+        string path = ParsePath(GetPathString(ctx, "path", "ws-opts.path", "ws-path"), stripEarlyData: true);
         var headers = ParseHeaders(ctx, "ws-opts.headers", "ws-headers");
         string host = ctx.GetString("host", "ws-opts.headers.Host", "ws-headers.Host");
         if (!string.IsNullOrEmpty(host) && !headers.ContainsKey("Host"))
@@ -48,7 +48,7 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseHttp(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "http-opts.path"));
+        string path = ParsePath(GetPathString(ctx, "path", "http-opts.path"), stripEarlyData: false);
         string method = ctx.GetString("method", "http-opts.method");
         var headers = ParseHeaders(ctx, "http-opts.headers");
         object? hostVal = ctx.GetRaw("http-opts.headers.Host") ?? ctx.GetRaw("http-opts.host") ?? ctx.GetRaw("host");
@@ -70,7 +70,7 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseHttpUpgrade(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "httpupgrade-opts.path"));
+        string path = ParsePath(GetPathString(ctx, "path", "httpupgrade-opts.path"), stripEarlyData: false);
         string host = ctx.GetString("host", "httpupgrade-opts.host");
         var headers = ParseHeaders(ctx, "httpupgrade-opts.headers");
 
@@ -116,9 +116,9 @@ internal static class TransportParser
         return string.Empty;
     }
 
-    private static Dictionary<string, string> ParseHeaders(NodeContext ctx, params string[] paths)
+    private static Dictionary<string, object> ParseHeaders(NodeContext ctx, params string[] paths)
     {
-        var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var dict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         foreach (string p in paths)
         {
             object? raw = ctx.GetRaw(p);
@@ -127,16 +127,15 @@ internal static class TransportParser
                 foreach (var kv in roDict)
                 {
                     if (string.IsNullOrEmpty(kv.Key) || kv.Value == null) continue;
-                    if (kv.Value is IEnumerable<object> list)
-                    {
-                        var first = list.FirstOrDefault(x => x != null)?.ToString()?.Trim();
-                        if (!string.IsNullOrEmpty(first)) dict[kv.Key] = first;
-                    }
-                    else
-                    {
-                        string s = kv.Value.ToString()?.Trim() ?? string.Empty;
-                        if (!string.IsNullOrEmpty(s)) dict[kv.Key] = s;
-                    }
+                    dict[kv.Key] = NormalizeHeaderValue(kv.Value);
+                }
+            }
+            else if (raw is IDictionary<string, object?> sDict)
+            {
+                foreach (var kv in sDict)
+                {
+                    if (string.IsNullOrEmpty(kv.Key) || kv.Value == null) continue;
+                    dict[kv.Key] = NormalizeHeaderValue(kv.Value);
                 }
             }
             else
@@ -151,12 +150,28 @@ internal static class TransportParser
         return dict;
     }
 
-    private static string ParsePath(string rawPath)
+    private static object NormalizeHeaderValue(object val)
+    {
+        if (val is IEnumerable<object> list && val is not string)
+        {
+            var strList = new List<string>();
+            foreach (object item in list)
+            {
+                string s = item?.ToString()?.Trim() ?? string.Empty;
+                if (!string.IsNullOrEmpty(s)) strList.Add(s);
+            }
+            return strList.ToArray();
+        }
+
+        return val.ToString()?.Trim() ?? string.Empty;
+    }
+
+    private static string ParsePath(string rawPath, bool stripEarlyData)
     {
         if (string.IsNullOrWhiteSpace(rawPath)) return "/";
         string path = rawPath.Trim();
 
-        if (path.Contains("?ed=", StringComparison.OrdinalIgnoreCase))
+        if (stripEarlyData && path.Contains("?ed=", StringComparison.OrdinalIgnoreCase))
         {
             int edIndex = path.IndexOf("?ed=", StringComparison.OrdinalIgnoreCase);
             path = path[..edIndex];

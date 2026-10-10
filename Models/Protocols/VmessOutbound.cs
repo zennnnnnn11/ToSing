@@ -19,6 +19,14 @@ public sealed record class VmessOutbound : SingboxOutbound
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public int AlterId { get; init; }
 
+    [JsonPropertyName("global_padding")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool GlobalPadding { get; init; }
+
+    [JsonPropertyName("authenticated_length")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool AuthenticatedLength { get; init; }
+
     [JsonPropertyName("network")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Network { get; init; }

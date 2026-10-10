@@ -17,18 +17,27 @@ public static class TuicParser
         int port = ctx.ServerPort;
         if (port < 1 || port > 65535) return null;
 
-        string uuid = ctx.GetString("uuid", "username");
-        if (string.IsNullOrWhiteSpace(uuid) || !Guid.TryParse(uuid, out _))
+        string rawUuid = ctx.GetString("uuid", "username");
+        if (string.IsNullOrWhiteSpace(rawUuid) || !Guid.TryParse(rawUuid, out Guid parsedGuid))
         {
             // 内核强制要求合法的 UUID
             return null;
         }
+        // 规整为内核要求的标准 36 位连字符格式，剥离圆括号/大括号
+        string uuid = parsedGuid.ToString("D");
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"TUIC {server}:{port}";
         string password = ctx.GetString("password");
         string cc = ctx.GetString("congestion_control", "congestion-control");
         string udpRelayMode = ctx.GetString("udp_relay_mode", "udp-relay-mode");
         bool udpOverStream = ctx.GetBool("udp_over_stream", "udp-over-stream");
+
+        // 内核互斥规则: udp_over_stream is conflict with udp_relay_mode
+        if (udpOverStream)
+        {
+            udpRelayMode = string.Empty;
+        }
+
         string heartbeat = ctx.GetString("heartbeat");
         bool zeroRtt = ctx.GetBool("zero_rtt_handshake", "zero-rtt-handshake", "reduce-rtt");
 

@@ -22,14 +22,23 @@ public static class VlessParser
         if (string.IsNullOrWhiteSpace(uuid)) return null;
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VLESS {server}:{port}";
-        string flow = ctx.GetString("flow");
+        string rawFlow = ctx.GetString("flow").Trim();
+        string flow = string.Empty;
 
-        // 校验 flow：如果提供了非法 flow，内核拒绝加载
-        if (!string.IsNullOrEmpty(flow) &&
-            !string.Equals(flow, "xtls-rprx-vision", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(flow, "xtls-rprx-vision-udp443", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(rawFlow))
         {
-            return null;
+            string lowerFlow = rawFlow.ToLowerInvariant();
+            if (string.Equals(lowerFlow, "xtls-rprx-vision", StringComparison.Ordinal) ||
+                string.Equals(lowerFlow, "xtls-rprx-vision-udp443", StringComparison.Ordinal))
+            {
+                // 内核只支持小写标准 xtls-rprx-vision
+                flow = "xtls-rprx-vision";
+            }
+            else
+            {
+                // 未知 flow 直接拦截丢弃
+                return null;
+            }
         }
 
         var transport = TransportParser.ParseTransport(ctx);

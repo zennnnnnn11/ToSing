@@ -32,6 +32,28 @@ public sealed record class OutboundMultiplexOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool Padding { get; init; }
 
+    [JsonPropertyName("brutal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BrutalOptions? Brutal { get; init; }
+
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? ExtensionData { get; set; }
+}
+
+/// <summary>
+/// TCP Brutal 拥塞控制配置。
+/// </summary>
+public sealed record class BrutalOptions
+{
+    [JsonPropertyName("enabled")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Enabled { get; init; }
+
+    [JsonPropertyName("up_mbps")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? UpMbps { get; init; }
+
+    [JsonPropertyName("down_mbps")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? DownMbps { get; init; }
 }

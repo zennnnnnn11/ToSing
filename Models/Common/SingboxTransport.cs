@@ -25,7 +25,7 @@ public sealed record class V2RayTransportOptions
 
     [JsonPropertyName("headers")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyDictionary<string, string>? Headers { get; init; }
+    public IReadOnlyDictionary<string, object>? Headers { get; init; }
 
     [JsonPropertyName("max_early_data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

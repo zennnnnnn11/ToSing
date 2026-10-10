@@ -32,6 +32,50 @@ public sealed record class Hysteria2Outbound : SingboxOutbound
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? DownMbps { get; init; }
 
+    [JsonPropertyName("bbr_profile")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? BbrProfile { get; init; }
+
+    [JsonPropertyName("brutal_debug")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool BrutalDebug { get; init; }
+
+    [JsonPropertyName("disable_chrome_parrot")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DisableChromeParrot { get; init; }
+
+    [JsonPropertyName("idle_timeout")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? IdleTimeout { get; init; }
+
+    [JsonPropertyName("keep_alive_period")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? KeepAlivePeriod { get; init; }
+
+    [JsonPropertyName("initial_packet_size")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? InitialPacketSize { get; init; }
+
+    [JsonPropertyName("disable_path_mtu_discovery")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DisablePathMtuDiscovery { get; init; }
+
+    [JsonPropertyName("max_concurrent_streams")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxConcurrentStreams { get; init; }
+
+    [JsonPropertyName("stream_receive_window")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? StreamReceiveWindow { get; init; }
+
+    [JsonPropertyName("connection_receive_window")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ConnectionReceiveWindow { get; init; }
+
+    [JsonPropertyName("network")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Network { get; init; }
+
     [JsonPropertyName("obfs")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Hysteria2ObfsOptions? Obfs { get; init; }

@@ -114,19 +114,24 @@ public static class ShadowsocksParser
                 {
                     parts.Add(EscapeSip003Key(key));
                 }
-                // false 时绝对不输出该 key
+                // 布尔 false 时绝对不输出该 key
                 continue;
             }
 
             string strVal = val.ToString() ?? string.Empty;
-            if (string.Equals(strVal, "false", StringComparison.OrdinalIgnoreCase))
+
+            // 特殊的 Flag 开关属性（如 tls），其值为 false 时必须抑制，为 true 时输出裸 key
+            if (string.Equals(key, "tls", StringComparison.OrdinalIgnoreCase))
             {
-                continue;
-            }
-            if (string.Equals(strVal, "true", StringComparison.OrdinalIgnoreCase))
-            {
-                parts.Add(EscapeSip003Key(key));
-                continue;
+                if (string.Equals(strVal, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                if (string.Equals(strVal, "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    parts.Add(EscapeSip003Key(key));
+                    continue;
+                }
             }
 
             string escapedKey = EscapeSip003Key(key);
