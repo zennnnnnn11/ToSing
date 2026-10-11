@@ -247,6 +247,12 @@ internal static class TransportParser
 
         string p = rawPath.Trim();
 
+        // 1. 如果路径以 URL 转义的斜杠开头 (例如 %2F 或 %2f)，先还原为 /
+        if (p.StartsWith("%2F", StringComparison.OrdinalIgnoreCase))
+        {
+            p = "/" + p[3..];
+        }
+
         // 剔除 URL 中的 #fragment
         int hashIdx = p.IndexOf('#', StringComparison.Ordinal);
         if (hashIdx >= 0)
@@ -286,6 +292,11 @@ internal static class TransportParser
                     {
                         earlyData = parsed;
                     }
+                    else
+                    {
+                        // 如果 ed 参数无法解析为数字 (如 ed=oops)，原样保留在 query 中
+                        retainedPairs.Add(pair);
+                    }
                 }
                 else
                 {
@@ -312,6 +323,10 @@ internal static class TransportParser
         if (string.IsNullOrWhiteSpace(rawPath))
             return "/";
         string path = rawPath.Trim();
+        if (path.StartsWith("%2F", StringComparison.OrdinalIgnoreCase))
+        {
+            path = "/" + path[3..];
+        }
         int hashIdx = path.IndexOf('#', StringComparison.Ordinal);
         if (hashIdx >= 0)
         {

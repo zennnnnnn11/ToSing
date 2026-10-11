@@ -132,6 +132,24 @@ public static partial class UniversalParser
         return ParseSubscriptionWithStats(rawText, filterAds).Outbounds;
     }
 
+    public static readonly string[] DefaultFilterKeywords =
+    [
+        "网址",
+        "官网",
+        "发布页",
+        "流量",
+        "剩余",
+        "到期",
+        "时间",
+        "重置",
+        "过期",
+        "通知",
+        "公告",
+        "bandwidth",
+        "traffic",
+        "expire",
+    ];
+
     private enum YamlScanState
     {
         Normal,
@@ -150,6 +168,7 @@ public static partial class UniversalParser
         string rawInput,
         Func<Uri, Task<string?>>? remoteFetcher = null,
         bool filterAds = true,
+        IReadOnlyCollection<string>? filterKeywords = null,
         CancellationToken ct = default
     )
     {
@@ -201,7 +220,8 @@ public static partial class UniversalParser
                 {
                     var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
                         yamlBuilder.ToString(),
-                        filterAds
+                        filterAds,
+                        filterKeywords
                     );
                     allOutbounds.AddRange(yamlNodes);
                     totalFiltered += yamlFiltered;
@@ -303,7 +323,7 @@ public static partial class UniversalParser
 
                     if (!string.IsNullOrWhiteSpace(subContent))
                     {
-                        return ParseSubscriptionWithStats(subContent, filterAds);
+                        return ParseSubscriptionWithStats(subContent, filterAds, filterKeywords);
                     }
                 }
                 catch
@@ -333,7 +353,7 @@ public static partial class UniversalParser
                 var outbound = ParseLine(uriLine);
                 if (outbound != null)
                 {
-                    if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                    if (filterAds && IsFakeOrAdNode(outbound.Tag, filterKeywords))
                     {
                         totalFiltered++;
                     }
@@ -494,7 +514,11 @@ public static partial class UniversalParser
     public static (
         IReadOnlyList<SingboxOutbound> Outbounds,
         int FilteredAdCount
-    ) ParseSubscriptionWithStats(string rawText, bool filterAds = true)
+    ) ParseSubscriptionWithStats(
+        string rawText,
+        bool filterAds = true,
+        IReadOnlyCollection<string>? filterKeywords = null
+    )
     {
         var rawNodes = new List<SingboxOutbound>();
         int filteredAdCount = 0;
@@ -505,7 +529,11 @@ public static partial class UniversalParser
 
         if (content.Contains("proxies:", StringComparison.OrdinalIgnoreCase))
         {
-            var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(content, filterAds);
+            var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
+                content,
+                filterAds,
+                filterKeywords
+            );
             if (yamlNodes.Count > 0)
             {
                 return (DeduplicateTags(yamlNodes), yamlFiltered);
@@ -541,7 +569,7 @@ public static partial class UniversalParser
 
             if (outbound != null)
             {
-                if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                if (filterAds && IsFakeOrAdNode(outbound.Tag, filterKeywords))
                 {
                     filteredAdCount++;
                 }
@@ -557,7 +585,8 @@ public static partial class UniversalParser
 
     private static (List<SingboxOutbound> Outbounds, int FilteredAdCount) ParseClashYamlWithStats(
         string content,
-        bool filterAds
+        bool filterAds,
+        IReadOnlyCollection<string>? filterKeywords = null
     )
     {
         var results = new List<SingboxOutbound>();
@@ -582,7 +611,7 @@ public static partial class UniversalParser
                             var outbound = ParseClashProxy(stringMap);
                             if (outbound != null)
                             {
-                                if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                                if (filterAds && IsFakeOrAdNode(outbound.Tag, filterKeywords))
                                 {
                                     filteredCount++;
                                 }
@@ -755,10 +784,32 @@ public static partial class UniversalParser
     )]
     private static partial Regex FakeOrAdNodeRegex();
 
-    private static bool IsFakeOrAdNode(string? tag)
+    private static bool IsFakeOrAdNode(
+        string? tag,
+        IReadOnlyCollection<string>? customKeywords = null
+    )
     {
         if (string.IsNullOrWhiteSpace(tag))
             return false;
+
+        if (customKeywords != null)
+        {
+            if (customKeywords.Count == 0)
+                return false;
+
+            foreach (string word in customKeywords)
+            {
+                if (
+                    !string.IsNullOrWhiteSpace(word)
+                    && tag.Contains(word, StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         return FakeOrAdNodeRegex().IsMatch(tag);
     }
 }

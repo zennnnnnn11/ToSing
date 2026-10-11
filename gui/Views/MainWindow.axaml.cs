@@ -13,6 +13,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using SubParser.Gui.Services;
 using SubParser.Models;
 using SubParser.Models.Protocols;
 using SubParser.Parsers;
@@ -31,11 +32,71 @@ public partial class MainWindow : Window
         TypeInfoResolver = SubParserJsonContext.Default,
     };
 
+    private readonly FilterRuleService _filterService = new();
+
     public MainWindow()
     {
         InitializeComponent();
         CopyButton.IsEnabled = false;
         SaveButton.IsEnabled = false;
+
+        KeywordsItemsControl.ItemsSource = _filterService.Keywords;
+        UpdateKeywordCount();
+        _filterService.Keywords.CollectionChanged += (_, _) => UpdateKeywordCount();
+    }
+
+    private void UpdateKeywordCount()
+    {
+        KeywordCountText.Text = $"{_filterService.Keywords.Count} 个";
+    }
+
+    private void OnRemoveKeywordClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string word })
+        {
+            _filterService.RemoveKeyword(word);
+        }
+    }
+
+    private void OnAddKeywordClick(object? sender, RoutedEventArgs e)
+    {
+        AddNewKeywordFromInput();
+    }
+
+    private void OnNewKeywordKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            AddNewKeywordFromInput();
+            e.Handled = true;
+        }
+    }
+
+    private void AddNewKeywordFromInput()
+    {
+        string? text = NewKeywordTextBox.Text?.Trim();
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            var parts = text.Split(
+                [' ', ',', '，', ';', '；', '|'],
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            );
+            foreach (var part in parts)
+            {
+                _filterService.AddKeyword(part);
+            }
+            NewKeywordTextBox.Text = string.Empty;
+        }
+    }
+
+    private void OnResetKeywordsClick(object? sender, RoutedEventArgs e)
+    {
+        _filterService.ResetToDefault();
+    }
+
+    private void OnClearKeywordsClick(object? sender, RoutedEventArgs e)
+    {
+        _filterService.ClearAll();
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -170,8 +231,13 @@ public partial class MainWindow : Window
         try
         {
             bool filterAds = FilterAdsCheckBox.IsChecked == true;
+            var keywords = filterAds ? _filterService.Keywords.ToList() : null;
             var (outbounds, filteredCount) = await UniversalParser
-                .ParseMixedSubscriptionWithStatsAsync(rawInput, filterAds: filterAds)
+                .ParseMixedSubscriptionWithStatsAsync(
+                    rawInput,
+                    filterAds: filterAds,
+                    filterKeywords: keywords
+                )
                 .ConfigureAwait(true);
 
             int nodeCount = outbounds.Count;
