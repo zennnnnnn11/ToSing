@@ -13,6 +13,17 @@
     TransparencyLevelHint="Mica, AcrylicBlur"
     Background="Transparent"
 >
+    <Window.Resources>
+        <!-- 覆盖 Avalonia 默认 Fluent 画刷：锁死悬停时的文字与水印前景色，只有点击/聚焦时才变灰 -->
+        <SolidColorBrush x:Key="TextControlForeground" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#0F172A" />
+        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#64748B" />
+
+        <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#94A3B8" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#94A3B8" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#CBD5E1" />
+    </Window.Resources>
+
     <Window.Styles>
         <!-- 全局字体体系：统一定制为 MiSans，按控件角色精细划分字重与排版层级 -->
         <Style Selector="TextBlock">
@@ -27,38 +38,55 @@
             <Setter Property="SelectionForegroundBrush" Value="#0F172A" />
         </Style>
 
-        <!-- 鼠标划过悬停时：文字绝对不变灰，保持清晰锐利的深色显示 -->
-        <Style Selector="TextBox:pointerover">
-            <Setter Property="Foreground" Value="#0F172A" />
-        </Style>
-        <Style Selector="TextBox[IsReadOnly=True]:pointerover">
-            <Setter Property="Foreground" Value="#0F172A" />
+        <!-- 默认水印与文本呈现器颜色 -->
+        <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+            <Setter Property="Foreground" Value="#94A3B8" />
         </Style>
 
-        <!-- 只有点上去(获取焦点/点击激活)时：文字才变灰进行交互反馈 -->
+        <!-- 鼠标划过悬停（Hover / pointerover）时：文字与水印绝对不变灰，保持清晰稳定 -->
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="Foreground" Value="#0F172A" />
+            <Style Selector="^ /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="^ /template/ TextBlock#PART_Watermark">
+                <Setter Property="Foreground" Value="#94A3B8" />
+            </Style>
+        </Style>
+
+        <Style Selector="TextBox[IsReadOnly=True]:pointerover">
+            <Setter Property="Foreground" Value="#0F172A" />
+            <Style Selector="^ /template/ TextBlock#PART_Watermark">
+                <Setter Property="Foreground" Value="#94A3B8" />
+            </Style>
+        </Style>
+
+        <!-- 只有点上去（点击/按下/获取焦点 Focus/Pressed）时：文字与水印才变灰进行交互反馈 -->
         <Style Selector="TextBox:focus">
             <Setter Property="Foreground" Value="#64748B" />
+            <Style Selector="^ /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="^ /template/ TextBlock#PART_Watermark">
+                <Setter Property="Foreground" Value="#CBD5E1" />
+            </Style>
         </Style>
+
         <Style Selector="TextBox[IsReadOnly=True]:focus">
             <Setter Property="Foreground" Value="#64748B" />
+            <Style Selector="^ /template/ TextBlock#PART_Watermark">
+                <Setter Property="Foreground" Value="#CBD5E1" />
+            </Style>
         </Style>
         <Style Selector="Button">
             <Setter Property="FontFamily" Value="MiSans, -apple-system, sans-serif" />
         </Style>
         <Style Selector="CheckBox">
             <Setter Property="FontFamily" Value="MiSans, -apple-system, sans-serif" />
-        </Style>
-
-        <!-- 彻底消除 TextBox 默认的刺眼亮蓝高亮边框，保持细腻浅灰发丝级质感 -->
-        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
         </Style>
 
         <!-- 工具栏小图标按钮 -->
