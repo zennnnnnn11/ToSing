@@ -36,9 +36,9 @@ internal static class TransportParser
         {
             int edIndex = rawPath.IndexOf("?ed=", StringComparison.OrdinalIgnoreCase);
             string edPart = rawPath[(edIndex + 4)..];
-            int ampIndex = edPart.IndexOf('&', StringComparison.Ordinal);
-            if (ampIndex >= 0)
-                edPart = edPart[..ampIndex];
+            int endIdx = edPart.IndexOfAny(['&', '#', '?', ';']);
+            if (endIdx >= 0)
+                edPart = edPart[..endIdx];
             if (
                 uint.TryParse(
                     edPart,

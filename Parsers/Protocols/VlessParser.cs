@@ -23,6 +23,15 @@ public static class VlessParser
         if (string.IsNullOrWhiteSpace(uuid))
             return null;
 
+        string enc = ctx.GetString("encryption");
+        if (
+            !string.IsNullOrEmpty(enc)
+            && !string.Equals(enc, "none", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return null;
+        }
+
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VLESS {server}:{port}";
         string rawFlow = ctx.GetString("flow").Trim();
         string flow = string.Empty;
