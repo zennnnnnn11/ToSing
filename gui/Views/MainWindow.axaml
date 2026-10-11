@@ -99,6 +99,12 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Foreground" Value="#475569" />
             <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.tool-btn:pointerover">
             <Setter Property="Background" Value="#F1F5F9" />
@@ -110,7 +116,7 @@
             <Setter Property="Foreground" Value="#64748B" />
         </Style>
 
-        <!-- 主转换按钮：扎实横向铺满，Fluent 经典渐变 -->
+        <!-- 主转换按钮：Fluent 标志性蓝色，微动渐变呼吸反馈 -->
         <Style Selector="Button.hero-btn">
             <Setter Property="Background" Value="#0078D4" />
             <Setter Property="Foreground" Value="#FFFFFF" />
@@ -121,12 +127,19 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
+        <!-- 悬停态：微调 3% 细腻温润过渡，彻底告别断崖式发黑发暗 -->
         <Style Selector="Button.hero-btn:pointerover">
-            <Setter Property="Background" Value="#106EBE" />
+            <Setter Property="Background" Value="#1084DE" />
         </Style>
+        <!-- 按下态：沉稳微下潜 -->
         <Style Selector="Button.hero-btn:pressed">
-            <Setter Property="Background" Value="#005A9E" />
+            <Setter Property="Background" Value="#006CBE" />
         </Style>
 
         <!-- 次级操作按钮：比例收拢为 110×36 黄金比，精致饱满 -->
@@ -142,6 +155,12 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" />
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.action-btn:pointerover">
             <Setter Property="Background" Value="#F8FAFC" />
