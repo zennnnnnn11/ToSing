@@ -9,11 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.2.5" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.5" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.5" />
-        <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+        <PackageReference Include="Avalonia" Version="12.1.2" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
     </ItemGroup>
 
     <ItemGroup>

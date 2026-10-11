@@ -6,10 +6,12 @@ using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -33,6 +35,9 @@ public partial class MainWindow : Window
     };
 
     private readonly FilterRuleService _filterService = new();
+
+    private string? _lastValidConfigJson;
+    private long _currentTaskId;
 
     public MainWindow()
     {
@@ -89,10 +94,7 @@ public partial class MainWindow : Window
                 [' ', ',', '，', ';', '；', '|'],
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
             );
-            foreach (var part in parts)
-            {
-                _filterService.AddKeyword(part);
-            }
+            _filterService.AddKeywords(parts);
             NewKeywordTextBox.Text = string.Empty;
         }
     }
@@ -127,7 +129,7 @@ public partial class MainWindow : Window
 
     private void OnInputDragOver(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.DataTransfer.Formats.Contains(DataFormat.File))
         {
             e.DragEffects = DragDropEffects.Copy;
         }
@@ -139,10 +141,10 @@ public partial class MainWindow : Window
 
     private async void OnInputDrop(object? sender, DragEventArgs e)
     {
-        if (!e.Data.Contains(DataFormats.Files))
+        if (!e.DataTransfer.Formats.Contains(DataFormat.File))
             return;
 
-        var files = e.Data.GetFiles();
+        var files = e.DataTransfer.TryGetFiles();
         if (files == null)
             return;
 
@@ -168,7 +170,7 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                OutputTextBox.Text = $"读取文件失败: {ex.Message}";
+                OutputTextBox.Text = $"// 读取文件失败: {ex.Message}";
             }
         }
     }
@@ -214,6 +216,8 @@ public partial class MainWindow : Window
 
     private void OnClearInputClick(object? sender, RoutedEventArgs e)
     {
+        Interlocked.Increment(ref _currentTaskId);
+        _lastValidConfigJson = null;
         InputTextBox.Text = string.Empty;
         OutputTextBox.Text = string.Empty;
         InitialBadge.IsVisible = true;
@@ -222,6 +226,8 @@ public partial class MainWindow : Window
         ToolTip.SetTip(NodeCountBadge, null);
         CopyButton.IsEnabled = false;
         SaveButton.IsEnabled = false;
+        ConvertButton.IsEnabled = true;
+        ConvertButtonText.Text = "解析并转换";
     }
 
     private async void OnConvertClick(object? sender, RoutedEventArgs e)
@@ -229,10 +235,18 @@ public partial class MainWindow : Window
         string rawInput = InputTextBox.Text?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(rawInput))
         {
+            _lastValidConfigJson = null;
             OutputTextBox.Text = "请输入订阅链接、Base64 文本或拖入配置文件。";
+            InitialBadge.IsVisible = true;
+            NodeCountBadge.IsVisible = false;
+            FilteredBadge.IsVisible = false;
+            ToolTip.SetTip(NodeCountBadge, null);
+            CopyButton.IsEnabled = false;
+            SaveButton.IsEnabled = false;
             return;
         }
 
+        long taskId = Interlocked.Increment(ref _currentTaskId);
         ConvertButton.IsEnabled = false;
         ConvertButtonText.Text = "正在解析并聚合...";
 
@@ -240,23 +254,35 @@ public partial class MainWindow : Window
         {
             bool filterAds = FilterAdsCheckBox.IsChecked == true;
             var keywords = filterAds ? _filterService.Keywords.ToList() : null;
-            var (outbounds, filteredCount) = await UniversalParser
-                .ParseMixedSubscriptionWithStatsAsync(
-                    rawInput,
-                    filterAds: filterAds,
-                    filterKeywords: keywords
-                )
-                .ConfigureAwait(true);
+
+            // 将密集计算移至后台线程，保证 UI 界面永不卡顿
+            var (outbounds, filteredCount, json) = await Task.Run(async () =>
+            {
+                var (nodes, filtered) = await UniversalParser
+                    .ParseMixedSubscriptionWithStatsAsync(
+                        rawInput,
+                        filterAds: filterAds,
+                        filterKeywords: keywords
+                    )
+                    .ConfigureAwait(false);
+
+                string serialized = JsonSerializer.Serialize(
+                    nodes,
+                    typeof(IReadOnlyList<SingboxOutbound>),
+                    JsonOptions
+                );
+
+                return (nodes, filtered, serialized);
+            }).ConfigureAwait(true);
+
+            // 如果在此期间用户触发了清空或新的转换，舍弃本次旧任务结果
+            if (taskId != Volatile.Read(ref _currentTaskId))
+                return;
 
             int nodeCount = outbounds.Count;
+            _lastValidConfigJson = nodeCount > 0 ? json : null;
 
-            string json = JsonSerializer.Serialize(
-                outbounds,
-                typeof(IReadOnlyList<SingboxOutbound>),
-                JsonOptions
-            );
-
-            OutputTextBox.Text = RestoreUnicodeEscapes(json);
+            OutputTextBox.Text = json;
             CopyButton.IsEnabled = nodeCount > 0;
             SaveButton.IsEnabled = nodeCount > 0;
 
@@ -278,18 +304,27 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            OutputTextBox.Text = $"解析失败: {ex.Message}";
+            if (taskId == Volatile.Read(ref _currentTaskId))
+            {
+                _lastValidConfigJson = null;
+                OutputTextBox.Text = $"// 聚合解析失败: {ex.Message}";
+                CopyButton.IsEnabled = false;
+                SaveButton.IsEnabled = false;
+            }
         }
         finally
         {
-            ConvertButton.IsEnabled = true;
-            ConvertButtonText.Text = "解析并转换";
+            if (taskId == Volatile.Read(ref _currentTaskId))
+            {
+                ConvertButton.IsEnabled = true;
+                ConvertButtonText.Text = "解析并转换";
+            }
         }
     }
 
     private void UpdateProtocolDistributionTooltip(IReadOnlyList<SingboxOutbound> outbounds)
     {
-        // 7 个已知出站类型 + 1 个未知
+        // 8 个已知出站类型 + 1 个未知
         var orderedKeys = new[]
         {
             "VLESS",
@@ -299,6 +334,7 @@ public partial class MainWindow : Window
             "Hysteria2",
             "TUIC",
             "AnyTLS",
+            "WireGuard",
             "未知出站",
         };
 
@@ -311,6 +347,7 @@ public partial class MainWindow : Window
             ["Hysteria2"] = 0,
             ["TUIC"] = 0,
             ["AnyTLS"] = 0,
+            ["WireGuard"] = 0,
             ["未知出站"] = 0,
         };
 
@@ -325,6 +362,7 @@ public partial class MainWindow : Window
                 Hysteria2Outbound => "Hysteria2",
                 TuicOutbound => "TUIC",
                 AnyTlsOutbound => "AnyTLS",
+                WireguardOutbound => "WireGuard",
                 _ => "未知出站",
             };
             counts[type]++;
@@ -427,22 +465,9 @@ public partial class MainWindow : Window
         ToolTip.SetTip(NodeCountBadge, container);
     }
 
-    private static string RestoreUnicodeEscapes(string json)
-    {
-        return System.Text.RegularExpressions.Regex.Replace(
-            json,
-            @"\\u([0-9a-fA-F]{4})",
-            match =>
-            {
-                int code = Convert.ToInt32(match.Groups[1].Value, 16);
-                return ((char)code).ToString();
-            }
-        );
-    }
-
     private async void OnCopyClick(object? sender, RoutedEventArgs e)
     {
-        string text = OutputTextBox.Text?.Trim() ?? string.Empty;
+        string? text = _lastValidConfigJson ?? OutputTextBox.Text?.Trim();
         if (string.IsNullOrEmpty(text))
             return;
 
@@ -458,7 +483,7 @@ public partial class MainWindow : Window
 
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
-        string text = OutputTextBox.Text?.Trim() ?? string.Empty;
+        string? text = _lastValidConfigJson ?? OutputTextBox.Text?.Trim();
         if (string.IsNullOrEmpty(text))
             return;
 

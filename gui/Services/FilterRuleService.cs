@@ -88,6 +88,27 @@ public class FilterRuleService
         return false;
     }
 
+    public int AddKeywords(IEnumerable<string> words)
+    {
+        int added = 0;
+        foreach (var word in words)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+                continue;
+            string trimmed = word.Trim();
+            if (!Keywords.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
+            {
+                Keywords.Add(trimmed);
+                added++;
+            }
+        }
+        if (added > 0)
+        {
+            Save();
+        }
+        return added;
+    }
+
     public bool RemoveKeyword(string? word)
     {
         if (string.IsNullOrWhiteSpace(word))
