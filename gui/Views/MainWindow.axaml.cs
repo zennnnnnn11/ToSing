@@ -45,6 +45,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        CopyButton.IsEnabled = false;
+        SaveButton.IsEnabled = false;
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -160,6 +162,8 @@ public partial class MainWindow : Window
         NodeCountBadge.IsVisible = false;
         FilteredBadge.IsVisible = false;
         ToolTip.SetTip(NodeCountBadge, null);
+        CopyButton.IsEnabled = false;
+        SaveButton.IsEnabled = false;
     }
 
     private async void OnConvertClick(object? sender, RoutedEventArgs e)
@@ -213,6 +217,8 @@ public partial class MainWindow : Window
             );
 
             OutputTextBox.Text = RestoreUnicodeEscapes(json);
+            CopyButton.IsEnabled = true;
+            SaveButton.IsEnabled = true;
 
             // 状态徽标更新
             InitialBadge.IsVisible = false;

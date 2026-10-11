@@ -80,7 +80,7 @@
             <Setter Property="Background" Value="#005A9E" />
         </Style>
 
-        <!-- 次级操作按钮 -->
+        <!-- 次级操作按钮：比例收拢为 110×36 黄金比，精致饱满 -->
         <Style Selector="Button.action-btn">
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#D1D5DB" />
@@ -90,7 +90,6 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Height" Value="34" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -99,6 +98,12 @@
             <Setter Property="Background" Value="#F8FAFC" />
             <Setter Property="BorderBrush" Value="#9CA3AF" />
             <Setter Property="Foreground" Value="#0F172A" />
+        </Style>
+        <Style Selector="Button.action-btn:disabled">
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#E2E8F0" />
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="Opacity" Value="0.6" />
         </Style>
     </Window.Styles>
 
@@ -186,14 +191,10 @@
                 >
                     <!-- 左右对称双栏工作台布局 -->
                     <Grid ColumnDefinitions="*, 1, *">
-                        <!-- ==================== 左栏：输入与控制区 ==================== -->
-                        <Grid
-                            Grid.Column="0"
-                            RowDefinitions="Auto, *, Auto, Auto"
-                            Margin="0,0,10,0"
-                        >
-                            <!-- 左栏顶部工具栏 -->
-                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,8">
+                        <!-- ==================== 左栏：输入与控制区 (净宽 379px) ==================== -->
+                        <Grid Grid.Column="0" RowDefinitions="28, *, 20, 36" Margin="0,0,10,0">
+                            <!-- Row 0: 左栏顶部工具栏 (高度 28px) -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
                                 <StackPanel
                                     Grid.Column="0"
                                     Orientation="Horizontal"
@@ -268,7 +269,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- 多功能混合输入框（纵向自适应撑满） -->
+                            <!-- Row 1: 多功能混合输入框 (高度与右侧绝对平齐，下边距 10px) -->
                             <Border
                                 Grid.Row="1"
                                 Name="InputDropBorder"
@@ -276,6 +277,7 @@
                                 BorderBrush="#E2E8F0"
                                 BorderThickness="1"
                                 CornerRadius="6"
+                                Margin="0,8,0,10"
                                 VerticalAlignment="Stretch"
                                 DragDrop.AllowDrop="True"
                                 DragDrop.DragOver="OnInputDragOver"
@@ -296,8 +298,8 @@
                                 />
                             </Border>
 
-                            <!-- 选项开关行：舒适的纵向呼吸感 -->
-                            <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,10,0,12">
+                            <!-- Row 2: 选项开关行 (高度严格 20px，下边距 10px) -->
+                            <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,0,0,10">
                                 <CheckBox
                                     Name="FilterAdsCheckBox"
                                     Grid.Column="0"
@@ -309,12 +311,12 @@
                                 />
                             </Grid>
 
-                            <!-- 主操作按钮：横向铺满左栏底端，左右重量彻底平衡 -->
+                            <!-- Row 3: 主操作按钮 (高度严格 36px，横向撑满底端) -->
                             <Button
                                 Grid.Row="3"
                                 Name="ConvertButton"
                                 Classes="hero-btn"
-                                Height="34"
+                                Height="36"
                                 HorizontalAlignment="Stretch"
                                 Click="OnConvertClick"
                             >
@@ -345,10 +347,10 @@
                         <!-- 中间浅灰色纵向分割发丝线 -->
                         <Border Grid.Column="1" Background="#F1F5F9" Width="1" Margin="0,2" />
 
-                        <!-- ==================== 右栏：结果展示与导出区 ==================== -->
-                        <Grid Grid.Column="2" RowDefinitions="Auto, *, Auto" Margin="10,0,0,0">
-                            <!-- 右栏顶部结果徽标与状态栏 -->
-                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,8">
+                        <!-- ==================== 右栏：结果展示与导出区 (净宽 379px) ==================== -->
+                        <Grid Grid.Column="2" RowDefinitions="28, *, 20, 36" Margin="10,0,0,0">
+                            <!-- Row 0: 右栏顶部结果徽标与状态栏 (高度 28px) -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
                                 <TextBlock
                                     Grid.Column="0"
                                     Text="sing-box 配置"
@@ -418,15 +420,15 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- JSON 代码预览框（纵向自适应撑满，与左侧平齐，边框温润克制） -->
+                            <!-- Row 1: JSON 代码预览框 (高度与左侧输入框 100% 绝对平齐，下边距 10px) -->
                             <Border
                                 Grid.Row="1"
                                 Background="#F8FAFC"
                                 BorderBrush="#E2E8F0"
                                 BorderThickness="1"
                                 CornerRadius="6"
+                                Margin="0,8,0,10"
                                 VerticalAlignment="Stretch"
-                                Margin="0,0,0,10"
                             >
                                 <TextBox
                                     Name="OutputTextBox"
@@ -444,13 +446,31 @@
                                 />
                             </Border>
 
-                            <!-- 底部操作按钮栏（高度 34px，与左侧主按钮水平严格对齐） -->
-                            <Grid Grid.Row="2" ColumnDefinitions="*, *" Height="34">
+                            <!-- Row 2: 辅助状态说明行 (高度严格 20px，与左侧 CheckBox 水平绝对呼应，下边距 10px) -->
+                            <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Text="UTF-8 · 自动识别格式"
+                                    FontSize="11"
+                                    FontWeight="Normal"
+                                    Foreground="#94A3B8"
+                                    VerticalAlignment="Center"
+                                />
+                            </Grid>
+
+                            <!-- Row 3: 底部操作按钮栏 (高度严格 36px，按钮宽度各 110px 黄金比，靠右紧凑对齐) -->
+                            <StackPanel
+                                Grid.Row="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Spacing="8"
+                                Height="36"
+                            >
                                 <Button
                                     Name="CopyButton"
-                                    Grid.Column="0"
                                     Classes="action-btn"
-                                    Margin="0,0,4,0"
+                                    Width="110"
+                                    Height="36"
                                     Click="OnCopyClick"
                                 >
                                     <StackPanel
@@ -479,9 +499,9 @@
 
                                 <Button
                                     Name="SaveButton"
-                                    Grid.Column="1"
                                     Classes="action-btn"
-                                    Margin="4,0,0,0"
+                                    Width="110"
+                                    Height="36"
                                     Click="OnSaveClick"
                                 >
                                     <StackPanel
@@ -506,7 +526,7 @@
                                         />
                                     </StackPanel>
                                 </Button>
-                            </Grid>
+                            </StackPanel>
                         </Grid>
                     </Grid>
                 </Border>
