@@ -22,12 +22,26 @@
         <Style Selector="TextBox">
             <Setter Property="FontFamily" Value="MiSans, Cascadia Code, monospace" />
             <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="SelectionBrush" Value="#250078D4" />
+            <Setter Property="SelectionForegroundBrush" Value="#0F172A" />
         </Style>
         <Style Selector="Button">
             <Setter Property="FontFamily" Value="MiSans, -apple-system, sans-serif" />
         </Style>
         <Style Selector="CheckBox">
             <Setter Property="FontFamily" Value="MiSans, -apple-system, sans-serif" />
+        </Style>
+
+        <!-- 彻底消除 TextBox 默认的刺眼亮蓝高亮边框，保持细腻浅灰发丝级质感 -->
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
         </Style>
 
         <!-- 工具栏小图标按钮 -->
@@ -47,7 +61,7 @@
             <Setter Property="Foreground" Value="#0F172A" />
         </Style>
 
-        <!-- 主转换按钮 -->
+        <!-- 主转换按钮：扎实横向铺满，Fluent 经典渐变 -->
         <Style Selector="Button.hero-btn">
             <Setter Property="Background" Value="#0078D4" />
             <Setter Property="Foreground" Value="#FFFFFF" />
@@ -108,7 +122,7 @@
                         Spacing="8"
                         Margin="16,0,0,0"
                     >
-                        <!-- 矢量标志图标 -->
+                        <!-- 流线型数据转换微标矢量图标 -->
                         <Border Width="20" Height="20" CornerRadius="5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
@@ -117,14 +131,16 @@
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Path
-                                Data="M 5 6 L 10 11 L 15 6"
+                                Data="M 3 6 L 12 6 M 9 3 L 12 6 L 9 9 M 13 11 L 4 11 M 7 8 L 4 11 L 7 14"
                                 Stroke="White"
-                                StrokeThickness="1.8"
+                                StrokeThickness="1.5"
                                 StrokeLineCap="Round"
                                 StrokeJoin="Round"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                RenderTransform="rotate(270deg)"
+                                Width="13"
+                                Height="13"
+                                Stretch="Uniform"
                             />
                         </Border>
 
@@ -252,7 +268,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- 多功能混合输入框（纵向自适应撑开，与右侧平齐） -->
+                            <!-- 多功能混合输入框（纵向自适应撑满） -->
                             <Border
                                 Grid.Row="1"
                                 Name="InputDropBorder"
@@ -280,8 +296,8 @@
                                 />
                             </Border>
 
-                            <!-- 选项开关行 -->
-                            <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,8,0,8">
+                            <!-- 选项开关行：舒适的纵向呼吸感 -->
+                            <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,10,0,12">
                                 <CheckBox
                                     Name="FilterAdsCheckBox"
                                     Grid.Column="0"
@@ -293,12 +309,13 @@
                                 />
                             </Grid>
 
-                            <!-- 主操作按钮（与右侧操作按钮高度严格水平平齐） -->
+                            <!-- 主操作按钮：横向铺满左栏底端，左右重量彻底平衡 -->
                             <Button
                                 Grid.Row="3"
                                 Name="ConvertButton"
                                 Classes="hero-btn"
                                 Height="34"
+                                HorizontalAlignment="Stretch"
                                 Click="OnConvertClick"
                             >
                                 <StackPanel
@@ -401,7 +418,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- JSON 代码预览框（纵向自适应撑开，与左侧平齐） -->
+                            <!-- JSON 代码预览框（纵向自适应撑满，与左侧平齐，边框温润克制） -->
                             <Border
                                 Grid.Row="1"
                                 Background="#F8FAFC"
@@ -409,7 +426,7 @@
                                 BorderThickness="1"
                                 CornerRadius="6"
                                 VerticalAlignment="Stretch"
-                                Margin="0,0,0,8"
+                                Margin="0,0,0,10"
                             >
                                 <TextBox
                                     Name="OutputTextBox"

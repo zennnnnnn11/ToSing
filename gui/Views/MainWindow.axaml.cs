@@ -212,7 +212,7 @@ public partial class MainWindow : Window
                 JsonOptions
             );
 
-            OutputTextBox.Text = json;
+            OutputTextBox.Text = RestoreUnicodeEscapes(json);
 
             // 状态徽标更新
             InitialBadge.IsVisible = false;
@@ -379,6 +379,19 @@ public partial class MainWindow : Window
         };
 
         ToolTip.SetTip(NodeCountBadge, container);
+    }
+
+    private static string RestoreUnicodeEscapes(string json)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            json,
+            @"\\u([0-9a-fA-F]{4})",
+            match =>
+            {
+                int code = Convert.ToInt32(match.Groups[1].Value, 16);
+                return ((char)code).ToString();
+            }
+        );
     }
 
     private async void OnCopyClick(object? sender, RoutedEventArgs e)
