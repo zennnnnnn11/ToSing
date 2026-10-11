@@ -193,8 +193,9 @@ public static partial class UniversalParser
         // 如果整段文本是以大括号包裹的纯 JSON 格式配置 (例如 multi-proxy 的 JSON 格式 Clash 订阅)
         string trimmedContent = content.Trim();
         if (
-            trimmedContent.StartsWith('{')
-            && trimmedContent.EndsWith('}')
+            trimmedContent.Length >= 2
+            && trimmedContent[0] == '{'
+            && trimmedContent[^1] == '}'
             && (
                 trimmedContent.Contains("\"proxies\"", StringComparison.OrdinalIgnoreCase)
                 || trimmedContent.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
