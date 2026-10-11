@@ -70,12 +70,14 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseHttp(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "http-opts.path"));
+        string path = ParsePath(GetPathString(ctx, "path", "http-opts.path", "h2-opts.path"));
         string method = ctx.GetString("method", "http-opts.method");
         var headers = ParseHeaders(ctx, "http-opts.headers");
         object? hostVal =
             ctx.GetRaw("http-opts.headers.Host")
             ?? ctx.GetRaw("http-opts.host")
+            ?? ctx.GetRaw("h2-opts.headers.Host")
+            ?? ctx.GetRaw("h2-opts.host")
             ?? ctx.GetRaw("host");
 
         if (hostVal != null)
@@ -130,7 +132,8 @@ internal static class TransportParser
             "service-name",
             "grpc-opts.grpc-service-name",
             "grpc-opts.service_name",
-            "grpc-opts.service-name"
+            "grpc-opts.service-name",
+            "path"
         );
         string idleTimeout = ctx.GetString(
             "idle_timeout",

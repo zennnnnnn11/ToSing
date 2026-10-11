@@ -127,6 +127,11 @@ public static class Base64Utils
 
     private static string SanitizeBase64(string raw)
     {
+        if (raw.Contains("%3D", StringComparison.OrdinalIgnoreCase))
+        {
+            raw = raw.Replace("%3D", "=", StringComparison.OrdinalIgnoreCase);
+        }
+
         var sb = new StringBuilder(raw.Length + 4);
         foreach (char c in raw)
         {

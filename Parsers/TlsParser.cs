@@ -111,7 +111,11 @@ public static class TlsParser
             "ca_sha256",
             "pinSHA256",
             "pin-sha256",
-            "pin_sha256"
+            "pin_sha256",
+            "pcs",
+            "pinnedCertSha256",
+            "pinned-cert-sha256",
+            "pinned_cert_sha256"
         );
         var rawFingerprint = ctx.GetStringList("fingerprint");
         var certSha256 = new List<string>();
