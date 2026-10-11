@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using SubParser.Models;
@@ -24,11 +25,27 @@ if (
 {
     using var handler = new SocketsHttpHandler
     {
+        UseProxy = true,
+        Proxy = WebRequest.GetSystemWebProxy(),
+        AutomaticDecompression = DecompressionMethods.All,
         PooledConnectionLifetime = TimeSpan.FromMinutes(1),
     };
-    using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
+    using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(25) };
     client.DefaultRequestHeaders.UserAgent.ParseAdd("clash.meta");
-    content = await client.GetStringAsync(uri).ConfigureAwait(false);
+    client.DefaultRequestHeaders.Accept.ParseAdd("*/*");
+
+    try
+    {
+        content = await client.GetStringAsync(uri).ConfigureAwait(false);
+    }
+    catch
+    {
+        using var browserClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(25) };
+        browserClient.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+        );
+        content = await browserClient.GetStringAsync(uri).ConfigureAwait(false);
+    }
 }
 else if (File.Exists(input))
 {

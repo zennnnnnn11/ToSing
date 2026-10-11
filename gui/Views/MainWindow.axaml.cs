@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -30,16 +31,21 @@ public partial class MainWindow : Window
         TypeInfoResolver = SubParserJsonContext.Default,
     };
 
-    private static readonly HttpClient SharedHttpClient = new(
-        new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }
-    )
-    {
-        Timeout = TimeSpan.FromSeconds(15),
-    };
+    private static readonly HttpClient SharedHttpClient = CreateSharedHttpClient();
 
-    static MainWindow()
+    private static HttpClient CreateSharedHttpClient()
     {
-        SharedHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("clash.meta");
+        var handler = new SocketsHttpHandler
+        {
+            UseProxy = true,
+            Proxy = WebRequest.GetSystemWebProxy(),
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+        };
+        var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(25) };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("clash.meta");
+        client.DefaultRequestHeaders.Accept.ParseAdd("*/*");
+        return client;
     }
 
     public MainWindow()
@@ -194,7 +200,27 @@ public partial class MainWindow : Window
             )
             {
                 ConvertButtonText.Text = "拉取远程订阅...";
-                content = await SharedHttpClient.GetStringAsync(uri).ConfigureAwait(true);
+                try
+                {
+                    content = await SharedHttpClient.GetStringAsync(uri).ConfigureAwait(true);
+                }
+                catch
+                {
+                    using var browserHandler = new SocketsHttpHandler
+                    {
+                        UseProxy = true,
+                        Proxy = WebRequest.GetSystemWebProxy(),
+                        AutomaticDecompression = DecompressionMethods.All,
+                    };
+                    using var browserClient = new HttpClient(browserHandler)
+                    {
+                        Timeout = TimeSpan.FromSeconds(25),
+                    };
+                    browserClient.DefaultRequestHeaders.UserAgent.ParseAdd(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+                    );
+                    content = await browserClient.GetStringAsync(uri).ConfigureAwait(true);
+                }
             }
             else
             {
