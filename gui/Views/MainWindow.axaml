@@ -106,14 +106,14 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.tool-btn:pointerover">
+        <Style Selector="Button.tool-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#F1F5F9" />
             <Setter Property="BorderBrush" Value="#CBD5E1" />
-            <Setter Property="Foreground" Value="#0F172A" />
+            <Setter Property="TextBlock.Foreground" Value="#0F172A" />
         </Style>
-        <Style Selector="Button.tool-btn:pressed">
+        <Style Selector="Button.tool-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#E2E8F0" />
-            <Setter Property="Foreground" Value="#64748B" />
+            <Setter Property="TextBlock.Foreground" Value="#64748B" />
         </Style>
 
         <!-- 主转换按钮：Fluent 标志性蓝色，微动渐变呼吸反馈 -->
@@ -133,13 +133,15 @@
                 </Transitions>
             </Setter>
         </Style>
-        <!-- 悬停态：微调 3% 细腻温润过渡，彻底告别断崖式发黑发暗 -->
-        <Style Selector="Button.hero-btn:pointerover">
+        <!-- 悬停态：穿透 ContentPresenter，坚决保持明亮高质感微光蓝，文字坚决保持纯白 -->
+        <Style Selector="Button.hero-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#1084DE" />
+            <Setter Property="TextBlock.Foreground" Value="#FFFFFF" />
         </Style>
-        <!-- 按下态：沉稳微下潜 -->
-        <Style Selector="Button.hero-btn:pressed">
+        <!-- 按下态：穿透 ContentPresenter，沉稳微下潜深蓝，文字坚决保持纯白 -->
+        <Style Selector="Button.hero-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#006CBE" />
+            <Setter Property="TextBlock.Foreground" Value="#FFFFFF" />
         </Style>
 
         <!-- 次级操作按钮：比例收拢为 110×36 黄金比，精致饱满 -->
@@ -162,19 +164,19 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="Button.action-btn:pointerover">
+        <Style Selector="Button.action-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#F8FAFC" />
             <Setter Property="BorderBrush" Value="#9CA3AF" />
-            <Setter Property="Foreground" Value="#0F172A" />
+            <Setter Property="TextBlock.Foreground" Value="#0F172A" />
         </Style>
-        <Style Selector="Button.action-btn:pressed">
+        <Style Selector="Button.action-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#E2E8F0" />
-            <Setter Property="Foreground" Value="#64748B" />
+            <Setter Property="TextBlock.Foreground" Value="#64748B" />
         </Style>
-        <Style Selector="Button.action-btn:disabled">
+        <Style Selector="Button.action-btn:disabled /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#F8FAFC" />
             <Setter Property="BorderBrush" Value="#E2E8F0" />
-            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="TextBlock.Foreground" Value="#94A3B8" />
             <Setter Property="Opacity" Value="0.6" />
         </Style>
     </Window.Styles>
