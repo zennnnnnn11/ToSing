@@ -1,9 +1,9 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using SubParser.Gui.Views;
+using ToSing.Gui.Views;
 
-namespace SubParser.Gui;
+namespace ToSing.Gui;
 
 public partial class App : Application
 {

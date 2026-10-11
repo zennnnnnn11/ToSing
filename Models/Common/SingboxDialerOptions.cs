@@ -1,4 +1,4 @@
-namespace SubParser.Models.Common;
+﻿namespace ToSing.Models.Common;
 
 using System.Text.Json.Serialization;
 
@@ -34,7 +34,7 @@ public abstract record class SingboxDialerOptions
     public string? Inet6BindAddress { get; init; }
 
     [JsonPropertyName("routing_mark")]
-    [JsonConverter(typeof(SubParser.Parsers.FwMarkConverter))]
+    [JsonConverter(typeof(ToSing.Parsers.FwMarkConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public uint? RoutingMark { get; init; }
 

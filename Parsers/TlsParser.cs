@@ -1,9 +1,9 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System;
 using System.Collections.Generic;
-using SubParser.Models.Common;
-using SubParser.Utils;
+using ToSing.Models.Common;
+using ToSing.Utils;
 
 /// <summary>
 /// 出站 TLS 配置解析器。

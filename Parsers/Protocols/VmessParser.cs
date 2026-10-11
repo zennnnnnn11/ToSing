@@ -1,11 +1,11 @@
-namespace SubParser.Parsers.Protocols;
+﻿namespace ToSing.Parsers.Protocols;
 
 using System;
 using System.Globalization;
 using System.Text.Json;
-using SubParser.Models.Common;
-using SubParser.Models.Protocols;
-using SubParser.Utils;
+using ToSing.Models.Common;
+using ToSing.Models.Protocols;
+using ToSing.Utils;
 
 /// <summary>
 /// VMess 协议解析器。

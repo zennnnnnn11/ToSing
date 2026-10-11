@@ -1,7 +1,7 @@
-namespace SubParser.Models.Protocols;
+﻿namespace ToSing.Models.Protocols;
 
 using System.Text.Json.Serialization;
-using SubParser.Models.Common;
+using ToSing.Models.Common;
 
 /// <summary>
 /// TUIC 出站配置。
@@ -62,12 +62,12 @@ public sealed record class TuicOutbound : SingboxOutbound
 
     [JsonPropertyName("stream_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    [JsonConverter(typeof(ToSing.Parsers.MemoryBytesConverter))]
     public object? StreamReceiveWindow { get; init; }
 
     [JsonPropertyName("connection_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    [JsonConverter(typeof(ToSing.Parsers.MemoryBytesConverter))]
     public object? ConnectionReceiveWindow { get; init; }
 
     [JsonPropertyName("tls")]

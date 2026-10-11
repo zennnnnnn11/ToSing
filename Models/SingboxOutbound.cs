@@ -1,9 +1,9 @@
-namespace SubParser.Models;
+﻿namespace ToSing.Models;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubParser.Models.Common;
-using SubParser.Models.Protocols;
+using ToSing.Models.Common;
+using ToSing.Models.Protocols;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(VlessOutbound), "vless")]

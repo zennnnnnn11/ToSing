@@ -1,11 +1,11 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using SubParser.Models;
-using SubParser.Models.Common;
-using SubParser.Models.Protocols;
-using SubParser.Parsers;
+using ToSing.Models;
+using ToSing.Models.Common;
+using ToSing.Models.Protocols;
+using ToSing.Parsers;
 
 if (args.Length != 2)
     throw new ArgumentException("Usage: AlignmentProbe <core-schema.json> <output-directory>");
@@ -15,7 +15,7 @@ Directory.CreateDirectory(output);
 var issues = new List<string>();
 using (
     var stream = typeof(SingboxOutbound).Assembly.GetManifestResourceStream(
-        "SubParser.Models.SingboxContract.json"
+        "ToSing.Models.SingboxContract.json"
     )
 )
 {

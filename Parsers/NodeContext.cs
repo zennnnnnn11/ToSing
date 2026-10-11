@@ -1,10 +1,10 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web;
-using SubParser.Utils;
+using ToSing.Utils;
 
 /// <summary>
 /// 节点属性查询上下文，为 URI 链接和 Clash 字典提供统一的别名读取接口。

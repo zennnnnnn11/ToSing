@@ -1,4 +1,4 @@
-namespace SubParser.Models.Common;
+﻿namespace ToSing.Models.Common;
 
 using System.Text.Json.Serialization;
 
@@ -38,12 +38,12 @@ public sealed record class HttpClientOptions : SingboxDialerOptions
 
     [JsonPropertyName("stream_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    [JsonConverter(typeof(ToSing.Parsers.MemoryBytesConverter))]
     public object? StreamReceiveWindow { get; init; }
 
     [JsonPropertyName("connection_receive_window")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonConverter(typeof(SubParser.Parsers.MemoryBytesConverter))]
+    [JsonConverter(typeof(ToSing.Parsers.MemoryBytesConverter))]
     public object? ConnectionReceiveWindow { get; init; }
 
     [JsonPropertyName("max_concurrent_streams")]

@@ -1,4 +1,4 @@
-#Requires -Version 7.0
+﻿#Requires -Version 7.0
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$SingBoxSource,
@@ -100,7 +100,7 @@ try {
 
     $alignmentParserOutput = Join-Path $alignmentRun 'parser'
     $alignmentProbeOutput = Join-Path $alignmentRun 'probe'
-    [void](Invoke-AlignmentRequired 'build-parser' $alignmentDotNet @('build',(Join-Path $alignmentRepo 'SubParser.csproj'),'-o',$alignmentParserOutput,'--nologo') $alignmentRepo)
+    [void](Invoke-AlignmentRequired 'build-parser' $alignmentDotNet @('build',(Join-Path $alignmentRepo 'ToSing.csproj'),'-o',$alignmentParserOutput,'--nologo') $alignmentRepo)
     [void](Invoke-AlignmentRequired 'build-model-probe' $alignmentDotNet @('build',(Join-Path $PSScriptRoot 'alignment/AlignmentProbe.csproj'),'-o',$alignmentProbeOutput,'--nologo') $alignmentRepo)
     $alignmentCoreProbe = Join-Path $alignmentRun 'core-probe.exe'
     $alignmentKernel = Join-Path $alignmentRun 'sing-box.exe'

@@ -1,12 +1,12 @@
-namespace SubParser.Models;
+﻿namespace ToSing.Models;
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubParser.Models.Common;
-using SubParser.Models.Protocols;
-using SubParser.Parsers;
+using ToSing.Models.Common;
+using ToSing.Models.Protocols;
+using ToSing.Parsers;
 
 /// <summary>
 /// Native AOT 编译期源生成 JSON 序列化上下文。
@@ -55,4 +55,4 @@ using SubParser.Parsers;
 [JsonSerializable(typeof(ulong))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(JsonElement))]
-public sealed partial class SubParserJsonContext : JsonSerializerContext { }
+public sealed partial class ToSingJsonContext : JsonSerializerContext { }

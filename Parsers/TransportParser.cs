@@ -1,9 +1,9 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SubParser.Models.Common;
+using ToSing.Models.Common;
 
 internal static class TransportParser
 {

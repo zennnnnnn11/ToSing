@@ -1,7 +1,7 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System;
-using SubParser.Models.Common;
+using ToSing.Models.Common;
 
 internal static class MultiplexParser
 {

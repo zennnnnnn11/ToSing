@@ -1,4 +1,4 @@
-namespace SubParser.Gui.Services;
+﻿namespace ToSing.Gui.Services;
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using SubParser.Parsers;
+using ToSing.Parsers;
 
 public class FilterRuleService
 {

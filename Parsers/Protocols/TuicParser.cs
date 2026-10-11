@@ -1,8 +1,8 @@
-namespace SubParser.Parsers.Protocols;
+﻿namespace ToSing.Parsers.Protocols;
 
 using System;
-using SubParser.Models.Common;
-using SubParser.Models.Protocols;
+using ToSing.Models.Common;
+using ToSing.Models.Protocols;
 
 /// <summary>
 /// TUIC (v5) 协议解析器。

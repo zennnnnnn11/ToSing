@@ -1,9 +1,9 @@
-namespace SubParser.Parsers.Protocols;
+﻿namespace ToSing.Parsers.Protocols;
 
 using System;
 using System.Collections.Generic;
-using SubParser.Models.Common;
-using SubParser.Models.Protocols;
+using ToSing.Models.Common;
+using ToSing.Models.Protocols;
 
 /// <summary>
 /// Hysteria 2 协议解析器。

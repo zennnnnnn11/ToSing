@@ -1,6 +1,6 @@
-param([string]$AuditDir = $PSScriptRoot, [string]$CaseFilter = '')
+﻿param([string]$AuditDir = $PSScriptRoot, [string]$CaseFilter = '')
 $taskDotnet = if ($env:SUB_PARSER_ALIGNMENT_DOTNET) { $env:SUB_PARSER_ALIGNMENT_DOTNET } else { (Get-Command dotnet -ErrorAction Stop).Source }
-$taskParser = Join-Path $AuditDir 'parser\SubParser.dll'
+$taskParser = Join-Path $AuditDir 'parser\ToSing.dll'
 $taskSingbox = Join-Path $AuditDir 'sing-box.exe'
 $taskUuid = '11111111-1111-4111-8111-111111111111'
 $taskCases = [System.Collections.Generic.List[object]]::new()

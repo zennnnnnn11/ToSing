@@ -1,12 +1,12 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubParser.Models;
-using SubParser.Models.Common;
+using ToSing.Models;
+using ToSing.Models.Common;
 
 /// <summary>读取内核原生字段；YAML 标量只按目标类型转换，不丢弃未知字段。</summary>
 internal static class NativeOptionsParser
@@ -19,7 +19,7 @@ internal static class NativeOptionsParser
         {
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
             UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-            TypeInfoResolver = SubParserJsonContext.Default,
+            TypeInfoResolver = ToSingJsonContext.Default,
         };
         options.Converters.Add(new ScalarBooleanConverter());
         options.Converters.Add(new ListableStringConverter());

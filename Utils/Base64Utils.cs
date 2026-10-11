@@ -1,4 +1,4 @@
-namespace SubParser.Utils;
+﻿namespace ToSing.Utils;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Text;

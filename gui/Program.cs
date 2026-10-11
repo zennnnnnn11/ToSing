@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using Avalonia;
 
-namespace SubParser.Gui;
+namespace ToSing.Gui;
 
 internal static class Program
 {

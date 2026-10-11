@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text.Json;
-using SubParser.Models;
-using SubParser.Parsers;
+using ToSing.Models;
+using ToSing.Parsers;
 
 if (args.Length == 0)
 {
@@ -34,6 +34,6 @@ var (outbounds, _) = await UniversalParser
 
 string json = JsonSerializer.Serialize(
     outbounds,
-    SubParserJsonContext.Default.IReadOnlyListSingboxOutbound
+    ToSingJsonContext.Default.IReadOnlyListSingboxOutbound
 );
 Console.WriteLine(json);

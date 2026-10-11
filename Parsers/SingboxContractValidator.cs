@@ -1,7 +1,7 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System.Text.Json;
-using SubParser.Models;
+using ToSing.Models;
 
 /// <summary>按检查器核对过的内核字段契约校验输出，阻止错误类型和未知枚举落入配置。</summary>
 internal static class SingboxContractValidator
@@ -12,7 +12,7 @@ internal static class SingboxContractValidator
     {
         using var stream =
             typeof(SingboxOutbound).Assembly.GetManifestResourceStream(
-                "SubParser.Models.SingboxContract.json"
+                "ToSing.Models.SingboxContract.json"
             ) ?? throw new InvalidOperationException("Missing sing-box field contract");
         return JsonDocument.Parse(stream);
     }
@@ -21,7 +21,7 @@ internal static class SingboxContractValidator
     {
         var json = JsonSerializer.SerializeToElement(
             outbound,
-            SubParserJsonContext.Default.SingboxOutbound
+            ToSingJsonContext.Default.SingboxOutbound
         );
         string protocol = json.GetProperty("type").GetString()!;
         ValidateObject(json, protocol, protocol);

@@ -1,4 +1,4 @@
-namespace SubParser.Models.Common;
+﻿namespace ToSing.Models.Common;
 
 using System.Text.Json.Serialization;
 

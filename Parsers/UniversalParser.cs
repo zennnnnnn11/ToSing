@@ -1,4 +1,4 @@
-namespace SubParser.Parsers;
+﻿namespace ToSing.Parsers;
 
 using System;
 using System.Collections.Generic;
@@ -9,9 +9,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using SubParser.Models;
-using SubParser.Parsers.Protocols;
-using SubParser.Utils;
+using ToSing.Models;
+using ToSing.Parsers.Protocols;
+using ToSing.Utils;
 using YamlDotNet.Serialization;
 
 /// <summary>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -13,12 +13,12 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
-using SubParser.Gui.Services;
-using SubParser.Models;
-using SubParser.Models.Protocols;
-using SubParser.Parsers;
+using ToSing.Gui.Services;
+using ToSing.Models;
+using ToSing.Models.Protocols;
+using ToSing.Parsers;
 
-namespace SubParser.Gui.Views;
+namespace ToSing.Gui.Views;
 
 public partial class MainWindow : Window
 {
@@ -29,7 +29,7 @@ public partial class MainWindow : Window
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = SubParserJsonContext.Default,
+        TypeInfoResolver = ToSingJsonContext.Default,
     };
 
     private readonly FilterRuleService _filterService = new();

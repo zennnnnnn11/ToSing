@@ -1,7 +1,7 @@
-namespace SubParser.Models.Protocols;
+﻿namespace ToSing.Models.Protocols;
 
 using System.Text.Json.Serialization;
-using SubParser.Models.Common;
+using ToSing.Models.Common;
 
 /// <summary>
 /// VMess 出站配置。
