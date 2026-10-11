@@ -194,62 +194,15 @@
                 PointerPressed="OnTitleBarPointerPressed"
             >
                 <Grid ColumnDefinitions="Auto, *">
-                    <StackPanel
+                    <TextBlock
                         Grid.Column="0"
-                        Orientation="Horizontal"
+                        Text="SubParser"
+                        FontWeight="SemiBold"
+                        FontSize="13.5"
+                        Foreground="#0F172A"
                         VerticalAlignment="Center"
-                        Spacing="8"
                         Margin="14,0,0,0"
-                    >
-                        <!-- 流线型数据转换微标矢量图标 -->
-                        <Border Width="20" Height="20" CornerRadius="4">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                                    <GradientStop Offset="0" Color="#0078D4" />
-                                    <GradientStop Offset="1" Color="#1E90FF" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Path
-                                Data="M 3 6 L 12 6 M 9 3 L 12 6 L 9 9 M 13 11 L 4 11 M 7 8 L 4 11 L 7 14"
-                                Stroke="White"
-                                StrokeThickness="1.5"
-                                StrokeLineCap="Round"
-                                StrokeJoin="Round"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Width="13"
-                                Height="13"
-                                Stretch="Uniform"
-                            />
-                        </Border>
-
-                        <TextBlock
-                            Text="SubParser"
-                            FontWeight="SemiBold"
-                            FontSize="13.5"
-                            Foreground="#0F172A"
-                            VerticalAlignment="Center"
-                        />
-
-                        <Border
-                            Background="#EEF2FF"
-                            BorderBrush="#C7D2FE"
-                            BorderThickness="1"
-                            CornerRadius="4"
-                            VerticalAlignment="Center"
-                            Padding="5,1.5"
-                            Margin="4,0,0,0"
-                        >
-                            <TextBlock
-                                Text="v1.0.0"
-                                FontSize="10.5"
-                                FontWeight="Medium"
-                                Foreground="#4338CA"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                            />
-                        </Border>
-                    </StackPanel>
+                    />
 
                     <!-- 右侧占位：Windows 原生控件按钮覆盖区 -->
                     <Panel Grid.Column="1" Background="Transparent" />
