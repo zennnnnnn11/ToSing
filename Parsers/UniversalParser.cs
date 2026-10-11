@@ -183,14 +183,16 @@ public static partial class UniversalParser
         {
             ct.ThrowIfCancellationRequested();
 
-            // 判断是否是顶级 YAML 键（顶格未缩进、不是注释、不含 :// 协议前缀、匹配键名）
+            // 剥离行尾注释后再判断有效语法结构
+            string codePart = StripLineComment(rawLine).TrimEnd();
+
+            // 判断是否是顶级 YAML 键（顶格未缩进、不是注释、代码主体不含 :// 协议前缀、匹配键名）
             bool isTopLevelKey =
-                !string.IsNullOrWhiteSpace(rawLine)
-                && !IsCommentLine(rawLine.TrimStart())
-                && !char.IsWhiteSpace(rawLine[0])
-                && !rawLine.TrimStart().StartsWith("- ", StringComparison.Ordinal)
-                && !rawLine.Contains("://", StringComparison.Ordinal)
-                && TopLevelYamlKeyRegex().IsMatch(rawLine);
+                !string.IsNullOrWhiteSpace(codePart)
+                && !char.IsWhiteSpace(codePart[0])
+                && !codePart.StartsWith("- ", StringComparison.Ordinal)
+                && !codePart.Contains("://", StringComparison.Ordinal)
+                && TopLevelYamlKeyRegex().IsMatch(codePart);
 
             if (isTopLevelKey)
             {
@@ -207,7 +209,7 @@ public static partial class UniversalParser
                 }
 
                 // 判断是否是 proxies: 节
-                if (ProxiesBlockRegex().IsMatch(rawLine))
+                if (ProxiesBlockRegex().IsMatch(codePart))
                 {
                     scanState = YamlScanState.InProxies;
                     yamlBuilder.AppendLine(rawLine);
@@ -450,7 +452,8 @@ public static partial class UniversalParser
             return false;
         }
 
-        // 必须具有非根路径或查询参数，纯根路径 "/" 且没有 query 的属于 HTTP 代理节点
+        // 远程订阅链接必须具有实质性的请求路径（非根路径 "/"）或查询参数
+        // 纯根路径 "/" 且没有 query 参数的，属于 HTTP(S) 代理节点
         bool hasSubPath =
             uri.AbsolutePath.Length > 1
             && !string.Equals(uri.AbsolutePath, "/", StringComparison.Ordinal);
@@ -462,6 +465,14 @@ public static partial class UniversalParser
         }
 
         return true;
+    }
+
+    private static string StripLineComment(string line)
+    {
+        int commentIdx = line.IndexOf('#', StringComparison.Ordinal);
+        if (commentIdx < 0)
+            return line;
+        return line[..commentIdx];
     }
 
     private static bool IsKnownProtocolUri(string line)

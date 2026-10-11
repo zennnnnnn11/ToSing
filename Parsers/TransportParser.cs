@@ -31,27 +31,7 @@ internal static class TransportParser
     private static V2RayTransportOptions ParseWebsocket(NodeContext ctx)
     {
         string rawPath = GetPathString(ctx, "path", "ws-opts.path", "ws-path", "wspath");
-        uint? earlyDataFromPath = null;
-        if (rawPath.Contains("?ed=", StringComparison.OrdinalIgnoreCase))
-        {
-            int edIndex = rawPath.IndexOf("?ed=", StringComparison.OrdinalIgnoreCase);
-            string edPart = rawPath[(edIndex + 4)..];
-            int endIdx = edPart.IndexOfAny(['&', '#', '?', ';']);
-            if (endIdx >= 0)
-                edPart = edPart[..endIdx];
-            if (
-                uint.TryParse(
-                    edPart,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    out uint parsedEd
-                )
-            )
-            {
-                earlyDataFromPath = parsedEd;
-            }
-        }
-
-        string path = ParsePath(rawPath, stripEarlyData: true);
+        var (path, earlyDataFromPath) = ParseWebsocketPath(rawPath);
         var headers = ParseHeaders(ctx, "ws-opts.headers", "ws-headers");
         string host = ctx.GetString("host", "ws-opts.headers.Host", "ws-headers.Host");
         if (!string.IsNullOrEmpty(host) && !headers.ContainsKey("Host"))
@@ -90,10 +70,7 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseHttp(NodeContext ctx)
     {
-        string path = ParsePath(
-            GetPathString(ctx, "path", "http-opts.path"),
-            stripEarlyData: false
-        );
+        string path = ParsePath(GetPathString(ctx, "path", "http-opts.path"));
         string method = ctx.GetString("method", "http-opts.method");
         var headers = ParseHeaders(ctx, "http-opts.headers");
         object? hostVal =
@@ -133,10 +110,7 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseHttpUpgrade(NodeContext ctx)
     {
-        string path = ParsePath(
-            GetPathString(ctx, "path", "httpupgrade-opts.path"),
-            stripEarlyData: false
-        );
+        string path = ParsePath(GetPathString(ctx, "path", "httpupgrade-opts.path"));
         string host = ctx.GetString("host", "httpupgrade-opts.host");
         var headers = ParseHeaders(ctx, "httpupgrade-opts.headers");
 
@@ -266,18 +240,83 @@ internal static class TransportParser
         return val.ToString()?.Trim() ?? string.Empty;
     }
 
-    private static string ParsePath(string rawPath, bool stripEarlyData)
+    private static (string Path, uint? EarlyData) ParseWebsocketPath(string rawPath)
+    {
+        if (string.IsNullOrWhiteSpace(rawPath))
+            return ("/", null);
+
+        string p = rawPath.Trim();
+
+        // 剔除 URL 中的 #fragment
+        int hashIdx = p.IndexOf('#', StringComparison.Ordinal);
+        if (hashIdx >= 0)
+        {
+            p = p[..hashIdx];
+        }
+
+        uint? earlyData = null;
+
+        int qIdx = p.IndexOf('?', StringComparison.Ordinal);
+        if (qIdx >= 0)
+        {
+            string pathBase = p[..qIdx];
+            string queryString = p[(qIdx + 1)..];
+
+            string[] queryPairs = queryString.Split('&', StringSplitOptions.RemoveEmptyEntries);
+            var retainedPairs = new List<string>(queryPairs.Length);
+
+            foreach (string pair in queryPairs)
+            {
+                if (pair.StartsWith("ed=", StringComparison.OrdinalIgnoreCase))
+                {
+                    string edVal = pair[3..];
+                    int endIdx = edVal.IndexOfAny([';', '&', '?', '#']);
+                    if (endIdx >= 0)
+                    {
+                        edVal = edVal[..endIdx];
+                    }
+
+                    if (
+                        uint.TryParse(
+                            edVal,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out uint parsed
+                        )
+                    )
+                    {
+                        earlyData = parsed;
+                    }
+                }
+                else
+                {
+                    retainedPairs.Add(pair);
+                }
+            }
+
+            p =
+                retainedPairs.Count > 0
+                    ? $"{pathBase}?{string.Join("&", retainedPairs)}"
+                    : pathBase;
+        }
+
+        if (p.Length == 0 || p[0] != '/')
+        {
+            p = "/" + p;
+        }
+
+        return (string.IsNullOrWhiteSpace(p) ? "/" : p, earlyData);
+    }
+
+    private static string ParsePath(string rawPath)
     {
         if (string.IsNullOrWhiteSpace(rawPath))
             return "/";
         string path = rawPath.Trim();
-
-        if (stripEarlyData && path.Contains("?ed=", StringComparison.OrdinalIgnoreCase))
+        int hashIdx = path.IndexOf('#', StringComparison.Ordinal);
+        if (hashIdx >= 0)
         {
-            int edIndex = path.IndexOf("?ed=", StringComparison.OrdinalIgnoreCase);
-            path = path[..edIndex];
+            path = path[..hashIdx];
         }
-
         if (path.Length == 0 || path[0] != '/')
         {
             path = "/" + path;

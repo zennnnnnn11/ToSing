@@ -100,4 +100,23 @@ Add-AuditCase 'mixed-rules-and-http-path' $yamlWithRulesAndHttpPath {
     return ,$n
 }
 
+# 测试 5: YAML proxies 标头后紧随带网址的注释，整段节点 100% 完整解析
+$yamlWithUrlComment = @"
+proxies: # source https://source.invalid/sub
+  - name: node-url-comment
+    type: vless
+    server: 127.0.0.1
+    port: 443
+    uuid: $taskUuid
+    tls: true
+"@
+
+Add-AuditCase 'mixed-yaml-url-comment' $yamlWithUrlComment {
+    param($n)
+    $n.Count -eq 1 -and $n[0].tag -eq 'node-url-comment'
+} {
+    param($n)
+    return ,$n
+}
+
 . (Join-Path $PSScriptRoot 'runner.ps1')
