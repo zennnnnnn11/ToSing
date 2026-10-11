@@ -26,7 +26,16 @@ public static class VmessParser
             return null;
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VMess {server}:{port}";
-        string security = NormalizeVmessSecurity(ctx.GetString("security", "cipher"));
+        string rawSec = ctx.GetString("encryption", "cipher");
+        if (string.IsNullOrEmpty(rawSec))
+        {
+            string secVal = ctx.GetString("security");
+            if (!string.Equals(secVal, "tls", StringComparison.OrdinalIgnoreCase))
+            {
+                rawSec = secVal;
+            }
+        }
+        string security = NormalizeVmessSecurity(rawSec);
 
         long alterId = ctx.GetLong("alter_id", "alterId", "aid");
         bool globalPadding = ctx.GetBool("global_padding", "global-padding");
@@ -102,6 +111,7 @@ public static class VmessParser
             JsonValueKind.Number => valElem.GetRawText(),
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
+            JsonValueKind.Null or JsonValueKind.Undefined => string.Empty,
             _ => valElem.GetRawText(),
         };
 

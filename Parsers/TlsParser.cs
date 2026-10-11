@@ -55,7 +55,13 @@ public static class TlsParser
         {
             Enabled = true,
             ServerName = serverName,
-            Insecure = ctx.GetBool("insecure", "skip-cert-verify", "allowInsecure"),
+            Insecure = ctx.GetBool(
+                "insecure",
+                "skip-cert-verify",
+                "allowInsecure",
+                "allow_insecure",
+                "allow-insecure"
+            ),
             DisableSNI = ctx.GetBool("disable_sni", "disable-sni"),
             MinVersion = !string.IsNullOrEmpty(minVersion) ? minVersion : null,
             MaxVersion = !string.IsNullOrEmpty(maxVersion) ? maxVersion : null,

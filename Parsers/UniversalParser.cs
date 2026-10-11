@@ -190,6 +190,28 @@ public static partial class UniversalParser
             }
         }
 
+        // 如果整段文本是以大括号包裹的纯 JSON 格式配置 (例如 multi-proxy 的 JSON 格式 Clash 订阅)
+        string trimmedContent = content.Trim();
+        if (
+            trimmedContent.StartsWith('{')
+            && trimmedContent.EndsWith('}')
+            && (
+                trimmedContent.Contains("\"proxies\"", StringComparison.OrdinalIgnoreCase)
+                || trimmedContent.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        {
+            var (directNodes, directFiltered) = ParseClashYamlWithStats(
+                content,
+                filterAds,
+                filterKeywords
+            );
+            if (directNodes.Count > 0 || directFiltered > 0)
+            {
+                return (DeduplicateTags(directNodes), directFiltered);
+            }
+        }
+
         var remoteUrls = new HashSet<Uri>();
         var directNodeLines = new List<string>();
 
@@ -529,7 +551,11 @@ public static partial class UniversalParser
 
         string content = CleanRawText(rawText);
 
-        if (content.Contains("proxies:", StringComparison.OrdinalIgnoreCase))
+        if (
+            content.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("\"proxies\"", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("'proxies'", StringComparison.OrdinalIgnoreCase)
+        )
         {
             var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
                 content,
@@ -766,14 +792,14 @@ public static partial class UniversalParser
     }
 
     [GeneratedRegex(
-        @"^\s*proxies\s*:",
+        @"^\s*[""']?proxies[""']?\s*:",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 1000
     )]
     private static partial Regex ProxiesBlockRegex();
 
     [GeneratedRegex(
-        @"^[a-zA-Z0-9_-]+\s*:",
+        @"^\s*[""']?[a-zA-Z0-9_-]+[""']?\s*:",
         RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 1000
     )]
