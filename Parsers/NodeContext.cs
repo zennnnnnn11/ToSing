@@ -310,14 +310,21 @@ public sealed class NodeContext
             if (val is bool b)
                 return b;
             string s = val.ToString()?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(s))
+                continue;
             if (
                 string.Equals(s, "true", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(s, "1", StringComparison.Ordinal)
+                || string.Equals(s, "yes", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(s, "on", StringComparison.OrdinalIgnoreCase)
             )
                 return true;
             if (
                 string.Equals(s, "false", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(s, "0", StringComparison.Ordinal)
+                || string.Equals(s, "no", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(s, "off", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(s, "none", StringComparison.OrdinalIgnoreCase)
             )
                 return false;
             if (
