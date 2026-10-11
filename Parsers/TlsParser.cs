@@ -96,18 +96,67 @@ public static class TlsParser
     ) ParseCertificates(NodeContext ctx)
     {
         var certificate = ctx.GetStringList("certificate", "ca", "ca_str", "ca-str");
-        var certSha256 = ctx.GetStringList(
+        var rawCertSha256 = ctx.GetStringList(
             "certificate_sha256",
             "certificate-sha256",
             "cert-sha256",
+            "ca-sha256",
+            "ca_sha256",
             "pinSHA256",
             "pin-sha256",
             "pin_sha256"
         );
-        var certPubKeySha256 = ctx.GetStringList(
+        var rawFingerprint = ctx.GetStringList("fingerprint");
+        var certSha256 = new List<string>();
+
+        foreach (string item in rawCertSha256)
+        {
+            string? normalized = NormalizeCertificateSha256(item);
+            if (
+                !string.IsNullOrEmpty(normalized)
+                && !certSha256.Contains(normalized, StringComparer.Ordinal)
+            )
+            {
+                certSha256.Add(normalized);
+            }
+        }
+
+        bool isHysteria =
+            string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(ctx.Protocol, "hysteria", StringComparison.OrdinalIgnoreCase);
+
+        foreach (string item in rawFingerprint)
+        {
+            if (isHysteria || IsPotentialCertificateSha256(item))
+            {
+                string? normalized = NormalizeCertificateSha256(item);
+                if (
+                    !string.IsNullOrEmpty(normalized)
+                    && !certSha256.Contains(normalized, StringComparer.Ordinal)
+                )
+                {
+                    certSha256.Add(normalized);
+                }
+            }
+        }
+
+        var rawCertPubKeySha256 = ctx.GetStringList(
             "certificate_public_key_sha256",
             "certificate-public-key-sha256"
         );
+        var certPubKeySha256 = new List<string>();
+        foreach (string item in rawCertPubKeySha256)
+        {
+            string? normalized = NormalizeCertificateSha256(item);
+            if (
+                !string.IsNullOrEmpty(normalized)
+                && !certPubKeySha256.Contains(normalized, StringComparer.Ordinal)
+            )
+            {
+                certPubKeySha256.Add(normalized);
+            }
+        }
+
         var clientCert = ctx.GetStringList("client_certificate", "client-certificate");
         var clientKey = ctx.GetStringList("client_key", "client-key");
 
@@ -140,7 +189,20 @@ public static class TlsParser
 
     private static OutboundUTLSOptions? ParseUtls(NodeContext ctx)
     {
+        if (
+            string.Equals(ctx.Protocol, "hysteria2", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(ctx.Protocol, "hysteria", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return null;
+        }
+
         string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
+        if (IsPotentialCertificateSha256(fpRaw))
+        {
+            return null;
+        }
+
         string? fp = SingboxUtlsUtils.NormalizeFingerprint(fpRaw);
         return fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null;
     }
@@ -199,6 +261,85 @@ public static class TlsParser
             ConfigPath = !string.IsNullOrEmpty(echConfigPath) ? echConfigPath : null,
             QueryServerName = !string.IsNullOrEmpty(echQuerySni) ? echQuerySni : null,
         };
+    }
+
+    private static string? NormalizeCertificateSha256(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        string clean = raw.Trim();
+        string hexOnly = clean
+            .Replace(":", "", StringComparison.Ordinal)
+            .Replace("-", "", StringComparison.Ordinal)
+            .Replace(" ", "", StringComparison.Ordinal);
+
+        if (hexOnly.Length == 64 && IsHexString(hexOnly))
+        {
+            byte[] bytes = Convert.FromHexString(hexOnly);
+            return Convert.ToBase64String(bytes);
+        }
+
+        if (TryDecodeBase64Sha256(clean, out string? base64Result))
+        {
+            return base64Result;
+        }
+
+        return clean;
+    }
+
+    private static bool IsPotentialCertificateSha256(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        string clean = text.Trim();
+        string hexOnly = clean
+            .Replace(":", "", StringComparison.Ordinal)
+            .Replace("-", "", StringComparison.Ordinal)
+            .Replace(" ", "", StringComparison.Ordinal);
+
+        if (hexOnly.Length == 64 && IsHexString(hexOnly))
+        {
+            return true;
+        }
+
+        return TryDecodeBase64Sha256(clean, out _);
+    }
+
+    private static bool IsHexString(string text)
+    {
+        foreach (char c in text)
+        {
+            if (!char.IsAsciiHexDigit(c))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static bool TryDecodeBase64Sha256(string text, out string? result)
+    {
+        result = null;
+        try
+        {
+            byte[] bytes = Convert.FromBase64String(text);
+            if (bytes.Length == 32)
+            {
+                result = text;
+                return true;
+            }
+        }
+        catch (FormatException)
+        {
+            // 不是合法 Base64 编码
+        }
+        return false;
     }
 
     private static IReadOnlyList<string>? NormalizeEchConfig(IReadOnlyList<string> rawConfigs)
