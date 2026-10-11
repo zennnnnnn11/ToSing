@@ -157,7 +157,11 @@ public sealed class NodeContext
 
     public object? GetPacketNetwork()
     {
-        object? raw = GetRaw("packet_network") ?? GetRaw("packet-network") ?? GetRaw("network");
+        object? raw = GetRaw("packet_network") ?? GetRaw("packet-network");
+        if (raw == null && IsNativeConfig)
+        {
+            raw = GetRaw("network");
+        }
         if (raw is string text)
         {
             if (text is "tcp" or "udp")
@@ -702,6 +706,14 @@ public sealed class NodeContext
             if (int.TryParse(portStr, CultureInfo.InvariantCulture, out int p))
             {
                 ctx.ServerPort = p;
+            }
+            else if (
+                portStr.Contains(',', StringComparison.Ordinal)
+                || portStr.Contains('-', StringComparison.Ordinal)
+            )
+            {
+                ctx.ServerPort = 0;
+                ctx._properties["server_ports"] = portStr;
             }
             else
             {

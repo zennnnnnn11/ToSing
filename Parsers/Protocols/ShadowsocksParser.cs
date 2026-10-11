@@ -27,7 +27,15 @@ public static class ShadowsocksParser
 
         string password = ctx.GetSecretString("password");
         string plugin = ctx.GetString("plugin");
-        string? pluginOpts = ParsePluginOptions(ctx);
+        if (
+            string.Equals(plugin, "obfs", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(plugin, "simple-obfs", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            plugin = "obfs-local";
+        }
+
+        string? pluginOpts = ParsePluginOptions(ctx, plugin);
 
         UdpOverTcpOptions? uot = null;
         if (ctx.GetRaw("udp_over_tcp") is { } nativeUot && NativeOptionsParser.IsObject(nativeUot))
@@ -61,7 +69,7 @@ public static class ShadowsocksParser
         };
     }
 
-    private static string? ParsePluginOptions(NodeContext ctx)
+    private static string? ParsePluginOptions(NodeContext ctx, string plugin)
     {
         object? raw = ctx.GetRaw("plugin_opts") ?? ctx.GetRaw("plugin-opts");
         if (raw == null)
@@ -75,14 +83,16 @@ public static class ShadowsocksParser
         if (ctx.HasProperty("server_port") && raw is not string)
             throw new FormatException("Native plugin_opts must be a SIP003 string");
 
+        bool isObfs = string.Equals(plugin, "obfs-local", StringComparison.OrdinalIgnoreCase);
+
         if (raw is IReadOnlyDictionary<string, object?> roDict)
         {
-            return SerializeSip003Options(roDict);
+            return SerializeSip003Options(roDict, isObfs);
         }
 
         if (raw is IDictionary<string, object?> strDict)
         {
-            return SerializeSip003Options(strDict);
+            return SerializeSip003Options(strDict, isObfs);
         }
 
         if (raw is IDictionary<object, object> objDict)
@@ -95,13 +105,16 @@ public static class ShadowsocksParser
                     converted[kv.Key.ToString()!] = kv.Value;
                 }
             }
-            return SerializeSip003Options(converted);
+            return SerializeSip003Options(converted, isObfs);
         }
 
         return null;
     }
 
-    private static string? SerializeSip003Options(IEnumerable<KeyValuePair<string, object?>> dict)
+    private static string? SerializeSip003Options(
+        IEnumerable<KeyValuePair<string, object?>> dict,
+        bool isObfs
+    )
     {
         var parts = new List<string>();
         foreach (var kv in dict)
@@ -111,6 +124,14 @@ public static class ShadowsocksParser
 
             if (val is null)
                 continue;
+
+            if (isObfs)
+            {
+                if (string.Equals(key, "mode", StringComparison.OrdinalIgnoreCase))
+                    key = "obfs";
+                else if (string.Equals(key, "host", StringComparison.OrdinalIgnoreCase))
+                    key = "obfs-host";
+            }
 
             if (val is bool b)
             {

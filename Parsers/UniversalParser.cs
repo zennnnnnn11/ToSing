@@ -44,6 +44,19 @@ public static partial class UniversalParser
         ArgumentNullException.ThrowIfNull(ctx);
 
         string proto = ctx.Protocol.ToLowerInvariant();
+        string rawType = ctx.GetRaw("type") is string t
+            ? t.Trim().ToLowerInvariant()
+            : string.Empty;
+        string netType = ctx.GetRaw("network") is string n
+            ? n.Trim().ToLowerInvariant()
+            : string.Empty;
+        if (string.IsNullOrEmpty(netType) && ctx.GetRaw("net") is string nt)
+        {
+            netType = nt.Trim().ToLowerInvariant();
+        }
+        if (netType is "xhttp" || rawType is "xhttp")
+            return null;
+
         SingboxOutbound? outbound = proto switch
         {
             "vless" => VlessParser.Parse(ctx),
@@ -156,7 +169,16 @@ public static partial class UniversalParser
             if (string.IsNullOrWhiteSpace(trimmed) || IsCommentLine(trimmed))
                 continue;
 
-            var outbound = ParseLine(trimmed);
+            SingboxOutbound? outbound = null;
+            try
+            {
+                outbound = ParseLine(trimmed);
+            }
+            catch
+            {
+                // 隔离单行格式异常
+            }
+
             if (outbound != null)
             {
                 if (filterAds && IsFakeOrAdNode(outbound.Tag))
@@ -191,21 +213,29 @@ public static partial class UniversalParser
             {
                 foreach (object item in proxyList)
                 {
-                    if (item is Dictionary<object, object> objMap)
+                    try
                     {
-                        var stringMap = (Dictionary<string, object?>)NormalizeYamlObject(objMap)!;
-                        var outbound = ParseClashProxy(stringMap);
-                        if (outbound != null)
+                        if (item is Dictionary<object, object> objMap)
                         {
-                            if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                            var stringMap =
+                                (Dictionary<string, object?>)NormalizeYamlObject(objMap)!;
+                            var outbound = ParseClashProxy(stringMap);
+                            if (outbound != null)
                             {
-                                filteredCount++;
-                            }
-                            else
-                            {
-                                results.Add(outbound);
+                                if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                                {
+                                    filteredCount++;
+                                }
+                                else
+                                {
+                                    results.Add(outbound);
+                                }
                             }
                         }
+                    }
+                    catch
+                    {
+                        // 局部隔离单个畸形节点的异常，绝不中断后续节点解析
                     }
                 }
             }

@@ -30,10 +30,28 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseWebsocket(NodeContext ctx)
     {
-        string path = ParsePath(
-            GetPathString(ctx, "path", "ws-opts.path", "ws-path"),
-            stripEarlyData: true
-        );
+        string rawPath = GetPathString(ctx, "path", "ws-opts.path", "ws-path", "wspath");
+        uint? earlyDataFromPath = null;
+        if (rawPath.Contains("?ed=", StringComparison.OrdinalIgnoreCase))
+        {
+            int edIndex = rawPath.IndexOf("?ed=", StringComparison.OrdinalIgnoreCase);
+            string edPart = rawPath[(edIndex + 4)..];
+            int ampIndex = edPart.IndexOf('&', StringComparison.Ordinal);
+            if (ampIndex >= 0)
+                edPart = edPart[..ampIndex];
+            if (
+                uint.TryParse(
+                    edPart,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out uint parsedEd
+                )
+            )
+            {
+                earlyDataFromPath = parsedEd;
+            }
+        }
+
+        string path = ParsePath(rawPath, stripEarlyData: true);
         var headers = ParseHeaders(ctx, "ws-opts.headers", "ws-headers");
         string host = ctx.GetString("host", "ws-opts.headers.Host", "ws-headers.Host");
         if (!string.IsNullOrEmpty(host) && !headers.ContainsKey("Host"))
@@ -41,17 +59,24 @@ internal static class TransportParser
             headers["Host"] = host;
         }
 
-        uint? med = ctx.GetUIntNullable(
-            "max_early_data",
-            "ws-opts.max-early-data",
-            "max-early-data"
-        );
+        uint? med =
+            ctx.GetUIntNullable(
+                "max_early_data",
+                "ws-opts.max-early-data",
+                "max-early-data",
+                "early_data",
+                "ed"
+            ) ?? earlyDataFromPath;
         string edhn = ctx.GetString(
             "early_data_header_name",
             "ws-opts.early-data-header-name",
             "early-data-header-name",
             "eh"
         );
+        if (med > 0 && string.IsNullOrEmpty(edhn))
+        {
+            edhn = "Sec-WebSocket-Protocol";
+        }
 
         return new V2RayTransportOptions
         {
@@ -268,6 +293,11 @@ internal static class TransportParser
                 : ctx.GetString("net");
         if (!string.IsNullOrEmpty(net))
             return net.ToLowerInvariant();
+
+        if (ctx.GetString("ws") is "1" or "true" || !string.IsNullOrEmpty(ctx.GetString("wspath")))
+        {
+            return "ws";
+        }
 
         string type = ctx.GetString("type");
         if (
