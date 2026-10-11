@@ -48,6 +48,10 @@ public partial class MainWindow : Window
     private void UpdateKeywordCount()
     {
         KeywordCountText.Text = $"{_filterService.Keywords.Count} 个";
+        if (EmptyKeywordsNotice != null)
+        {
+            EmptyKeywordsNotice.IsVisible = _filterService.Keywords.Count == 0;
+        }
     }
 
     private void OnRemoveKeywordClick(object? sender, RoutedEventArgs e)

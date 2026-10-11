@@ -482,63 +482,75 @@
                                                 </Border>
                                             </Grid>
 
-                                            <!-- 药丸胶囊标签流 (WrapPanel，高度 114px 严格容纳 4 排整行) -->
-                                            <ScrollViewer
-                                                MaxHeight="114"
-                                                HorizontalScrollBarVisibility="Disabled"
-                                                VerticalScrollBarVisibility="Auto"
-                                            >
-                                                <ItemsControl Name="KeywordsItemsControl">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <WrapPanel Orientation="Horizontal" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Border
-                                                                Background="#F1F5F9"
-                                                                BorderBrush="#E2E8F0"
-                                                                BorderThickness="1"
-                                                                CornerRadius="12"
-                                                                Height="24"
-                                                                Padding="8,0,6,0"
-                                                                Margin="0,0,6,6"
-                                                            >
-                                                                <StackPanel
-                                                                    Orientation="Horizontal"
-                                                                    Spacing="4"
-                                                                    VerticalAlignment="Center"
+                                            <!-- 药丸胶囊标签流：定高 114px 物理锁定高度，彻底消灭增删词时的跳跃抖动 -->
+                                            <Grid Height="114">
+                                                <ScrollViewer
+                                                    HorizontalScrollBarVisibility="Disabled"
+                                                    VerticalScrollBarVisibility="Auto"
+                                                >
+                                                    <ItemsControl Name="KeywordsItemsControl">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border
+                                                                    Background="#F1F5F9"
+                                                                    BorderBrush="#E2E8F0"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="12"
+                                                                    Height="24"
+                                                                    Padding="8,0,6,0"
+                                                                    Margin="0,0,6,6"
                                                                 >
-                                                                    <TextBlock
-                                                                        Text="{Binding}"
-                                                                        FontSize="11.5"
-                                                                        Foreground="#334155"
-                                                                        VerticalAlignment="Center"
-                                                                    />
-                                                                    <Button
-                                                                        Classes="chip-remove-btn"
-                                                                        Width="14"
-                                                                        Height="14"
-                                                                        Padding="0"
-                                                                        Tag="{Binding}"
-                                                                        Click="OnRemoveKeywordClick"
+                                                                    <StackPanel
+                                                                        Orientation="Horizontal"
+                                                                        Spacing="4"
                                                                         VerticalAlignment="Center"
                                                                     >
                                                                         <TextBlock
+                                                                            Text="{Binding}"
+                                                                            FontSize="11.5"
+                                                                            Foreground="#334155"
+                                                                            VerticalAlignment="Center"
+                                                                        />
+                                                                        <Button
+                                                                            Classes="chip-remove-btn"
+                                                                            Width="14"
+                                                                            Height="14"
+                                                                            Padding="0"
+                                                                            Tag="{Binding}"
+                                                                            Click="OnRemoveKeywordClick"
+                                                                            VerticalAlignment="Center"
+                                                                        >
+                                                                            <TextBlock
                                                                             Text="✕"
                                                                             FontSize="8.5"
                                                                             Foreground="#94A3B8"
                                                                             HorizontalAlignment="Center"
                                                                             VerticalAlignment="Center"
                                                                         />
-                                                                    </Button>
-                                                                </StackPanel>
-                                                            </Border>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </ScrollViewer>
+                                                                        </Button>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+
+                                                <!-- 0 关键词时的空状态优雅提示 (文字居中，卡片高度分毫不动) -->
+                                                <TextBlock
+                                                    Name="EmptyKeywordsNotice"
+                                                    Text="暂无屏蔽词，全部节点将完整保留"
+                                                    FontSize="11.5"
+                                                    Foreground="#94A3B8"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    IsVisible="False"
+                                                />
+                                            </Grid>
 
                                             <!-- 添加新词输入行：32px 黄金模度高度，24px 嵌入式加号按钮 -->
                                             <Border
