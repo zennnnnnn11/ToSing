@@ -31,23 +31,6 @@ public partial class MainWindow : Window
         TypeInfoResolver = SubParserJsonContext.Default,
     };
 
-    private static readonly HttpClient SharedHttpClient = CreateSharedHttpClient();
-
-    private static HttpClient CreateSharedHttpClient()
-    {
-        var handler = new SocketsHttpHandler
-        {
-            UseProxy = true,
-            Proxy = WebRequest.GetSystemWebProxy(),
-            AutomaticDecompression = DecompressionMethods.All,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
-        };
-        var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(25) };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("clash.meta");
-        client.DefaultRequestHeaders.Accept.ParseAdd("*/*");
-        return client;
-    }
-
     public MainWindow()
     {
         InitializeComponent();
@@ -182,56 +165,13 @@ public partial class MainWindow : Window
         }
 
         ConvertButton.IsEnabled = false;
-        ConvertButtonText.Text = "正在解析...";
+        ConvertButtonText.Text = "正在解析并聚合...";
 
         try
         {
-            string content;
-            if (
-                Uri.TryCreate(rawInput, UriKind.Absolute, out Uri? uri)
-                && (
-                    string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(
-                        uri.Scheme,
-                        Uri.UriSchemeHttps,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                )
-            )
-            {
-                ConvertButtonText.Text = "拉取远程订阅...";
-                try
-                {
-                    content = await SharedHttpClient.GetStringAsync(uri).ConfigureAwait(true);
-                }
-                catch
-                {
-                    using var browserHandler = new SocketsHttpHandler
-                    {
-                        UseProxy = true,
-                        Proxy = WebRequest.GetSystemWebProxy(),
-                        AutomaticDecompression = DecompressionMethods.All,
-                    };
-                    using var browserClient = new HttpClient(browserHandler)
-                    {
-                        Timeout = TimeSpan.FromSeconds(25),
-                    };
-                    browserClient.DefaultRequestHeaders.UserAgent.ParseAdd(
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
-                    );
-                    content = await browserClient.GetStringAsync(uri).ConfigureAwait(true);
-                }
-            }
-            else
-            {
-                content = rawInput;
-            }
-
             bool filterAds = FilterAdsCheckBox.IsChecked == true;
-            ConvertButtonText.Text = "正在清洗与对齐...";
-            var (outbounds, filteredCount) = await Task.Run(() =>
-                    UniversalParser.ParseSubscriptionWithStats(content, filterAds)
-                )
+            var (outbounds, filteredCount) = await UniversalParser
+                .ParseMixedSubscriptionWithStatsAsync(rawInput, filterAds: filterAds)
                 .ConfigureAwait(true);
 
             int nodeCount = outbounds.Count;
@@ -243,8 +183,8 @@ public partial class MainWindow : Window
             );
 
             OutputTextBox.Text = RestoreUnicodeEscapes(json);
-            CopyButton.IsEnabled = true;
-            SaveButton.IsEnabled = true;
+            CopyButton.IsEnabled = nodeCount > 0;
+            SaveButton.IsEnabled = nodeCount > 0;
 
             // 状态徽标更新
             InitialBadge.IsVisible = false;

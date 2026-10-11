@@ -121,7 +121,7 @@ try {
         elseif ($alignmentField.schema_only -and !$alignmentField.rejection) { $alignmentSkipped.Add(@{ name=$alignmentField.name; reason=$alignmentField.schema_only }) }
     }
 
-    foreach ($alignmentSuite in @('audit','edge-cases','model-cases','brutal-default-cases','advanced-cases','ech-scalar-cases','mapping-cases','mark-cases')) {
+    foreach ($alignmentSuite in @('audit','edge-cases','model-cases','brutal-default-cases','advanced-cases','ech-scalar-cases','mapping-cases','mark-cases','mixed-input-cases')) {
         $alignmentResult = Invoke-AlignmentProcess "regression-$alignmentSuite" $alignmentPwsh @('-NoProfile','-File',(Join-Path $PSScriptRoot "alignment/regressions/$alignmentSuite.ps1"),'-AuditDir',$alignmentRun) $alignmentRepo
         if ($alignmentResult.ExitCode -ne 0) { $alignmentIssues.Add("Regression suite $alignmentSuite crashed: $($alignmentResult.Stderr)"); continue }
         $alignmentResultsPath = Join-Path $alignmentRun 'results.json'

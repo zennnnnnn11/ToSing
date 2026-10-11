@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using SubParser.Models;
 using SubParser.Parsers.Protocols;
 using SubParser.Utils;
@@ -126,6 +130,265 @@ public static partial class UniversalParser
     )
     {
         return ParseSubscriptionWithStats(rawText, filterAds).Outbounds;
+    }
+
+    /// <summary>
+    /// 全能混合多源订阅与节点聚合流水线。
+    /// 自动对齐处理包含多个远程 HTTP(S) 订阅、完整/局部 Clash YAML、单行/多行节点 URI 及 Base64 密文的混合输入。
+    /// </summary>
+    public static async Task<(
+        IReadOnlyList<SingboxOutbound> Outbounds,
+        int FilteredAdCount
+    )> ParseMixedSubscriptionWithStatsAsync(
+        string rawInput,
+        Func<Uri, Task<string?>>? remoteFetcher = null,
+        bool filterAds = true,
+        CancellationToken ct = default
+    )
+    {
+        var allOutbounds = new List<SingboxOutbound>();
+        int totalFiltered = 0;
+
+        if (string.IsNullOrWhiteSpace(rawInput))
+            return (allOutbounds, 0);
+
+        string content = CleanRawText(rawInput);
+
+        // 如果整段文本是一个完整的纯 Base64 订阅大包
+        if (Base64Utils.IsProbableBase64Subscription(content))
+        {
+            string decoded = Base64Utils.Decode(content);
+            if (!string.IsNullOrWhiteSpace(decoded))
+            {
+                content = CleanRawText(decoded);
+            }
+        }
+
+        var remoteUrls = new HashSet<Uri>();
+        var directNodeLines = new List<string>();
+
+        using var reader = new StringReader(content);
+        string? rawLine;
+        bool inProxiesBlock = false;
+        var yamlBuilder = new StringBuilder();
+
+        while ((rawLine = await reader.ReadLineAsync(ct).ConfigureAwait(false)) != null)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (!inProxiesBlock)
+            {
+                // 嗅探是否进入 Clash 的 proxies: 节点段
+                if (ProxiesBlockRegex().IsMatch(rawLine))
+                {
+                    inProxiesBlock = true;
+                    yamlBuilder.Clear();
+                    yamlBuilder.AppendLine(rawLine);
+                    continue;
+                }
+
+                // 处理非 proxies 块的单行
+                ProcessNonProxiesLine(rawLine, remoteUrls, directNodeLines);
+            }
+            else
+            {
+                // 处于 proxies 块内部：检查当前行是否继续属于缩进节点段
+                if (string.IsNullOrWhiteSpace(rawLine) || IsCommentLine(rawLine.Trim()))
+                {
+                    yamlBuilder.AppendLine(rawLine);
+                }
+                else if (
+                    rawLine.StartsWith("  ", StringComparison.Ordinal)
+                    || (rawLine.Length > 0 && rawLine[0] == '\t')
+                    || rawLine.TrimStart().StartsWith("- ", StringComparison.Ordinal)
+                )
+                {
+                    yamlBuilder.AppendLine(rawLine);
+                }
+                else
+                {
+                    // 缩进归零：说明 proxies 块正式结束
+                    inProxiesBlock = false;
+                    var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
+                        yamlBuilder.ToString(),
+                        filterAds
+                    );
+                    allOutbounds.AddRange(yamlNodes);
+                    totalFiltered += yamlFiltered;
+                    yamlBuilder.Clear();
+
+                    // 当前行退出 proxies 块后，重新作为普通行评估
+                    ProcessNonProxiesLine(rawLine, remoteUrls, directNodeLines);
+                }
+            }
+        }
+
+        // 文件读完后，如果还处于 proxies 块中
+        if (inProxiesBlock && yamlBuilder.Length > 0)
+        {
+            var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
+                yamlBuilder.ToString(),
+                filterAds
+            );
+            allOutbounds.AddRange(yamlNodes);
+            totalFiltered += yamlFiltered;
+            yamlBuilder.Clear();
+        }
+
+        // 并发拉取所有远程订阅 URL
+        if (remoteUrls.Count > 0)
+        {
+            var fetchTasks = remoteUrls.Select(async url =>
+            {
+                try
+                {
+                    string? subContent =
+                        remoteFetcher != null
+                            ? await remoteFetcher(url).ConfigureAwait(false)
+                            : await SubscriptionFetcher.FetchAsync(url, ct).ConfigureAwait(false);
+
+                    if (!string.IsNullOrWhiteSpace(subContent))
+                    {
+                        return ParseSubscriptionWithStats(subContent, filterAds);
+                    }
+                }
+                catch
+                {
+                    // 单个订阅拉取失败隔离，绝不影响其他订阅与节点
+                }
+
+                return (
+                    Outbounds: (IReadOnlyList<SingboxOutbound>)Array.Empty<SingboxOutbound>(),
+                    FilteredAdCount: 0
+                );
+            });
+
+            var fetchedResults = await Task.WhenAll(fetchTasks).ConfigureAwait(false);
+            foreach (var result in fetchedResults)
+            {
+                allOutbounds.AddRange(result.Outbounds);
+                totalFiltered += result.FilteredAdCount;
+            }
+        }
+
+        // 逐行解析所有本地直连节点 URI
+        foreach (string uriLine in directNodeLines)
+        {
+            try
+            {
+                var outbound = ParseLine(uriLine);
+                if (outbound != null)
+                {
+                    if (filterAds && IsFakeOrAdNode(outbound.Tag))
+                    {
+                        totalFiltered++;
+                    }
+                    else
+                    {
+                        allOutbounds.Add(outbound);
+                    }
+                }
+            }
+            catch
+            {
+                // 隔离单行异常
+            }
+        }
+
+        // 全局节点统一去重
+        var deduplicated = DeduplicateTags(allOutbounds);
+        return (deduplicated, totalFiltered);
+    }
+
+    private static void ProcessNonProxiesLine(
+        string rawLine,
+        HashSet<Uri> remoteUrls,
+        List<string> directNodeLines
+    )
+    {
+        string trimmed = CleanRawText(rawLine);
+        if (string.IsNullOrWhiteSpace(trimmed) || IsCommentLine(trimmed))
+            return;
+
+        // 1. 查找行内可能存在的一个或多个完整 HTTP(S) 订阅 URL (支持管道符、分号、逗号、空格分隔)
+        var matches = HttpUrlRegex().Matches(trimmed);
+        if (matches.Count > 0)
+        {
+            bool allTokensAreUrls = true;
+            foreach (Match match in matches)
+            {
+                if (
+                    Uri.TryCreate(match.Value, UriKind.Absolute, out Uri? uri)
+                    && (
+                        string.Equals(
+                            uri.Scheme,
+                            Uri.UriSchemeHttp,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                        || string.Equals(
+                            uri.Scheme,
+                            Uri.UriSchemeHttps,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+                )
+                {
+                    remoteUrls.Add(uri);
+                }
+                else
+                {
+                    allTokensAreUrls = false;
+                }
+            }
+
+            // 如果该行纯粹由 URL 组成，处理完毕直接返回
+            if (allTokensAreUrls && trimmed.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        // 2. 检查已知节点协议前缀
+        if (IsKnownProtocolUri(trimmed))
+        {
+            directNodeLines.Add(trimmed);
+            return;
+        }
+
+        // 3. 检查单行/局部 Base64 密文行
+        if (Base64Utils.IsProbableBase64Subscription(trimmed))
+        {
+            string decoded = Base64Utils.Decode(trimmed);
+            if (!string.IsNullOrWhiteSpace(decoded))
+            {
+                using var subReader = new StringReader(decoded);
+                string? subLine;
+                while ((subLine = subReader.ReadLine()) != null)
+                {
+                    string subTrimmed = CleanRawText(subLine);
+                    if (!string.IsNullOrWhiteSpace(subTrimmed) && !IsCommentLine(subTrimmed))
+                    {
+                        if (IsKnownProtocolUri(subTrimmed))
+                        {
+                            directNodeLines.Add(subTrimmed);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static bool IsKnownProtocolUri(string line)
+    {
+        return line.StartsWith("vless://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("ss://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("shadowsocks://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("trojan://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("hy2://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("hysteria2://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("tuic://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("anytls://", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -373,6 +636,20 @@ public static partial class UniversalParser
             line[0] == '#' || line.StartsWith("//", StringComparison.Ordinal) || line[0] == ';';
         return startsWithComment && !line.Contains("://", StringComparison.Ordinal);
     }
+
+    [GeneratedRegex(
+        @"^\s*proxies\s*:",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+        matchTimeoutMilliseconds: 1000
+    )]
+    private static partial Regex ProxiesBlockRegex();
+
+    [GeneratedRegex(
+        @"https?://[^\s|;,]+",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+        matchTimeoutMilliseconds: 1000
+    )]
+    private static partial Regex HttpUrlRegex();
 
     [GeneratedRegex(
         @"(?i)(?:网址|官网|发布页|流量|剩余|到期|时间|重置|过期|通知|公告|bandwidth|traffic|expire)",
