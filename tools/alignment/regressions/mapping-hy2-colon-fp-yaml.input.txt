@@ -1,0 +1,7 @@
+proxies:
+  - name: hy2-colon-fp
+    type: hysteria2
+    server: 127.0.0.1
+    port: 443
+    password: my-pass
+    fingerprint: 11:22:33:44:55:66:77:88:99:00:AA:BB:CC:DD:EE:FF:11:22:33:44:55:66:77:88:99:00:AA:BB:CC:DD:EE:FF

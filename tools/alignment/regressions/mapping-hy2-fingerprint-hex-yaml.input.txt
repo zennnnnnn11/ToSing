@@ -1,0 +1,7 @@
+proxies:
+  - name: hy2-fingerprint-hex
+    type: hysteria2
+    server: 127.0.0.1
+    port: 443
+    password: my-pass
+    fingerprint: 11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff

@@ -1,0 +1,1 @@
+hy2://my-pass@127.0.0.1:443?pinSHA256=11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff#hy2-pin

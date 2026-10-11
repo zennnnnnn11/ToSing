@@ -1,0 +1,9 @@
+proxies:
+  - name: dialer-proxy-node
+    type: shadowsocks
+    server: 127.0.0.1
+    port: 8388
+    cipher: aes-128-gcm
+    password: pass
+    dialer-proxy: proxy-chain-tag
+    fast-open: true

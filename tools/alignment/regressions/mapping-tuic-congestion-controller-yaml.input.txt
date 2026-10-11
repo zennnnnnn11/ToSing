@@ -1,0 +1,8 @@
+proxies:
+  - name: tuic-congestion-controller
+    type: tuic
+    server: 127.0.0.1
+    port: 443
+    uuid: 11111111-1111-4111-8111-111111111111
+    password: test-password
+    congestion-controller: bbr

@@ -1,6 +1,6 @@
 [
   {
-    "name": "01-basic-vless",
+    "name": "mapping-http-timeouts-uri",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -11,7 +11,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "02-basic-vmess",
+    "name": "mapping-grpc-keepalive-uri",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -22,7 +22,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "03-basic-trojan",
+    "name": "mapping-http-timeouts-yaml",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -33,7 +33,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "04-basic-ss",
+    "name": "mapping-grpc-keepalive-yaml",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -44,7 +44,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "05-basic-hysteria2",
+    "name": "credential-colon-trojan-uri",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -55,7 +55,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "06-basic-tuic",
+    "name": "credential-colon-trojan-yaml",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -66,7 +66,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "07-basic-anytls",
+    "name": "credential-colon-anytls-uri",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -77,7 +77,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "h2-vless",
+    "name": "credential-colon-anytls-yaml",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -88,139 +88,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "h2-vmess",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "h2-trojan",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "hy2-utls",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "tuic-utls",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "ws-query",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "ws-headers-early-data",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能为空数组建立索引。无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "http-options",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "httpupgrade-host",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "v2ray-quic",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "ss-plugin-query-no-slash",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "ss-plugin-query-with-slash",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "hy2-userpass",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "vless-empty-packet-encoding",
+    "name": "ech-disable-zero-uri",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -231,7 +99,18 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能对值为 Null 的表达式调用方法。无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "tls-options",
+    "name": "ech-disable-uppercase-uri",
+    "parser_exit": 1,
+    "node_count": 0,
+    "preserves_requested_semantics": false,
+    "kernel_exit": null,
+    "kernel_message": "",
+    "reference_kernel_exit": null,
+    "reference_message": "",
+    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能对值为 Null 的表达式调用方法。无法执行，因为找不到指定的命令或文件。\r\n"
+  },
+  {
+    "name": "mapping-dialer-proxy-detour-yaml",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -242,51 +121,7 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "mux-options",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "tuic-stream-heartbeat",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "anytls-client-metadata",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "hy2-hop-interval",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "hy2-hyphen-port-range",
+    "name": "mapping-hy2-pinsha256-uri",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -297,51 +132,29 @@
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能为空数组建立索引。无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "hy2-missing-obfs-password",
+    "name": "mapping-hy2-fingerprint-hex-yaml",
     "parser_exit": 1,
     "node_count": 0,
-    "preserves_requested_semantics": true,
+    "preserves_requested_semantics": false,
     "kernel_exit": null,
     "kernel_message": "",
     "reference_kernel_exit": null,
     "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
+    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能为空数组建立索引。无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "vless-unknown-packet-encoding",
+    "name": "mapping-hy2-colon-fp-yaml",
     "parser_exit": 1,
     "node_count": 0,
-    "preserves_requested_semantics": true,
+    "preserves_requested_semantics": false,
     "kernel_exit": null,
     "kernel_message": "",
     "reference_kernel_exit": null,
     "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
+    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能为空数组建立索引。无法执行，因为找不到指定的命令或文件。\r\n"
   },
   {
-    "name": "tuic-invalid-uuid",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": true,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "vless-unknown-flow",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": true,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "supported-fingerprint-alias",
+    "name": "mapping-tuic-congestion-controller-yaml",
     "parser_exit": 1,
     "node_count": 0,
     "preserves_requested_semantics": false,
@@ -350,16 +163,5 @@
     "reference_kernel_exit": null,
     "reference_message": "",
     "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.无法执行，因为找不到指定的命令或文件。\r\n"
-  },
-  {
-    "name": "ss-plugin-flags-and-escaping",
-    "parser_exit": 1,
-    "node_count": 0,
-    "preserves_requested_semantics": false,
-    "kernel_exit": null,
-    "kernel_message": "",
-    "reference_kernel_exit": null,
-    "reference_message": "",
-    "parser_error": "从 JSON 转换失败，出现错误: Unexpected character encountered while parsing value: 可. Path '', line 0, position 0.不能对值为 Null 的表达式调用方法。无法执行，因为找不到指定的命令或文件。\r\n"
   }
 ]
