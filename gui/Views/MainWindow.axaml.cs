@@ -20,9 +20,7 @@ namespace SubParser.Gui.Views;
 
 public partial class MainWindow : Window
 {
-    private static readonly FontFamily UiFontFamily = new(
-        "Anthropic Sans Variable Text, Anthropic Sans, MiSans, -apple-system, sans-serif"
-    );
+    private static readonly FontFamily UiFontFamily = new("MiSans, -apple-system, sans-serif");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
