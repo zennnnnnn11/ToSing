@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using ToSing.Models.Common;
 using ToSing.Models.Protocols;
@@ -151,15 +152,18 @@ public static class ShadowsocksParser
                     continue;
                 }
                 string sMux = val.ToString()?.Trim() ?? string.Empty;
-                if (string.Equals(sMux, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(sMux, "1", StringComparison.Ordinal))
+                if (int.TryParse(sMux, NumberStyles.Integer, CultureInfo.InvariantCulture, out int muxNum) && muxNum > 0)
+                {
+                    parts.Add($"mux={muxNum}");
+                    continue;
+                }
+                if (string.Equals(sMux, "true", StringComparison.OrdinalIgnoreCase))
                 {
                     parts.Add("mux=1");
                     continue;
                 }
-                if (string.Equals(sMux, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(sMux, "0", StringComparison.Ordinal))
-                {
-                    continue;
-                }
+                // 其他任何非数字或非法情况（如 undefined, false, 0 等）一律抑制，绝不输出到内核
+                continue;
             }
 
             if (val is bool b)

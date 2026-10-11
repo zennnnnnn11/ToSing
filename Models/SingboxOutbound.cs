@@ -13,6 +13,7 @@ using ToSing.Models.Protocols;
 [JsonDerivedType(typeof(TrojanOutbound), "trojan")]
 [JsonDerivedType(typeof(TuicOutbound), "tuic")]
 [JsonDerivedType(typeof(AnyTlsOutbound), "anytls")]
+[JsonDerivedType(typeof(WireguardOutbound), "wireguard")]
 public abstract record class SingboxOutbound : SingboxDialerOptions
 {
     [JsonPropertyName("tag")]

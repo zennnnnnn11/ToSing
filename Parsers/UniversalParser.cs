@@ -70,6 +70,7 @@ public static partial class UniversalParser
             "trojan" => TrojanParser.Parse(ctx),
             "tuic" => TuicParser.Parse(ctx),
             "anytls" => AnyTlsParser.Parse(ctx),
+            "wireguard" or "wg" => WireguardParser.Parse(ctx),
             _ => null,
         };
 
@@ -190,8 +191,26 @@ public static partial class UniversalParser
             }
         }
 
-        // 如果整段文本是以大括号包裹的纯 JSON 格式配置 (例如 multi-proxy 的 JSON 格式 Clash 订阅，或原生 sing-box 完整配置)
         string trimmedContent = content.Trim();
+
+        // 如果整段文本是标准 WireGuard .conf 配置文件
+        if (
+            trimmedContent.Contains("[Interface]", StringComparison.OrdinalIgnoreCase)
+            && trimmedContent.Contains("[Peer]", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            var wgNode = WireguardParser.ParseConf(trimmedContent);
+            if (wgNode != null)
+            {
+                if (filterAds && IsFakeOrAdNode(wgNode.Tag, filterKeywords))
+                {
+                    return (Array.Empty<SingboxOutbound>(), 1);
+                }
+                return ([wgNode], 0);
+            }
+        }
+
+        // 如果整段文本是以大括号包裹的纯 JSON 格式配置 (例如 multi-proxy 的 JSON 格式 Clash 订阅，或原生 sing-box 完整配置)
         if (
             trimmedContent.Length >= 2
             && trimmedContent[0] == '{'
@@ -201,6 +220,8 @@ public static partial class UniversalParser
                 || trimmedContent.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
                 || trimmedContent.Contains("\"outbounds\"", StringComparison.OrdinalIgnoreCase)
                 || trimmedContent.Contains("outbounds:", StringComparison.OrdinalIgnoreCase)
+                || trimmedContent.Contains("\"endpoints\"", StringComparison.OrdinalIgnoreCase)
+                || trimmedContent.Contains("endpoints:", StringComparison.OrdinalIgnoreCase)
             )
         )
         {
@@ -336,11 +357,13 @@ public static partial class UniversalParser
             yamlBuilder.Clear();
         }
 
-        // 并发拉取所有远程订阅 URL
+        // 并发拉取所有远程订阅 URL (限制最大并发数为 6，避免海量订阅瞬时把套接字/带宽打满)
         if (remoteUrls.Count > 0)
         {
+            using var throttle = new SemaphoreSlim(6, 6);
             var fetchTasks = remoteUrls.Select(async url =>
             {
+                await throttle.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     string? subContent =
@@ -353,9 +376,17 @@ public static partial class UniversalParser
                         return ParseSubscriptionWithStats(subContent, filterAds, filterKeywords);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch
                 {
                     // 单个订阅拉取失败隔离，绝不影响其他订阅与节点
+                }
+                finally
+                {
+                    throttle.Release();
                 }
 
                 return (
@@ -532,7 +563,9 @@ public static partial class UniversalParser
             || line.StartsWith("hy2://", StringComparison.OrdinalIgnoreCase)
             || line.StartsWith("hysteria2://", StringComparison.OrdinalIgnoreCase)
             || line.StartsWith("tuic://", StringComparison.OrdinalIgnoreCase)
-            || line.StartsWith("anytls://", StringComparison.OrdinalIgnoreCase);
+            || line.StartsWith("anytls://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("wireguard://", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("wg://", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -555,12 +588,31 @@ public static partial class UniversalParser
         string content = CleanRawText(rawText);
 
         if (
+            content.Contains("[Interface]", StringComparison.OrdinalIgnoreCase)
+            && content.Contains("[Peer]", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            var wgNode = WireguardParser.ParseConf(content);
+            if (wgNode != null)
+            {
+                if (filterAds && IsFakeOrAdNode(wgNode.Tag, filterKeywords))
+                {
+                    return (Array.Empty<SingboxOutbound>(), 1);
+                }
+                return ([wgNode], 0);
+            }
+        }
+
+        if (
             content.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
             || content.Contains("\"proxies\"", StringComparison.OrdinalIgnoreCase)
             || content.Contains("'proxies'", StringComparison.OrdinalIgnoreCase)
             || content.Contains("outbounds:", StringComparison.OrdinalIgnoreCase)
             || content.Contains("\"outbounds\"", StringComparison.OrdinalIgnoreCase)
             || content.Contains("'outbounds'", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("endpoints:", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("\"endpoints\"", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("'endpoints'", StringComparison.OrdinalIgnoreCase)
         )
         {
             var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
@@ -630,13 +682,15 @@ public static partial class UniversalParser
             var yamlData = YamlDeserializer.Deserialize<Dictionary<string, object>>(content);
             if (yamlData != null)
             {
-                object? proxyListObj = null;
-                if (!yamlData.TryGetValue("proxies", out proxyListObj) || proxyListObj == null)
-                {
-                    yamlData.TryGetValue("outbounds", out proxyListObj);
-                }
+                var candidateLists = new List<IEnumerable<object>>();
+                if (yamlData.TryGetValue("proxies", out object? pObj) && pObj is IEnumerable<object> pList)
+                    candidateLists.Add(pList);
+                if (yamlData.TryGetValue("outbounds", out object? oObj) && oObj is IEnumerable<object> oList)
+                    candidateLists.Add(oList);
+                if (yamlData.TryGetValue("endpoints", out object? eObj) && eObj is IEnumerable<object> eList)
+                    candidateLists.Add(eList);
 
-                if (proxyListObj is IEnumerable<object> proxyList)
+                foreach (var proxyList in candidateLists)
                 {
                     foreach (object item in proxyList)
                     {
@@ -803,7 +857,7 @@ public static partial class UniversalParser
     }
 
     [GeneratedRegex(
-        @"^\s*[""']?(?:proxies|outbounds)[""']?\s*:",
+        @"^\s*[""']?(?:proxies|outbounds|endpoints)[""']?\s*:",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 1000
     )]

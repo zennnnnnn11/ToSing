@@ -533,6 +533,14 @@ public sealed class NodeContext
                 ctx._properties["password"] = decodedAuth;
                 ctx._properties["auth"] = decodedAuth;
             }
+            else if (
+                string.Equals(ctx.Protocol, "wireguard", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ctx.Protocol, "wg", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                ctx._properties["private-key"] = decodedAuth;
+                ctx._properties["private_key"] = decodedAuth;
+            }
             else if (string.Equals(ctx.Protocol, "vless", StringComparison.OrdinalIgnoreCase))
             {
                 ctx._properties["uuid"] = decodedAuth;
@@ -571,13 +579,33 @@ public sealed class NodeContext
             if (eq >= 0)
             {
                 string key = pair[..eq].Trim();
-                string val = HttpUtility.UrlDecode(pair[(eq + 1)..].Trim());
+                string rawVal = pair[(eq + 1)..].Trim();
+                string val = SafeQueryValueDecode(rawVal);
                 ctx._properties[key] = val;
             }
             else
             {
                 ctx._properties[pair.Trim()] = string.Empty;
             }
+        }
+    }
+
+    private static string SafeQueryValueDecode(string raw)
+    {
+        if (string.IsNullOrEmpty(raw))
+            return string.Empty;
+        // 保护 Base64 中的未编码 '+' 符号不被误转为空格
+        if (raw.Contains('+', StringComparison.Ordinal) && !raw.Contains('%', StringComparison.Ordinal))
+        {
+            return raw;
+        }
+        try
+        {
+            return Uri.UnescapeDataString(raw);
+        }
+        catch
+        {
+            return HttpUtility.UrlDecode(raw);
         }
     }
 
@@ -680,7 +708,17 @@ public sealed class NodeContext
             }
             else
             {
-                ctx._properties["plugin"] = rawPlugin;
+                int escSemicolon = rawPlugin.IndexOf("%3b", StringComparison.OrdinalIgnoreCase);
+                if (escSemicolon >= 0)
+                {
+                    ctx._properties["plugin"] = rawPlugin[..escSemicolon].Trim();
+                    string opts = rawPlugin[(escSemicolon + 3)..].Trim();
+                    ctx._properties["plugin_opts"] = SafeUrlDecode(opts);
+                }
+                else
+                {
+                    ctx._properties["plugin"] = rawPlugin;
+                }
             }
         }
     }
@@ -727,8 +765,9 @@ public sealed class NodeContext
         }
 
         int colon = cleaned.LastIndexOf(':', StringComparison.Ordinal);
-        if (colon >= 0)
+        if (colon >= 0 && cleaned.IndexOf(':', StringComparison.Ordinal) == colon)
         {
+            // 只有一个冒号，必为 host:port
             ctx.Server = cleaned[..colon];
             string portStr = cleaned[(colon + 1)..];
             if (int.TryParse(portStr, CultureInfo.InvariantCulture, out int p))
@@ -750,8 +789,14 @@ public sealed class NodeContext
         }
         else
         {
+            // 包含多个冒号（裸 IPv6）或不含冒号（默认端口）
             ctx.Server = cleaned;
-            ctx.ServerPort = 443;
+            ctx.ServerPort = (
+                string.Equals(ctx.Protocol, "wireguard", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ctx.Protocol, "wg", StringComparison.OrdinalIgnoreCase)
+            )
+                ? 51820
+                : 443;
         }
     }
 }

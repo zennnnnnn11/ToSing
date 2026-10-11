@@ -1,5 +1,6 @@
 ﻿namespace ToSing.Parsers;
 
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
@@ -11,6 +12,33 @@ using ToSing.Models.Common;
 /// <summary>读取内核原生字段；YAML 标量只按目标类型转换，不丢弃未知字段。</summary>
 internal static class NativeOptionsParser
 {
+    private readonly record struct PropertyMeta(string Name, string HyphenName, bool IsEchSpecial);
+
+    private static readonly ConcurrentDictionary<Type, PropertyMeta[]> PropertyMetaCache = new();
+
+    private static PropertyMeta[] GetOrCreatePropertyMetas(Type type)
+    {
+        return PropertyMetaCache.GetOrAdd(type, static t =>
+        {
+            var list = new List<PropertyMeta>();
+            bool isTls = t == typeof(OutboundTLSOptions);
+            foreach (var property in t.GetProperties())
+            {
+                string? name = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name;
+                if (name == null)
+                    continue;
+
+                string hyphen = name.Contains('_', StringComparison.Ordinal)
+                    ? name.Replace('_', '-')
+                    : name;
+                bool isEch = isTls && string.Equals(name, "ech", StringComparison.Ordinal);
+
+                list.Add(new PropertyMeta(name, hyphen, isEch));
+            }
+            return list.ToArray();
+        });
+    }
+
     internal static readonly JsonSerializerOptions Options = CreateOptions();
 
     private static JsonSerializerOptions CreateOptions()
@@ -47,21 +75,16 @@ internal static class NativeOptionsParser
     >(NodeContext ctx, params (string Alias, string Field)[] aliases)
     {
         var fields = new Dictionary<string, object?>(StringComparer.Ordinal);
-        foreach (var property in typeof(T).GetProperties())
+        var metas = GetOrCreatePropertyMetas(typeof(T));
+        for (int i = 0; i < metas.Length; i++)
         {
-            string? name = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name;
-            if (name == null)
-                continue;
-            object? value = ctx.GetRaw(name) ?? ctx.GetRaw(name.Replace('_', '-'));
+            ref readonly var meta = ref metas[i];
+            object? value = ctx.GetRaw(meta.Name) ?? ctx.GetRaw(meta.HyphenName);
             // 订阅中的 ech 标量由 TlsParser.ParseEch 解释；不是原生 ECH 对象。
-            if (
-                typeof(T) == typeof(OutboundTLSOptions)
-                && string.Equals(name, "ech", StringComparison.Ordinal)
-                && !IsObject(value)
-            )
+            if (meta.IsEchSpecial && !IsObject(value))
                 continue;
             if (value != null)
-                fields[name] = value;
+                fields[meta.Name] = value;
         }
         foreach (var (alias, field) in aliases)
         {

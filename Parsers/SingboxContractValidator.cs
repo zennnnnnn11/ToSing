@@ -24,6 +24,11 @@ internal static class SingboxContractValidator
             ToSingJsonContext.Default.SingboxOutbound
         );
         string protocol = json.GetProperty("type").GetString()!;
+        if (string.Equals(protocol, "wireguard", StringComparison.Ordinal))
+        {
+            ValidateWireguard(json);
+            return;
+        }
         ValidateObject(json, protocol, protocol);
         if (
             protocol is "hysteria2" or "tuic" or "anytls"
@@ -38,6 +43,31 @@ internal static class SingboxContractValidator
         }
         if (string.Equals(protocol, "anytls", StringComparison.Ordinal) && outbound.TcpFastOpen)
             throw new FormatException("sing-box AnyTLS does not support tcp_fast_open");
+    }
+
+    private static void ValidateWireguard(JsonElement json)
+    {
+        if (!json.TryGetProperty("private_key", out var pk) || string.IsNullOrWhiteSpace(pk.GetString()))
+        {
+            throw new FormatException("sing-box wireguard requires non-empty private_key");
+        }
+        if (!json.TryGetProperty("address", out var addr) || addr.ValueKind != JsonValueKind.Array || addr.GetArrayLength() == 0)
+        {
+            throw new FormatException("sing-box wireguard requires non-empty address array");
+        }
+        if (!json.TryGetProperty("peers", out var peers) || peers.ValueKind != JsonValueKind.Array || peers.GetArrayLength() == 0)
+        {
+            throw new FormatException("sing-box wireguard requires non-empty peers array");
+        }
+        foreach (var p in peers.EnumerateArray())
+        {
+            if ((!p.TryGetProperty("server", out var s) && !p.TryGetProperty("address", out s)) || string.IsNullOrWhiteSpace(s.GetString()))
+                throw new FormatException("sing-box wireguard peer requires server address");
+            if ((!p.TryGetProperty("server_port", out var port) && !p.TryGetProperty("port", out port)) || port.GetInt32() <= 0)
+                throw new FormatException("sing-box wireguard peer requires valid port");
+            if (!p.TryGetProperty("public_key", out var pub) || string.IsNullOrWhiteSpace(pub.GetString()))
+                throw new FormatException("sing-box wireguard peer requires public_key");
+        }
     }
 
     private static void ValidateObject(JsonElement value, string group, string path)
