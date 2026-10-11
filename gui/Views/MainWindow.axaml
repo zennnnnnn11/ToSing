@@ -22,8 +22,25 @@
         <Style Selector="TextBox">
             <Setter Property="FontFamily" Value="MiSans, Cascadia Code, monospace" />
             <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="#0F172A" />
             <Setter Property="SelectionBrush" Value="#250078D4" />
             <Setter Property="SelectionForegroundBrush" Value="#0F172A" />
+        </Style>
+
+        <!-- 鼠标划过悬停时：文字绝对不变灰，保持清晰锐利的深色显示 -->
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="Foreground" Value="#0F172A" />
+        </Style>
+        <Style Selector="TextBox[IsReadOnly=True]:pointerover">
+            <Setter Property="Foreground" Value="#0F172A" />
+        </Style>
+
+        <!-- 只有点上去(获取焦点/点击激活)时：文字才变灰进行交互反馈 -->
+        <Style Selector="TextBox:focus">
+            <Setter Property="Foreground" Value="#64748B" />
+        </Style>
+        <Style Selector="TextBox[IsReadOnly=True]:focus">
+            <Setter Property="Foreground" Value="#64748B" />
         </Style>
         <Style Selector="Button">
             <Setter Property="FontFamily" Value="MiSans, -apple-system, sans-serif" />
@@ -59,6 +76,10 @@
             <Setter Property="Background" Value="#F1F5F9" />
             <Setter Property="BorderBrush" Value="#CBD5E1" />
             <Setter Property="Foreground" Value="#0F172A" />
+        </Style>
+        <Style Selector="Button.tool-btn:pressed">
+            <Setter Property="Background" Value="#E2E8F0" />
+            <Setter Property="Foreground" Value="#64748B" />
         </Style>
 
         <!-- 主转换按钮：扎实横向铺满，Fluent 经典渐变 -->
@@ -98,6 +119,10 @@
             <Setter Property="Background" Value="#F8FAFC" />
             <Setter Property="BorderBrush" Value="#9CA3AF" />
             <Setter Property="Foreground" Value="#0F172A" />
+        </Style>
+        <Style Selector="Button.action-btn:pressed">
+            <Setter Property="Background" Value="#E2E8F0" />
+            <Setter Property="Foreground" Value="#64748B" />
         </Style>
         <Style Selector="Button.action-btn:disabled">
             <Setter Property="Background" Value="#F8FAFC" />
