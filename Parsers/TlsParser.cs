@@ -44,6 +44,13 @@ public static class TlsParser
         var certs = ParseCertificates(ctx);
 
         var native = NativeOptionsParser.Read<OutboundTLSOptions>(ctx);
+        var reality = ParseReality(ctx) ?? native.Reality;
+        var utls = allowUtls ? (ParseUtls(ctx) ?? native.Utls) : null;
+        if (reality?.Enabled == true && utls == null && allowUtls)
+        {
+            utls = new OutboundUTLSOptions { Enabled = true, Fingerprint = "chrome" };
+        }
+
         return native with
         {
             Enabled = true,
@@ -53,8 +60,8 @@ public static class TlsParser
             MinVersion = !string.IsNullOrEmpty(minVersion) ? minVersion : null,
             MaxVersion = !string.IsNullOrEmpty(maxVersion) ? maxVersion : null,
             Alpn = alpnList.Count > 0 ? alpnList : null,
-            Utls = allowUtls ? ParseUtls(ctx) : null,
-            Reality = ParseReality(ctx),
+            Utls = utls,
+            Reality = reality,
             CipherSuites = cipherSuites.Count > 0 ? cipherSuites : null,
             Certificate = certs.Certificate,
             CertificatePath = certs.CertificatePath,

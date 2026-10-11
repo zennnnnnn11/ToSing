@@ -162,7 +162,18 @@ public sealed class NodeContext
         {
             if (text is "tcp" or "udp")
                 return text;
-            if (text is "ws" or "websocket" or "http" or "h2" or "grpc" or "quic" or "httpupgrade")
+            if (
+                text
+                is "ws"
+                    or "websocket"
+                    or "http"
+                    or "h2"
+                    or "grpc"
+                    or "quic"
+                    or "httpupgrade"
+                    or "raw"
+                    or "none"
+            )
                 return null;
             if (text.Length == 0)
                 return null;
