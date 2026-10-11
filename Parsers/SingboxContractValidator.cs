@@ -1,20 +1,33 @@
 ﻿namespace ToSing.Parsers;
 
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Text.Json;
 using ToSing.Models;
 
 /// <summary>按检查器核对过的内核字段契约校验输出，阻止错误类型和未知枚举落入配置。</summary>
 internal static class SingboxContractValidator
 {
-    private static readonly JsonDocument Contract = ReadContract();
+    private static readonly FrozenDictionary<string, FrozenDictionary<string, JsonElement>> GroupRules = BuildGroupRules();
 
-    private static JsonDocument ReadContract()
+    private static FrozenDictionary<string, FrozenDictionary<string, JsonElement>> BuildGroupRules()
     {
         using var stream =
             typeof(SingboxOutbound).Assembly.GetManifestResourceStream(
                 "ToSing.Models.SingboxContract.json"
             ) ?? throw new InvalidOperationException("Missing sing-box field contract");
-        return JsonDocument.Parse(stream);
+        using var doc = JsonDocument.Parse(stream);
+        var outer = new Dictionary<string, FrozenDictionary<string, JsonElement>>(StringComparer.Ordinal);
+        foreach (var groupProp in doc.RootElement.EnumerateObject())
+        {
+            var inner = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+            foreach (var ruleProp in groupProp.Value.EnumerateObject())
+            {
+                inner[ruleProp.Name] = ruleProp.Value.Clone();
+            }
+            outer[groupProp.Name] = inner.ToFrozenDictionary(StringComparer.Ordinal);
+        }
+        return outer.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
     internal static void Validate(SingboxOutbound outbound)
@@ -72,7 +85,8 @@ internal static class SingboxContractValidator
 
     private static void ValidateObject(JsonElement value, string group, string path)
     {
-        JsonElement rules = Contract.RootElement.GetProperty(group);
+        if (!GroupRules.TryGetValue(group, out var rules))
+            throw new FormatException($"Unknown contract group: {group}");
         bool outboundGroup =
             group
             is "vmess"
@@ -92,7 +106,7 @@ internal static class SingboxContractValidator
                 continue;
             if (string.Equals(field.Name, "tag", StringComparison.Ordinal) && outboundGroup)
                 continue;
-            if (!rules.TryGetProperty(field.Name, out JsonElement rule))
+            if (!rules.TryGetValue(field.Name, out JsonElement rule))
                 throw new FormatException($"Unknown sing-box field: {path}.{field.Name}");
             if (field.Value.ValueKind == JsonValueKind.Null)
                 continue;
@@ -161,7 +175,7 @@ internal static class SingboxContractValidator
             };
             if (child != null)
             {
-                if (!Contract.RootElement.TryGetProperty(child, out _))
+                if (!GroupRules.ContainsKey(child))
                     throw new FormatException($"Unknown sing-box option group: {child}");
                 ValidateObject(field.Value, child, location);
             }
