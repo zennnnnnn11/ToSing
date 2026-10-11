@@ -23,7 +23,7 @@
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#94A3B8" />
         <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#CBD5E1" />
 
-        <!-- 彻底透明化 TextBox 原生边框与背景，无缝融入现代极简卡片 -->
+        <!-- 彻底透明化 TextBox 原生边框与背景，无缝融入现代全景极简界面 -->
         <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
         <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
         <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
@@ -190,10 +190,10 @@
     </Window.Styles>
 
     <Panel>
-        <!-- Windows 11 Fluent 浅色半透明背景衬底 -->
-        <Border Background="#C0F3F4F6" />
+        <!-- Windows 11 Fluent 纯白背景衬底 (全窗口一体化画布，彻底告别套框) -->
+        <Border Background="#FFFFFF" />
 
-        <Grid RowDefinitions="Auto, *">
+        <Grid RowDefinitions="40, *">
             <!-- 沉浸式标题栏：与操作系统融为一体，左侧品牌，右侧留空给原生控制按钮 -->
             <Border
                 Grid.Row="0"
@@ -209,7 +209,7 @@
                         FontSize="13.5"
                         Foreground="#0F172A"
                         VerticalAlignment="Center"
-                        Margin="14,0,0,0"
+                        Margin="18,0,0,0"
                     />
 
                     <!-- 右侧占位：Windows 原生控件按钮覆盖区 -->
@@ -217,328 +217,59 @@
                 </Grid>
             </Border>
 
-            <!-- 主工作台：统一高质感白卡片，中间浅色细发丝线优雅分栏，内部通透无框 -->
-            <Border
-                Grid.Row="1"
-                Background="#FFFFFF"
-                BorderBrush="#E2E8F0"
-                BorderThickness="1"
-                CornerRadius="8"
-                BoxShadow="0 2 10 #08000000"
-                Margin="14,0,14,14"
-                Padding="16,14"
-            >
-                <Grid ColumnDefinitions="*, 33, *">
-                    <!-- ==================== 左翼：输入区 ==================== -->
-                    <Grid Grid.Column="0" RowDefinitions="28, *, 20, 36">
-                        <!-- Row 0: 左栏顶部工具栏 (高度 28px) -->
-                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                            <StackPanel
-                                Grid.Column="0"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Spacing="6"
-                            >
-                                <TextBlock
-                                    Text="数据输入"
-                                    FontWeight="SemiBold"
-                                    FontSize="13"
-                                    Foreground="#0F172A"
-                                    VerticalAlignment="Center"
-                                />
-                                <TextBlock
-                                    Text="· 文本或文件"
-                                    FontWeight="Normal"
-                                    FontSize="11"
-                                    Foreground="#94A3B8"
-                                    VerticalAlignment="Center"
-                                />
-                            </StackPanel>
-
-                            <!-- 文件浏览与清空按钮 -->
-                            <StackPanel
-                                Grid.Column="1"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Spacing="6"
-                            >
-                                <Button
-                                    Classes="tool-btn"
-                                    Click="OnBrowseFileClick"
-                                    ToolTip.Tip="选择本地订阅文件 (.yaml, .txt, .json)"
-                                >
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Path
-                                            Data="M 2 4 C 2 2.9 2.9 2 4 2 L 7 2 L 9 4 L 14 4 C 15.1 4 16 4.9 16 6 L 16 12 C 16 13.1 15.1 14 14 14 L 4 14 C 2.9 14 2 13.1 2 12 Z"
-                                            Stroke="{Binding $parent[Button].Foreground}"
-                                            StrokeThickness="1.2"
-                                            Fill="Transparent"
-                                            Width="14"
-                                            Height="14"
-                                            Stretch="Uniform"
-                                        />
-                                        <TextBlock
-                                            Text="浏览"
-                                            FontSize="11"
-                                            FontWeight="Medium"
-                                            VerticalAlignment="Center"
-                                        />
-                                    </StackPanel>
-                                </Button>
-
-                                <Button
-                                    Classes="tool-btn"
-                                    Click="OnClearInputClick"
-                                    ToolTip.Tip="清空输入框"
-                                >
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Path
-                                            Data="M 3 5 L 13 5 M 5 5 L 5 13 C 5 13.6 5.4 14 6 14 L 10 14 C 10.6 14 11 13.6 11 13 L 11 5 M 6 5 L 6 3.5 C 6 3.2 6.2 3 6.5 3 L 9.5 3 C 9.8 3 10 3.2 10 3.5 L 10 5"
-                                            Stroke="{Binding $parent[Button].Foreground}"
-                                            StrokeThickness="1.2"
-                                            Fill="Transparent"
-                                            Width="13"
-                                            Height="13"
-                                            Stretch="Uniform"
-                                        />
-                                        <TextBlock
-                                            Text="清空"
-                                            FontSize="11"
-                                            FontWeight="Medium"
-                                            VerticalAlignment="Center"
-                                        />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Row 1: 多功能混合输入框 (完全无框通透，左边缘与标题绝对平齐) -->
-                        <TextBox
-                            Grid.Row="1"
-                            Name="InputTextBox"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            VerticalAlignment="Stretch"
-                            Watermark="在此粘贴订阅链接 (HTTP/HTTPS)、Base64 密文、节点 URI 列表、Clash YAML，或将本地文件直接拖拽至此处..."
-                            FontWeight="Normal"
-                            FontSize="11.5"
-                            Foreground="#0F172A"
-                            Padding="0,6,0,0"
-                            Margin="0,8,0,10"
-                            DragDrop.AllowDrop="True"
-                            DragDrop.DragOver="OnInputDragOver"
-                            DragDrop.Drop="OnInputDrop"
-                        />
-
-                        <!-- Row 2: 选项开关行 (高度严格 20px，下边距 10px) -->
-                        <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,0,0,10">
-                            <CheckBox
-                                Name="FilterAdsCheckBox"
-                                Grid.Column="0"
-                                IsChecked="True"
-                                Content="自动过滤广告与过期提示节点"
-                                FontWeight="Normal"
-                                FontSize="11.5"
-                                Foreground="#334155"
-                                Margin="-3,0,0,0"
-                            />
-                        </Grid>
-
-                        <!-- Row 3: 主操作按钮 (高度严格 36px，横向撑满底端) -->
-                        <Button
-                            Grid.Row="3"
-                            Name="ConvertButton"
-                            Classes="hero-btn"
-                            Height="36"
-                            HorizontalAlignment="Stretch"
-                            Click="OnConvertClick"
+            <!-- 主工作台：全窗口一体化通透双栏，中间由一条发丝竖线自然分隔，彻底消灭嵌套框！ -->
+            <Grid Grid.Row="1" ColumnDefinitions="*, 33, *" Margin="18,4,18,18">
+                <!-- ==================== 左翼：输入区 ==================== -->
+                <Grid Grid.Column="0" RowDefinitions="28, *, 20, 36">
+                    <!-- Row 0: 左栏顶部工具栏 (高度 28px) -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                        <StackPanel
+                            Grid.Column="0"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Spacing="6"
                         >
-                            <StackPanel
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                Spacing="8"
-                            >
-                                <Path
-                                    Data="M 7 1 L 2 9 L 6 9 L 5 15 L 12 7 L 8 7 Z"
-                                    Fill="White"
-                                    Width="12"
-                                    Height="14"
-                                    Stretch="Uniform"
-                                    VerticalAlignment="Center"
-                                />
-                                <TextBlock
-                                    Name="ConvertButtonText"
-                                    Text="解析并转换"
-                                    FontSize="12.5"
-                                    FontWeight="SemiBold"
-                                    VerticalAlignment="Center"
-                                />
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-
-                    <!-- ==================== 中间：极浅极雅发丝竖线 ==================== -->
-                    <Rectangle
-                        Grid.Column="1"
-                        Width="1"
-                        Fill="#E2E8F0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Stretch"
-                        Margin="0,4"
-                    />
-
-                    <!-- ==================== 右翼：输出区 ==================== -->
-                    <Grid Grid.Column="2" RowDefinitions="28, *, 20, 36">
-                        <!-- Row 0: 右栏顶部结果徽标与状态栏 (高度 28px) -->
-                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
                             <TextBlock
-                                Grid.Column="0"
-                                Text="sing-box 配置"
+                                Text="数据输入"
                                 FontWeight="SemiBold"
                                 FontSize="13"
                                 Foreground="#0F172A"
                                 VerticalAlignment="Center"
                             />
-
-                            <!-- 结果徽标容器 -->
-                            <StackPanel
-                                Grid.Column="1"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center"
-                                Spacing="6"
-                            >
-                                <!-- 初始就绪指示 -->
-                                <Border
-                                    Name="InitialBadge"
-                                    Background="#F1F5F9"
-                                    BorderBrush="#E2E8F0"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    VerticalAlignment="Center"
-                                    Padding="7,2.5"
-                                >
-                                    <TextBlock
-                                        Text="等待解析"
-                                        FontSize="10.5"
-                                        FontWeight="Medium"
-                                        Foreground="#64748B"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                    />
-                                </Border>
-
-                                <!-- 成功节点数量徽标 (带悬停协议浮窗) -->
-                                <Border
-                                    Name="NodeCountBadge"
-                                    IsVisible="False"
-                                    Background="#DCFCE7"
-                                    BorderBrush="#86EFAC"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    VerticalAlignment="Center"
-                                    Padding="7,2.5"
-                                    Cursor="Hand"
-                                    ToolTip.Placement="Bottom"
-                                    ToolTip.ShowDelay="80"
-                                >
-                                    <TextBlock
-                                        Name="NodeCountText"
-                                        FontSize="10.5"
-                                        FontWeight="SemiBold"
-                                        Foreground="#15803D"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                    />
-                                </Border>
-
-                                <!-- 清洗广告数量徽标 -->
-                                <Border
-                                    Name="FilteredBadge"
-                                    IsVisible="False"
-                                    Background="#FEF9C3"
-                                    BorderBrush="#FDE047"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    VerticalAlignment="Center"
-                                    Padding="7,2.5"
-                                >
-                                    <TextBlock
-                                        Name="FilteredText"
-                                        FontSize="10.5"
-                                        FontWeight="SemiBold"
-                                        Foreground="#854D0E"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                    />
-                                </Border>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Row 1: JSON 代码预览框 (完全无框通透，左边缘与标题绝对平齐) -->
-                        <TextBox
-                            Grid.Row="1"
-                            Name="OutputTextBox"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            IsReadOnly="True"
-                            AcceptsReturn="True"
-                            TextWrapping="NoWrap"
-                            VerticalAlignment="Stretch"
-                            Watermark="解析后的标准 sing-box 节点出站配置将在此处实时显示..."
-                            FontWeight="Normal"
-                            FontSize="11.5"
-                            Foreground="#0F172A"
-                            Padding="0,6,0,0"
-                            Margin="0,8,0,10"
-                        />
-
-                        <!-- Row 2: 辅助状态说明行 (高度严格 20px，与左侧 CheckBox 水平绝对呼应，下边距 10px) -->
-                        <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
                             <TextBlock
-                                Grid.Column="1"
-                                Text="UTF-8 · 自动识别格式"
-                                FontSize="11"
+                                Text="· 文本或文件"
                                 FontWeight="Normal"
+                                FontSize="11"
                                 Foreground="#94A3B8"
                                 VerticalAlignment="Center"
                             />
-                        </Grid>
+                        </StackPanel>
 
-                        <!-- Row 3: 底部操作按钮栏 (高度严格 36px，按钮宽度各 110px 黄金比，靠右紧凑对齐) -->
+                        <!-- 文件浏览与清空按钮 -->
                         <StackPanel
-                            Grid.Row="3"
+                            Grid.Column="1"
                             Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            Spacing="8"
-                            Height="36"
+                            VerticalAlignment="Center"
+                            Spacing="6"
                         >
                             <Button
-                                Name="CopyButton"
-                                Classes="action-btn"
-                                Width="110"
-                                Height="36"
-                                Click="OnCopyClick"
+                                Classes="tool-btn"
+                                Click="OnBrowseFileClick"
+                                ToolTip.Tip="选择本地订阅文件 (.yaml, .txt, .json)"
                             >
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Spacing="6"
-                                >
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Path
-                                        Data="M 4 4 L 10 4 C 11.1 4 12 4.9 12 6 L 12 12 C 12 13.1 11.1 14 10 14 L 4 14 C 2.9 14 2 13.1 2 12 L 2 6 C 2 4.9 2.9 4 4 4 Z M 6 2 L 12 2 C 13.1 2 14 2.9 14 4 L 14 10"
+                                        Data="M 2 4 C 2 2.9 2.9 2 4 2 L 7 2 L 9 4 L 14 4 C 15.1 4 16 4.9 16 6 L 16 12 C 16 13.1 15.1 14 14 14 L 4 14 C 2.9 14 2 13.1 2 12 Z"
                                         Stroke="{Binding $parent[Button].Foreground}"
                                         StrokeThickness="1.2"
                                         Fill="Transparent"
-                                        Width="13"
-                                        Height="13"
+                                        Width="14"
+                                        Height="14"
                                         Stretch="Uniform"
                                     />
                                     <TextBlock
-                                        Name="CopyButtonText"
-                                        Text="复制配置"
-                                        FontSize="11.5"
+                                        Text="浏览"
+                                        FontSize="11"
                                         FontWeight="Medium"
                                         VerticalAlignment="Center"
                                     />
@@ -546,19 +277,13 @@
                             </Button>
 
                             <Button
-                                Name="SaveButton"
-                                Classes="action-btn"
-                                Width="110"
-                                Height="36"
-                                Click="OnSaveClick"
+                                Classes="tool-btn"
+                                Click="OnClearInputClick"
+                                ToolTip.Tip="清空输入框"
                             >
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Spacing="6"
-                                >
+                                <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Path
-                                        Data="M 3 2 L 11 2 L 13 4 L 13 12 C 13 12.6 12.6 13 12 13 L 3 13 C 2.4 13 2 12.6 2 12 L 2 3 C 2 2.4 2.4 2 3 2 Z M 4 2 L 4 5 L 10 5 L 10 2 M 4 9 L 10 9"
+                                        Data="M 3 5 L 13 5 M 5 5 L 5 13 C 5 13.6 5.4 14 6 14 L 10 14 C 10.6 14 11 13.6 11 13 L 11 5 M 6 5 L 6 3.5 C 6 3.2 6.2 3 6.5 3 L 9.5 3 C 9.8 3 10 3.2 10 3.5 L 10 5"
                                         Stroke="{Binding $parent[Button].Foreground}"
                                         StrokeThickness="1.2"
                                         Fill="Transparent"
@@ -567,9 +292,8 @@
                                         Stretch="Uniform"
                                     />
                                     <TextBlock
-                                        Name="SaveButtonText"
-                                        Text="保存文件"
-                                        FontSize="11.5"
+                                        Text="清空"
+                                        FontSize="11"
                                         FontWeight="Medium"
                                         VerticalAlignment="Center"
                                     />
@@ -577,8 +301,273 @@
                             </Button>
                         </StackPanel>
                     </Grid>
+
+                    <!-- Row 1: 多功能混合输入框 (完全无框通透，左边缘与标题绝对平齐) -->
+                    <TextBox
+                        Grid.Row="1"
+                        Name="InputTextBox"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Stretch"
+                        Watermark="在此粘贴订阅链接 (HTTP/HTTPS)、Base64 密文、节点 URI 列表、Clash YAML，或将本地文件直接拖拽至此处..."
+                        FontWeight="Normal"
+                        FontSize="11.5"
+                        Foreground="#0F172A"
+                        Padding="0,6,0,0"
+                        Margin="0,8,0,10"
+                        DragDrop.AllowDrop="True"
+                        DragDrop.DragOver="OnInputDragOver"
+                        DragDrop.Drop="OnInputDrop"
+                    />
+
+                    <!-- Row 2: 选项开关行 (高度严格 20px，下边距 10px) -->
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,0,0,10">
+                        <CheckBox
+                            Name="FilterAdsCheckBox"
+                            Grid.Column="0"
+                            IsChecked="True"
+                            Content="自动过滤广告与过期提示节点"
+                            FontWeight="Normal"
+                            FontSize="11.5"
+                            Foreground="#334155"
+                            Margin="-3,0,0,0"
+                        />
+                    </Grid>
+
+                    <!-- Row 3: 主操作按钮 (高度严格 36px，横向撑满底端) -->
+                    <Button
+                        Grid.Row="3"
+                        Name="ConvertButton"
+                        Classes="hero-btn"
+                        Height="36"
+                        HorizontalAlignment="Stretch"
+                        Click="OnConvertClick"
+                    >
+                        <StackPanel
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Spacing="8"
+                        >
+                            <Path
+                                Data="M 7 1 L 2 9 L 6 9 L 5 15 L 12 7 L 8 7 Z"
+                                Fill="White"
+                                Width="12"
+                                Height="14"
+                                Stretch="Uniform"
+                                VerticalAlignment="Center"
+                            />
+                            <TextBlock
+                                Name="ConvertButtonText"
+                                Text="解析并转换"
+                                FontSize="12.5"
+                                FontWeight="SemiBold"
+                                VerticalAlignment="Center"
+                            />
+                        </StackPanel>
+                    </Button>
                 </Grid>
-            </Border>
+
+                <!-- ==================== 中间：极浅极雅发丝竖线 ==================== -->
+                <Rectangle
+                    Grid.Column="1"
+                    Width="1"
+                    Fill="#E2E8F0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch"
+                    Margin="0,4"
+                />
+
+                <!-- ==================== 右翼：输出区 ==================== -->
+                <Grid Grid.Column="2" RowDefinitions="28, *, 20, 36">
+                    <!-- Row 0: 右栏顶部结果徽标与状态栏 (高度 28px) -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="sing-box 配置"
+                            FontWeight="SemiBold"
+                            FontSize="13"
+                            Foreground="#0F172A"
+                            VerticalAlignment="Center"
+                        />
+
+                        <!-- 结果徽标容器 -->
+                        <StackPanel
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Spacing="6"
+                        >
+                            <!-- 初始就绪指示 -->
+                            <Border
+                                Name="InitialBadge"
+                                Background="#F1F5F9"
+                                BorderBrush="#E2E8F0"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                VerticalAlignment="Center"
+                                Padding="7,2.5"
+                            >
+                                <TextBlock
+                                    Text="等待解析"
+                                    FontSize="10.5"
+                                    FontWeight="Medium"
+                                    Foreground="#64748B"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                />
+                            </Border>
+
+                            <!-- 成功节点数量徽标 (带悬停协议浮窗) -->
+                            <Border
+                                Name="NodeCountBadge"
+                                IsVisible="False"
+                                Background="#DCFCE7"
+                                BorderBrush="#86EFAC"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                VerticalAlignment="Center"
+                                Padding="7,2.5"
+                                Cursor="Hand"
+                                ToolTip.Placement="Bottom"
+                                ToolTip.ShowDelay="80"
+                            >
+                                <TextBlock
+                                    Name="NodeCountText"
+                                    FontSize="10.5"
+                                    FontWeight="SemiBold"
+                                    Foreground="#15803D"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                />
+                            </Border>
+
+                            <!-- 清洗广告数量徽标 -->
+                            <Border
+                                Name="FilteredBadge"
+                                IsVisible="False"
+                                Background="#FEF9C3"
+                                BorderBrush="#FDE047"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                VerticalAlignment="Center"
+                                Padding="7,2.5"
+                            >
+                                <TextBlock
+                                    Name="FilteredText"
+                                    FontSize="10.5"
+                                    FontWeight="SemiBold"
+                                    Foreground="#854D0E"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                />
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Row 1: JSON 代码预览框 (完全无框通透，左边缘与标题绝对平齐) -->
+                    <TextBox
+                        Grid.Row="1"
+                        Name="OutputTextBox"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        IsReadOnly="True"
+                        AcceptsReturn="True"
+                        TextWrapping="NoWrap"
+                        VerticalAlignment="Stretch"
+                        Watermark="解析后的标准 sing-box 节点出站配置将在此处实时显示..."
+                        FontWeight="Normal"
+                        FontSize="11.5"
+                        Foreground="#0F172A"
+                        Padding="0,6,0,0"
+                        Margin="0,8,0,10"
+                    />
+
+                    <!-- Row 2: 辅助状态说明行 (高度严格 20px，与左侧 CheckBox 水平绝对呼应，下边距 10px) -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                        <TextBlock
+                            Grid.Column="1"
+                            Text="UTF-8 · 自动识别格式"
+                            FontSize="11"
+                            FontWeight="Normal"
+                            Foreground="#94A3B8"
+                            VerticalAlignment="Center"
+                        />
+                    </Grid>
+
+                    <!-- Row 3: 底部操作按钮栏 (高度严格 36px，按钮宽度各 110px 黄金比，靠右紧凑对齐) -->
+                    <StackPanel
+                        Grid.Row="3"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Height="36"
+                    >
+                        <Button
+                            Name="CopyButton"
+                            Classes="action-btn"
+                            Width="110"
+                            Height="36"
+                            Click="OnCopyClick"
+                        >
+                            <StackPanel
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="6"
+                            >
+                                <Path
+                                    Data="M 4 4 L 10 4 C 11.1 4 12 4.9 12 6 L 12 12 C 12 13.1 11.1 14 10 14 L 4 14 C 2.9 14 2 13.1 2 12 L 2 6 C 2 4.9 2.9 4 4 4 Z M 6 2 L 12 2 C 13.1 2 14 2.9 14 4 L 14 10"
+                                    Stroke="{Binding $parent[Button].Foreground}"
+                                    StrokeThickness="1.2"
+                                    Fill="Transparent"
+                                    Width="13"
+                                    Height="13"
+                                    Stretch="Uniform"
+                                />
+                                <TextBlock
+                                    Name="CopyButtonText"
+                                    Text="复制配置"
+                                    FontSize="11.5"
+                                    FontWeight="Medium"
+                                    VerticalAlignment="Center"
+                                />
+                            </StackPanel>
+                        </Button>
+
+                        <Button
+                            Name="SaveButton"
+                            Classes="action-btn"
+                            Width="110"
+                            Height="36"
+                            Click="OnSaveClick"
+                        >
+                            <StackPanel
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="6"
+                            >
+                                <Path
+                                    Data="M 3 2 L 11 2 L 13 4 L 13 12 C 13 12.6 12.6 13 12 13 L 3 13 C 2.4 13 2 12.6 2 12 L 2 3 C 2 2.4 2.4 2 3 2 Z M 4 2 L 4 5 L 10 5 L 10 2 M 4 9 L 10 9"
+                                    Stroke="{Binding $parent[Button].Foreground}"
+                                    StrokeThickness="1.2"
+                                    Fill="Transparent"
+                                    Width="13"
+                                    Height="13"
+                                    Stretch="Uniform"
+                                />
+                                <TextBlock
+                                    Name="SaveButtonText"
+                                    Text="保存文件"
+                                    FontSize="11.5"
+                                    FontWeight="Medium"
+                                    VerticalAlignment="Center"
+                                />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Grid>
     </Panel>
 </Window>
