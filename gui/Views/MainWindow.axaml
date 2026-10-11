@@ -3,10 +3,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Class="SubParser.Gui.Views.MainWindow"
     Title="SubParser"
-    Width="800"
-    Height="494"
-    MinWidth="740"
-    MinHeight="460"
+    Width="840"
+    Height="519"
+    MinWidth="760"
+    MinHeight="480"
     WindowStartupLocation="CenterScreen"
     ExtendClientAreaToDecorationsHint="True"
     ExtendClientAreaTitleBarHeightHint="-1"
@@ -14,11 +14,17 @@
     Background="Transparent"
 >
     <Window.Styles>
-        <!-- 基础文字与排版样式 -->
+        <!-- 全局字体排版：西文优先 Anthropic Sans，中文优先 MiSans -->
         <Style Selector="TextBlock">
             <Setter
                 Property="FontFamily"
-                Value="Segoe UI, Inter, Microsoft YaHei, -apple-system, sans-serif"
+                Value="Anthropic Sans Variable Text, Anthropic Sans, MiSans, -apple-system, sans-serif"
+            />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter
+                Property="FontFamily"
+                Value="Anthropic Mono Web, Anthropic Mono, Cascadia Code, MiSans, monospace"
             />
         </Style>
 
@@ -28,7 +34,7 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="#E2E8F0" />
             <Setter Property="CornerRadius" Value="5" />
-            <Setter Property="Padding" Value="7,4" />
+            <Setter Property="Padding" Value="7,3.5" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Foreground" Value="#475569" />
         </Style>
@@ -66,8 +72,11 @@
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Height" Value="34" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.action-btn:pointerover">
             <Setter Property="Background" Value="#F8FAFC" />
@@ -162,7 +171,7 @@
                         <Grid
                             Grid.Column="0"
                             RowDefinitions="Auto, *, Auto, Auto"
-                            Margin="0,0,12,0"
+                            Margin="0,0,10,0"
                         >
                             <!-- 左栏顶部工具栏 -->
                             <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,8">
@@ -237,7 +246,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- 多功能混合输入框（支持打字、粘贴、文件拖拽） -->
+                            <!-- 多功能混合输入框（纵向自适应撑开，与右侧平齐） -->
                             <Border
                                 Grid.Row="1"
                                 Name="InputDropBorder"
@@ -245,6 +254,7 @@
                                 BorderBrush="#E2E8F0"
                                 BorderThickness="1"
                                 CornerRadius="6"
+                                VerticalAlignment="Stretch"
                                 DragDrop.AllowDrop="True"
                                 DragDrop.DragOver="OnInputDragOver"
                                 DragDrop.Drop="OnInputDrop"
@@ -255,8 +265,8 @@
                                     BorderThickness="0"
                                     AcceptsReturn="True"
                                     TextWrapping="Wrap"
+                                    VerticalAlignment="Stretch"
                                     Watermark="在此粘贴订阅链接 (HTTP/HTTPS)、Base64 密文、节点 URI 列表、Clash YAML，或将本地文件直接拖拽至此处..."
-                                    FontFamily="Cascadia Code, Consolas, Courier New, monospace"
                                     FontSize="11.5"
                                     Foreground="#0F172A"
                                     Padding="10"
@@ -264,7 +274,7 @@
                             </Border>
 
                             <!-- 选项开关行 -->
-                            <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,8,0,10">
+                            <Grid Grid.Row="2" ColumnDefinitions="Auto, *" Margin="0,8,0,8">
                                 <CheckBox
                                     Name="FilterAdsCheckBox"
                                     Grid.Column="0"
@@ -275,12 +285,12 @@
                                 />
                             </Grid>
 
-                            <!-- 主操作按钮 -->
+                            <!-- 主操作按钮（与右侧操作按钮高度严格水平平齐） -->
                             <Button
                                 Grid.Row="3"
                                 Name="ConvertButton"
                                 Classes="hero-btn"
-                                Height="36"
+                                Height="34"
                                 Click="OnConvertClick"
                             >
                                 <StackPanel
@@ -308,10 +318,10 @@
                         </Grid>
 
                         <!-- 中间浅灰色纵向分割发丝线 -->
-                        <Border Grid.Column="1" Background="#F1F5F9" Width="1" Margin="0,4" />
+                        <Border Grid.Column="1" Background="#F1F5F9" Width="1" Margin="0,2" />
 
                         <!-- ==================== 右栏：结果展示与导出区 ==================== -->
-                        <Grid Grid.Column="2" RowDefinitions="Auto, *, Auto" Margin="12,0,0,0">
+                        <Grid Grid.Column="2" RowDefinitions="Auto, *, Auto" Margin="10,0,0,0">
                             <!-- 右栏顶部结果徽标与状态栏 -->
                             <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,8">
                                 <TextBlock
@@ -341,7 +351,7 @@
                                         />
                                     </Border>
 
-                                    <!-- 成功节点数量徽标 -->
+                                    <!-- 成功节点数量徽标 (带悬停协议浮窗) -->
                                     <Border
                                         Name="NodeCountBadge"
                                         IsVisible="False"
@@ -382,14 +392,15 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- JSON 代码预览框 -->
+                            <!-- JSON 代码预览框（纵向自适应撑开，与左侧平齐） -->
                             <Border
                                 Grid.Row="1"
                                 Background="#F8FAFC"
                                 BorderBrush="#E2E8F0"
                                 BorderThickness="1"
                                 CornerRadius="6"
-                                Margin="0,0,0,10"
+                                VerticalAlignment="Stretch"
+                                Margin="0,0,0,8"
                             >
                                 <TextBox
                                     Name="OutputTextBox"
@@ -398,16 +409,16 @@
                                     IsReadOnly="True"
                                     AcceptsReturn="True"
                                     TextWrapping="NoWrap"
+                                    VerticalAlignment="Stretch"
                                     Watermark="解析后的标准 sing-box 节点出站配置将在此处实时显示..."
-                                    FontFamily="Cascadia Code, Consolas, Courier New, monospace"
                                     FontSize="11.5"
                                     Foreground="#0F172A"
                                     Padding="10"
                                 />
                             </Border>
 
-                            <!-- 底部操作按钮栏 -->
-                            <Grid Grid.Row="2" ColumnDefinitions="*, *" Margin="0">
+                            <!-- 底部操作按钮栏（高度 34px，与左侧主按钮水平严格对齐） -->
+                            <Grid Grid.Row="2" ColumnDefinitions="*, *" Height="34">
                                 <Button
                                     Name="CopyButton"
                                     Grid.Column="0"

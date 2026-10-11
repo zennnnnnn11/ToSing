@@ -20,6 +20,10 @@ namespace SubParser.Gui.Views;
 
 public partial class MainWindow : Window
 {
+    private static readonly FontFamily UiFontFamily = new(
+        "Anthropic Sans Variable Text, Anthropic Sans, MiSans, -apple-system, sans-serif"
+    );
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -288,6 +292,7 @@ public partial class MainWindow : Window
             new TextBlock
             {
                 Text = "出站协议分布",
+                FontFamily = UiFontFamily,
                 FontSize = 11.5,
                 FontWeight = FontWeight.SemiBold,
                 Foreground = Brush.Parse("#1E293B"),
@@ -330,6 +335,7 @@ public partial class MainWindow : Window
             tagBorder.Child = new TextBlock
             {
                 Text = key,
+                FontFamily = UiFontFamily,
                 FontSize = 11,
                 FontWeight = FontWeight.Medium,
                 Foreground = Brush.Parse("#334155"),
@@ -338,6 +344,7 @@ public partial class MainWindow : Window
             var countText = new TextBlock
             {
                 Text = $"{count} 个",
+                FontFamily = UiFontFamily,
                 FontSize = 11,
                 Foreground = Brush.Parse("#64748B"),
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
