@@ -26,6 +26,13 @@ public static class ShadowsocksParser
             method = "aes-256-gcm";
 
         string password = ctx.GetSecretString("password");
+        if (
+            !string.Equals(method, "none", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrEmpty(password)
+        )
+        {
+            return null;
+        }
         string plugin = ctx.GetString("plugin");
         if (
             string.Equals(plugin, "obfs", StringComparison.OrdinalIgnoreCase)

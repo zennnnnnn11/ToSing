@@ -23,6 +23,22 @@ public static class TrojanParser
         if (string.IsNullOrWhiteSpace(password))
             return null;
 
+        string netType = ctx.GetString("type", "network", "net").Trim().ToLowerInvariant();
+        if (netType is "kcp" or "mkcp")
+        {
+            return null;
+        }
+
+        string security = ctx.GetString("security").Trim().ToLowerInvariant();
+        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key", "amp;pbk");
+        bool isReality =
+            string.Equals(security, "reality", StringComparison.Ordinal)
+            || !string.IsNullOrEmpty(pbk);
+        if (isReality && !TlsParser.IsValidRealityPublicKey(pbk))
+        {
+            return null;
+        }
+
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"Trojan {server}:{port}";
 
         var transport = TransportParser.ParseTransport(ctx);

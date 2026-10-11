@@ -26,6 +26,11 @@ public static class VmessParser
             return null;
 
         string tag = !string.IsNullOrWhiteSpace(ctx.Tag) ? ctx.Tag : $"VMess {server}:{port}";
+        string netType = ctx.GetString("type", "network", "net").Trim().ToLowerInvariant();
+        if (netType is "kcp" or "mkcp")
+        {
+            return null;
+        }
         string rawSec = ctx.GetString("encryption", "cipher");
         if (string.IsNullOrEmpty(rawSec))
         {
@@ -66,7 +71,7 @@ public static class VmessParser
 
     private static string ParsePacketEncoding(NodeContext ctx)
     {
-        string pe = ctx.GetString("packet_encoding", "packet-encoding");
+        string pe = ctx.GetString("packet_encoding", "packet-encoding", "packetEncoding");
         if (!string.IsNullOrEmpty(pe))
             return pe;
         if (ctx.GetBool("xudp"))

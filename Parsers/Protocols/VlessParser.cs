@@ -54,6 +54,22 @@ public static class VlessParser
             }
         }
 
+        string netType = ctx.GetString("type", "network", "net").Trim().ToLowerInvariant();
+        if (netType is "kcp" or "mkcp")
+        {
+            return null;
+        }
+
+        string security = ctx.GetString("security").Trim().ToLowerInvariant();
+        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key", "amp;pbk");
+        bool isReality =
+            string.Equals(security, "reality", StringComparison.Ordinal)
+            || !string.IsNullOrEmpty(pbk);
+        if (isReality && !TlsParser.IsValidRealityPublicKey(pbk))
+        {
+            return null;
+        }
+
         var transport = TransportParser.ParseTransport(ctx);
         if (transport != null && !string.IsNullOrEmpty(flow))
         {
@@ -86,9 +102,13 @@ public static class VlessParser
 
     private static (string? pe, bool isValid) ParsePacketEncoding(NodeContext ctx)
     {
-        if (ctx.HasProperty("packet_encoding") || ctx.HasProperty("packet-encoding"))
+        if (
+            ctx.HasProperty("packet_encoding")
+            || ctx.HasProperty("packet-encoding")
+            || ctx.HasProperty("packetEncoding")
+        )
         {
-            string pe = ctx.GetString("packet_encoding", "packet-encoding");
+            string pe = ctx.GetString("packet_encoding", "packet-encoding", "packetEncoding");
             if (string.IsNullOrEmpty(pe))
             {
                 // 显式提供空字符串 packet_encoding=""

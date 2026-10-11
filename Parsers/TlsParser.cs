@@ -224,10 +224,18 @@ public static class TlsParser
         return fp != null ? new OutboundUTLSOptions { Enabled = true, Fingerprint = fp } : null;
     }
 
+    public static bool IsValidRealityPublicKey(string? pbk)
+    {
+        if (string.IsNullOrWhiteSpace(pbk))
+            return false;
+
+        return Base64Utils.TryDecodeToBytes(pbk.Trim(), out byte[]? bytes) && bytes.Length == 32;
+    }
+
     private static OutboundRealityOptions? ParseReality(NodeContext ctx)
     {
         string security = ctx.GetString("security").ToLowerInvariant();
-        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key");
+        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key", "amp;pbk");
 
         if (
             !string.Equals(security, "reality", StringComparison.Ordinal)
