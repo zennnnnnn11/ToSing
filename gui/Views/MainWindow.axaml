@@ -236,7 +236,8 @@
                             BorderBrush="#C7D2FE"
                             BorderThickness="1"
                             CornerRadius="4"
-                            Padding="5,1"
+                            VerticalAlignment="Center"
+                            Padding="5,1.5"
                             Margin="4,0,0,0"
                         >
                             <TextBlock
@@ -244,6 +245,8 @@
                                 FontSize="10.5"
                                 FontWeight="Medium"
                                 Foreground="#4338CA"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
                             />
                         </Border>
                     </StackPanel>
@@ -440,7 +443,12 @@
                             />
 
                             <!-- 结果徽标容器 -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Spacing="6"
+                            >
                                 <!-- 初始就绪指示 -->
                                 <Border
                                     Name="InitialBadge"
@@ -448,13 +456,16 @@
                                     BorderBrush="#E2E8F0"
                                     BorderThickness="1"
                                     CornerRadius="4"
-                                    Padding="6,2"
+                                    VerticalAlignment="Center"
+                                    Padding="7,2.5"
                                 >
                                     <TextBlock
                                         Text="等待解析"
                                         FontSize="10.5"
                                         FontWeight="Medium"
                                         Foreground="#64748B"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
                                     />
                                 </Border>
 
@@ -466,7 +477,8 @@
                                     BorderBrush="#86EFAC"
                                     BorderThickness="1"
                                     CornerRadius="4"
-                                    Padding="6,2"
+                                    VerticalAlignment="Center"
+                                    Padding="7,2.5"
                                     Cursor="Hand"
                                     ToolTip.Placement="Bottom"
                                     ToolTip.ShowDelay="80"
@@ -476,6 +488,8 @@
                                         FontSize="10.5"
                                         FontWeight="SemiBold"
                                         Foreground="#15803D"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
                                     />
                                 </Border>
 
@@ -487,13 +501,16 @@
                                     BorderBrush="#FDE047"
                                     BorderThickness="1"
                                     CornerRadius="4"
-                                    Padding="6,2"
+                                    VerticalAlignment="Center"
+                                    Padding="7,2.5"
                                 >
                                     <TextBlock
                                         Name="FilteredText"
                                         FontSize="10.5"
                                         FontWeight="SemiBold"
                                         Foreground="#854D0E"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
                                     />
                                 </Border>
                             </StackPanel>
