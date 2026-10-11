@@ -132,6 +132,13 @@ public static partial class UniversalParser
         return ParseSubscriptionWithStats(rawText, filterAds).Outbounds;
     }
 
+    private enum YamlScanState
+    {
+        Normal,
+        InProxies,
+        InOtherSection,
+    }
+
     /// <summary>
     /// 全能混合多源订阅与节点聚合流水线。
     /// 自动对齐处理包含多个远程 HTTP(S) 订阅、完整/局部 Clash YAML、单行/多行节点 URI 及 Base64 密文的混合输入。
@@ -169,46 +176,27 @@ public static partial class UniversalParser
 
         using var reader = new StringReader(content);
         string? rawLine;
-        bool inProxiesBlock = false;
         var yamlBuilder = new StringBuilder();
+        var scanState = YamlScanState.Normal;
 
         while ((rawLine = await reader.ReadLineAsync(ct).ConfigureAwait(false)) != null)
         {
             ct.ThrowIfCancellationRequested();
 
-            if (!inProxiesBlock)
-            {
-                // 嗅探是否进入 Clash 的 proxies: 节点段
-                if (ProxiesBlockRegex().IsMatch(rawLine))
-                {
-                    inProxiesBlock = true;
-                    yamlBuilder.Clear();
-                    yamlBuilder.AppendLine(rawLine);
-                    continue;
-                }
+            // 判断是否是顶级 YAML 键（顶格未缩进、不是注释、不含 :// 协议前缀、匹配键名）
+            bool isTopLevelKey =
+                !string.IsNullOrWhiteSpace(rawLine)
+                && !IsCommentLine(rawLine.TrimStart())
+                && !char.IsWhiteSpace(rawLine[0])
+                && !rawLine.TrimStart().StartsWith("- ", StringComparison.Ordinal)
+                && !rawLine.Contains("://", StringComparison.Ordinal)
+                && TopLevelYamlKeyRegex().IsMatch(rawLine);
 
-                // 处理非 proxies 块的单行
-                ProcessNonProxiesLine(rawLine, remoteUrls, directNodeLines);
-            }
-            else
+            if (isTopLevelKey)
             {
-                // 处于 proxies 块内部：检查当前行是否继续属于缩进节点段
-                if (string.IsNullOrWhiteSpace(rawLine) || IsCommentLine(rawLine.Trim()))
+                // 如果当前已经在收集 proxies 块，立即提交解析
+                if (scanState == YamlScanState.InProxies && yamlBuilder.Length > 0)
                 {
-                    yamlBuilder.AppendLine(rawLine);
-                }
-                else if (
-                    rawLine.StartsWith("  ", StringComparison.Ordinal)
-                    || (rawLine.Length > 0 && rawLine[0] == '\t')
-                    || rawLine.TrimStart().StartsWith("- ", StringComparison.Ordinal)
-                )
-                {
-                    yamlBuilder.AppendLine(rawLine);
-                }
-                else
-                {
-                    // 缩进归零：说明 proxies 块正式结束
-                    inProxiesBlock = false;
                     var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
                         yamlBuilder.ToString(),
                         filterAds
@@ -216,15 +204,79 @@ public static partial class UniversalParser
                     allOutbounds.AddRange(yamlNodes);
                     totalFiltered += yamlFiltered;
                     yamlBuilder.Clear();
-
-                    // 当前行退出 proxies 块后，重新作为普通行评估
-                    ProcessNonProxiesLine(rawLine, remoteUrls, directNodeLines);
                 }
+
+                // 判断是否是 proxies: 节
+                if (ProxiesBlockRegex().IsMatch(rawLine))
+                {
+                    scanState = YamlScanState.InProxies;
+                    yamlBuilder.AppendLine(rawLine);
+                }
+                else
+                {
+                    // 进入其他顶级 YAML 节（如 rules:, rule-providers:, dns: 等）
+                    scanState = YamlScanState.InOtherSection;
+                }
+                continue;
+            }
+
+            switch (scanState)
+            {
+                case YamlScanState.InProxies:
+                    if (string.IsNullOrWhiteSpace(rawLine) || IsCommentLine(rawLine.Trim()))
+                    {
+                        yamlBuilder.AppendLine(rawLine);
+                    }
+                    else if (
+                        rawLine.StartsWith("  ", StringComparison.Ordinal)
+                        || (rawLine.Length > 0 && rawLine[0] == '\t')
+                        || rawLine.TrimStart().StartsWith("- ", StringComparison.Ordinal)
+                    )
+                    {
+                        yamlBuilder.AppendLine(rawLine);
+                    }
+                    else
+                    {
+                        // 缩进归零：退出 proxies 块
+                        scanState = YamlScanState.Normal;
+                        var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
+                            yamlBuilder.ToString(),
+                            filterAds
+                        );
+                        allOutbounds.AddRange(yamlNodes);
+                        totalFiltered += yamlFiltered;
+                        yamlBuilder.Clear();
+
+                        ProcessNormalLine(rawLine, remoteUrls, directNodeLines);
+                    }
+                    break;
+
+                case YamlScanState.InOtherSection:
+                    // 在非 proxies 的 YAML 节中，下属缩进行、列表项全部静默跳过
+                    if (
+                        string.IsNullOrWhiteSpace(rawLine)
+                        || IsCommentLine(rawLine.Trim())
+                        || rawLine.StartsWith("  ", StringComparison.Ordinal)
+                        || (rawLine.Length > 0 && rawLine[0] == '\t')
+                        || rawLine.TrimStart().StartsWith("- ", StringComparison.Ordinal)
+                    )
+                    {
+                        continue;
+                    }
+
+                    // 缩进归零：退出 OtherSection 状态
+                    scanState = YamlScanState.Normal;
+                    ProcessNormalLine(rawLine, remoteUrls, directNodeLines);
+                    break;
+
+                case YamlScanState.Normal:
+                    ProcessNormalLine(rawLine, remoteUrls, directNodeLines);
+                    break;
             }
         }
 
-        // 文件读完后，如果还处于 proxies 块中
-        if (inProxiesBlock && yamlBuilder.Length > 0)
+        // 文件读完后，如果最后还处于 proxies 块中
+        if (scanState == YamlScanState.InProxies && yamlBuilder.Length > 0)
         {
             var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
                 yamlBuilder.ToString(),
@@ -300,7 +352,7 @@ public static partial class UniversalParser
         return (deduplicated, totalFiltered);
     }
 
-    private static void ProcessNonProxiesLine(
+    private static void ProcessNormalLine(
         string rawLine,
         HashSet<Uri> remoteUrls,
         List<string> directNodeLines
@@ -310,52 +362,14 @@ public static partial class UniversalParser
         if (string.IsNullOrWhiteSpace(trimmed) || IsCommentLine(trimmed))
             return;
 
-        // 1. 查找行内可能存在的一个或多个完整 HTTP(S) 订阅 URL (支持管道符、分号、逗号、空格分隔)
-        var matches = HttpUrlRegex().Matches(trimmed);
-        if (matches.Count > 0)
-        {
-            bool allTokensAreUrls = true;
-            foreach (Match match in matches)
-            {
-                if (
-                    Uri.TryCreate(match.Value, UriKind.Absolute, out Uri? uri)
-                    && (
-                        string.Equals(
-                            uri.Scheme,
-                            Uri.UriSchemeHttp,
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                        || string.Equals(
-                            uri.Scheme,
-                            Uri.UriSchemeHttps,
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                    )
-                )
-                {
-                    remoteUrls.Add(uri);
-                }
-                else
-                {
-                    allTokensAreUrls = false;
-                }
-            }
-
-            // 如果该行纯粹由 URL 组成，处理完毕直接返回
-            if (allTokensAreUrls && trimmed.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-        }
-
-        // 2. 检查已知节点协议前缀
+        // 1. 优先判定已知代理协议前缀：整行作为单行节点，内部任何子字符串绝不外泄
         if (IsKnownProtocolUri(trimmed))
         {
             directNodeLines.Add(trimmed);
             return;
         }
 
-        // 3. 检查单行/局部 Base64 密文行
+        // 2. 判定 Base64 编码行
         if (Base64Utils.IsProbableBase64Subscription(trimmed))
         {
             string decoded = Base64Utils.Decode(trimmed);
@@ -365,17 +379,89 @@ public static partial class UniversalParser
                 string? subLine;
                 while ((subLine = subReader.ReadLine()) != null)
                 {
-                    string subTrimmed = CleanRawText(subLine);
-                    if (!string.IsNullOrWhiteSpace(subTrimmed) && !IsCommentLine(subTrimmed))
-                    {
-                        if (IsKnownProtocolUri(subTrimmed))
-                        {
-                            directNodeLines.Add(subTrimmed);
-                        }
-                    }
+                    ProcessNormalLine(subLine, remoteUrls, directNodeLines);
                 }
+                return;
             }
         }
+
+        // 3. 严格判定独立订阅 URL
+        if (TryExtractSubscriptionUrls(trimmed, out var extractedUrls))
+        {
+            foreach (var url in extractedUrls)
+            {
+                remoteUrls.Add(url);
+            }
+        }
+    }
+
+    private static bool TryExtractSubscriptionUrls(string line, out List<Uri> urls)
+    {
+        urls = [];
+
+        // 排除 YAML 列表项
+        if (line.StartsWith("- ", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // 按空白、管道符、分号、逗号切分 token
+        string[] tokens = line.Split(
+            [' ', '\t', '|', ';', ','],
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+        );
+        if (tokens.Length == 0)
+            return false;
+
+        var temp = new List<Uri>(tokens.Length);
+        foreach (string token in tokens)
+        {
+            if (
+                Uri.TryCreate(token, UriKind.Absolute, out Uri? uri)
+                && IsProbableSubscriptionUrl(uri)
+            )
+            {
+                temp.Add(uri);
+            }
+            else
+            {
+                // 只要任何一个 token 不是合法的订阅 HTTP(S) URL，整行就绝对不能被当作订阅 URL
+                return false;
+            }
+        }
+
+        urls = temp;
+        return urls.Count > 0;
+    }
+
+    private static bool IsProbableSubscriptionUrl(Uri uri)
+    {
+        if (
+            !string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return false;
+        }
+
+        // 含有用户名密码凭据（UserInfo），属于 HTTP 代理节点而非订阅地址
+        if (!string.IsNullOrEmpty(uri.UserInfo))
+        {
+            return false;
+        }
+
+        // 必须具有非根路径或查询参数，纯根路径 "/" 且没有 query 的属于 HTTP 代理节点
+        bool hasSubPath =
+            uri.AbsolutePath.Length > 1
+            && !string.Equals(uri.AbsolutePath, "/", StringComparison.Ordinal);
+        bool hasQuery = !string.IsNullOrEmpty(uri.Query);
+
+        if (!hasSubPath && !hasQuery)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static bool IsKnownProtocolUri(string line)
@@ -645,11 +731,11 @@ public static partial class UniversalParser
     private static partial Regex ProxiesBlockRegex();
 
     [GeneratedRegex(
-        @"https?://[^\s|;,]+",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+        @"^[a-zA-Z0-9_-]+\s*:",
+        RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 1000
     )]
-    private static partial Regex HttpUrlRegex();
+    private static partial Regex TopLevelYamlKeyRegex();
 
     [GeneratedRegex(
         @"(?i)(?:网址|官网|发布页|流量|剩余|到期|时间|重置|过期|通知|公告|bandwidth|traffic|expire)",

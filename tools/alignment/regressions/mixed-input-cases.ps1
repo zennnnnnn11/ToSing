@@ -47,4 +47,57 @@ Add-AuditCase 'mixed-ads-and-comments' $mixedWithAdsAndComments {
     return ,$n
 }
 
+# 测试 3: 连续两个纯 proxies 块拼接，节点无缝保留
+$twoYamlBlocks = @"
+proxies:
+  - name: first-yaml
+    type: vless
+    server: 127.0.0.1
+    port: 443
+    uuid: $taskUuid
+    tls: true
+
+proxies:
+  - name: second-yaml
+    type: vless
+    server: 127.0.0.1
+    port: 443
+    uuid: $taskUuid
+    tls: true
+"@
+
+Add-AuditCase 'mixed-two-yaml-blocks' $twoYamlBlocks {
+    param($n)
+    $n.Count -eq 2 -and $n[0].tag -eq 'first-yaml' -and $n[1].tag -eq 'second-yaml'
+} {
+    param($n)
+    return ,$n
+}
+
+# 测试 4: YAML 携带 rule-providers 规则网址与节点参数携带 HTTP 路径，静默绝缘不外泄
+$yamlWithRulesAndHttpPath = @"
+proxies:
+  - name: node-with-rules
+    type: vless
+    server: 127.0.0.1
+    port: 443
+    uuid: $taskUuid
+    tls: true
+
+rule-providers:
+  my-rules:
+    type: http
+    url: https://rules.invalid/my-rules.yaml
+
+vless://$taskUuid@127.0.0.1:443?security=tls&type=ws&path=/go/http://path.invalid/file#node-with-http-path
+"@
+
+Add-AuditCase 'mixed-rules-and-http-path' $yamlWithRulesAndHttpPath {
+    param($n)
+    $n.Count -eq 2 -and $n[0].tag -eq 'node-with-rules' -and $n[1].tag -eq 'node-with-http-path'
+} {
+    param($n)
+    return ,$n
+}
+
 . (Join-Path $PSScriptRoot 'runner.ps1')
