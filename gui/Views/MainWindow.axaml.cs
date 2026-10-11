@@ -282,7 +282,7 @@ public partial class MainWindow : Window
             int nodeCount = outbounds.Count;
             _lastValidConfigJson = nodeCount > 0 ? json : null;
 
-            OutputTextBox.Text = json;
+            OutputTextBox.Text = FormatPreviewText(json);
             CopyButton.IsEnabled = nodeCount > 0;
             SaveButton.IsEnabled = nodeCount > 0;
 
@@ -463,6 +463,24 @@ public partial class MainWindow : Window
         };
 
         ToolTip.SetTip(NodeCountBadge, container);
+    }
+
+    private const int MaxPreviewCharacters = 65536;
+
+    private static string FormatPreviewText(string json)
+    {
+        if (json.Length <= MaxPreviewCharacters)
+        {
+            return json;
+        }
+
+        int cutIndex = json.LastIndexOf('\n', MaxPreviewCharacters);
+        if (cutIndex <= 0)
+        {
+            cutIndex = MaxPreviewCharacters;
+        }
+
+        return json[..cutIndex] + "\r\n\r\n// ...... (节点较多，此处仅预览前部配置；点击下方【复制配置】或【保存文件】可获取完整全部配置)";
     }
 
     private async void OnCopyClick(object? sender, RoutedEventArgs e)
