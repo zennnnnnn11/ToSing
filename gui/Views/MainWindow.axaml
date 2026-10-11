@@ -247,6 +247,20 @@
             <Setter Property="TextBlock.Foreground" Value="#0078D4" />
         </Style>
 
+        <!-- 危险操作文本链接 (清空全部) -->
+        <Style Selector="Button.link-btn-danger">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="Button.link-btn-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="TextBlock.Foreground" Value="#EF4444" />
+        </Style>
+
         <!-- FlyoutPresenter 无缝边框与无内边距适配 -->
         <Style Selector="FlyoutPresenter">
             <Setter Property="Padding" Value="0" />
@@ -424,43 +438,53 @@
                             <Button.Flyout>
                                 <Flyout Placement="TopEdgeAlignedLeft">
                                     <Border
-                                        Width="316"
+                                        Width="336"
                                         Background="#FFFFFF"
                                         BorderBrush="#E2E8F0"
                                         BorderThickness="1"
-                                        Padding="14"
+                                        Padding="16"
                                         CornerRadius="8"
-                                        BoxShadow="0 4 16 0 #15000000"
+                                        BoxShadow="0 4 20 0 #18000000"
                                     >
-                                        <StackPanel Spacing="10">
-                                            <!-- 浮窗头部标题与计数 -->
+                                        <StackPanel Spacing="12">
+                                            <!-- 浮窗头部标题与计数徽章 (严格垂直居中对齐) -->
                                             <Grid ColumnDefinitions="*, Auto">
-                                                <StackPanel Grid.Column="0" Spacing="2">
+                                                <StackPanel Grid.Column="0" Spacing="3">
                                                     <TextBlock
                                                         Text="屏蔽词规则标签"
-                                                        FontSize="12"
+                                                        FontSize="13"
                                                         FontWeight="SemiBold"
                                                         Foreground="#0F172A"
                                                     />
                                                     <TextBlock
                                                         Text="命中以下关键词的节点将被自动清洗过滤"
-                                                        FontSize="10.5"
+                                                        FontSize="11"
                                                         Foreground="#64748B"
                                                     />
                                                 </StackPanel>
-                                                <TextBlock
-                                                    Name="KeywordCountText"
+                                                <!-- 数学重构：8pt 网格标准微型胶囊 Badge -->
+                                                <Border
                                                     Grid.Column="1"
-                                                    Text="14 个"
-                                                    FontSize="11"
-                                                    Foreground="#94A3B8"
+                                                    Background="#F1F5F9"
+                                                    BorderBrush="#E2E8F0"
+                                                    BorderThickness="1"
+                                                    CornerRadius="9"
+                                                    Padding="7,2"
                                                     VerticalAlignment="Center"
-                                                />
+                                                >
+                                                    <TextBlock
+                                                        Name="KeywordCountText"
+                                                        Text="14 个"
+                                                        FontSize="10.5"
+                                                        FontWeight="Medium"
+                                                        Foreground="#64748B"
+                                                    />
+                                                </Border>
                                             </Grid>
 
-                                            <!-- 药丸胶囊标签流 (WrapPanel) -->
+                                            <!-- 药丸胶囊标签流 (WrapPanel，高度 114px 严格容纳 4 排整行) -->
                                             <ScrollViewer
-                                                MaxHeight="140"
+                                                MaxHeight="114"
                                                 HorizontalScrollBarVisibility="Disabled"
                                                 VerticalScrollBarVisibility="Auto"
                                             >
@@ -477,8 +501,9 @@
                                                                 BorderBrush="#E2E8F0"
                                                                 BorderThickness="1"
                                                                 CornerRadius="12"
-                                                                Padding="7,2.5,4,2.5"
-                                                                Margin="0,0,5,5"
+                                                                Height="24"
+                                                                Padding="8,0,6,0"
+                                                                Margin="0,0,6,6"
                                                             >
                                                                 <StackPanel
                                                                     Orientation="Horizontal"
@@ -487,7 +512,7 @@
                                                                 >
                                                                     <TextBlock
                                                                         Text="{Binding}"
-                                                                        FontSize="11"
+                                                                        FontSize="11.5"
                                                                         Foreground="#334155"
                                                                         VerticalAlignment="Center"
                                                                     />
@@ -498,6 +523,7 @@
                                                                         Padding="0"
                                                                         Tag="{Binding}"
                                                                         Click="OnRemoveKeywordClick"
+                                                                        VerticalAlignment="Center"
                                                                     >
                                                                         <TextBlock
                                                                             Text="✕"
@@ -514,24 +540,24 @@
                                                 </ItemsControl>
                                             </ScrollViewer>
 
-                                            <!-- 添加新词输入行：一体化圆角胶囊设计 -->
+                                            <!-- 添加新词输入行：32px 黄金模度高度，24px 嵌入式加号按钮 -->
                                             <Border
                                                 Background="#F8FAFC"
                                                 BorderBrush="#E2E8F0"
                                                 BorderThickness="1"
                                                 CornerRadius="6"
-                                                Height="28"
-                                                Padding="2"
+                                                Height="32"
+                                                Padding="4"
                                             >
                                                 <Grid ColumnDefinitions="*, 24">
                                                     <TextBox
                                                         Name="NewKeywordTextBox"
                                                         Grid.Column="0"
                                                         Watermark="输入关键词，按回车添加..."
-                                                        FontSize="11"
+                                                        FontSize="11.5"
                                                         Background="Transparent"
                                                         BorderThickness="0"
-                                                        Padding="6,3,2,3"
+                                                        Padding="8,0,4,0"
                                                         VerticalAlignment="Center"
                                                         KeyDown="OnNewKeywordKeyDown"
                                                     />
@@ -539,8 +565,8 @@
                                                         Name="AddKeywordButton"
                                                         Grid.Column="1"
                                                         Classes="chip-add-btn"
-                                                        Width="22"
-                                                        Height="22"
+                                                        Width="24"
+                                                        Height="24"
                                                         CornerRadius="4"
                                                         Padding="0"
                                                         Click="OnAddKeywordClick"
@@ -548,10 +574,10 @@
                                                         VerticalAlignment="Center"
                                                         HorizontalAlignment="Center"
                                                     >
-                                                        <TextBlock
-                                                            Text="+"
-                                                            FontSize="13"
-                                                            FontWeight="SemiBold"
+                                                        <Path
+                                                            Data="M 5,1 V 9 M 1,5 H 9"
+                                                            Stroke="#FFFFFF"
+                                                            StrokeThickness="1.6"
                                                             HorizontalAlignment="Center"
                                                             VerticalAlignment="Center"
                                                         />
@@ -570,7 +596,7 @@
                                                 <Button
                                                     Grid.Column="1"
                                                     Content="清空全部"
-                                                    Classes="link-btn"
+                                                    Classes="link-btn-danger"
                                                     Click="OnClearKeywordsClick"
                                                 />
                                             </Grid>
