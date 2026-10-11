@@ -263,7 +263,8 @@ public static partial class UniversalParser
                         scanState = YamlScanState.Normal;
                         var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
                             yamlBuilder.ToString(),
-                            filterAds
+                            filterAds,
+                            filterKeywords
                         );
                         allOutbounds.AddRange(yamlNodes);
                         totalFiltered += yamlFiltered;
@@ -302,7 +303,8 @@ public static partial class UniversalParser
         {
             var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
                 yamlBuilder.ToString(),
-                filterAds
+                filterAds,
+                filterKeywords
             );
             allOutbounds.AddRange(yamlNodes);
             totalFiltered += yamlFiltered;
@@ -534,7 +536,7 @@ public static partial class UniversalParser
                 filterAds,
                 filterKeywords
             );
-            if (yamlNodes.Count > 0)
+            if (yamlNodes.Count > 0 || yamlFiltered > 0)
             {
                 return (DeduplicateTags(yamlNodes), yamlFiltered);
             }

@@ -32,7 +32,7 @@ public class FilterRuleService
             {
                 string json = File.ReadAllText(ConfigPath);
                 var list = JsonSerializer.Deserialize<List<string>>(json);
-                if (list != null && list.Count > 0)
+                if (list != null)
                 {
                     foreach (string w in list)
                     {
