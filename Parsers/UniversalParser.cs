@@ -190,7 +190,7 @@ public static partial class UniversalParser
             }
         }
 
-        // 如果整段文本是以大括号包裹的纯 JSON 格式配置 (例如 multi-proxy 的 JSON 格式 Clash 订阅)
+        // 如果整段文本是以大括号包裹的纯 JSON 格式配置 (例如 multi-proxy 的 JSON 格式 Clash 订阅，或原生 sing-box 完整配置)
         string trimmedContent = content.Trim();
         if (
             trimmedContent.Length >= 2
@@ -199,6 +199,8 @@ public static partial class UniversalParser
             && (
                 trimmedContent.Contains("\"proxies\"", StringComparison.OrdinalIgnoreCase)
                 || trimmedContent.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
+                || trimmedContent.Contains("\"outbounds\"", StringComparison.OrdinalIgnoreCase)
+                || trimmedContent.Contains("outbounds:", StringComparison.OrdinalIgnoreCase)
             )
         )
         {
@@ -556,6 +558,9 @@ public static partial class UniversalParser
             content.Contains("proxies:", StringComparison.OrdinalIgnoreCase)
             || content.Contains("\"proxies\"", StringComparison.OrdinalIgnoreCase)
             || content.Contains("'proxies'", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("outbounds:", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("\"outbounds\"", StringComparison.OrdinalIgnoreCase)
+            || content.Contains("'outbounds'", StringComparison.OrdinalIgnoreCase)
         )
         {
             var (yamlNodes, yamlFiltered) = ParseClashYamlWithStats(
@@ -623,37 +628,42 @@ public static partial class UniversalParser
         try
         {
             var yamlData = YamlDeserializer.Deserialize<Dictionary<string, object>>(content);
-            if (
-                yamlData != null
-                && yamlData.TryGetValue("proxies", out object? proxiesObj)
-                && proxiesObj is IEnumerable<object> proxyList
-            )
+            if (yamlData != null)
             {
-                foreach (object item in proxyList)
+                object? proxyListObj = null;
+                if (!yamlData.TryGetValue("proxies", out proxyListObj) || proxyListObj == null)
                 {
-                    try
+                    yamlData.TryGetValue("outbounds", out proxyListObj);
+                }
+
+                if (proxyListObj is IEnumerable<object> proxyList)
+                {
+                    foreach (object item in proxyList)
                     {
-                        if (item is Dictionary<object, object> objMap)
+                        try
                         {
-                            var stringMap =
-                                (Dictionary<string, object?>)NormalizeYamlObject(objMap)!;
-                            var outbound = ParseClashProxy(stringMap);
-                            if (outbound != null)
+                            if (item is Dictionary<object, object> objMap)
                             {
-                                if (filterAds && IsFakeOrAdNode(outbound.Tag, filterKeywords))
+                                var stringMap =
+                                    (Dictionary<string, object?>)NormalizeYamlObject(objMap)!;
+                                var outbound = ParseClashProxy(stringMap);
+                                if (outbound != null)
                                 {
-                                    filteredCount++;
-                                }
-                                else
-                                {
-                                    results.Add(outbound);
+                                    if (filterAds && IsFakeOrAdNode(outbound.Tag, filterKeywords))
+                                    {
+                                        filteredCount++;
+                                    }
+                                    else
+                                    {
+                                        results.Add(outbound);
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch
-                    {
-                        // 局部隔离单个畸形节点的异常，绝不中断后续节点解析
+                        catch
+                        {
+                            // 局部隔离单个畸形节点的异常，绝不中断后续节点解析
+                        }
                     }
                 }
             }
@@ -793,7 +803,7 @@ public static partial class UniversalParser
     }
 
     [GeneratedRegex(
-        @"^\s*[""']?proxies[""']?\s*:",
+        @"^\s*[""']?(?:proxies|outbounds)[""']?\s*:",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 1000
     )]

@@ -140,6 +140,28 @@ public static class ShadowsocksParser
                     key = "obfs-host";
             }
 
+            if (string.Equals(key, "mux", StringComparison.OrdinalIgnoreCase))
+            {
+                if (val is bool bMux)
+                {
+                    if (bMux)
+                    {
+                        parts.Add("mux=1");
+                    }
+                    continue;
+                }
+                string sMux = val.ToString()?.Trim() ?? string.Empty;
+                if (string.Equals(sMux, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(sMux, "1", StringComparison.Ordinal))
+                {
+                    parts.Add("mux=1");
+                    continue;
+                }
+                if (string.Equals(sMux, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(sMux, "0", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+            }
+
             if (val is bool b)
             {
                 if (b)

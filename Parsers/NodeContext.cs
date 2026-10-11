@@ -138,6 +138,34 @@ public sealed class NodeContext
     }
 
     /// <summary>
+    /// 依次按别名获取原样字符串值（不执行 Trim，严格保留前后空格以支持特殊 Auth Identifier）。
+    /// </summary>
+    public string GetExactString(params string[] aliases)
+    {
+        foreach (string alias in aliases)
+        {
+            object? val = ResolveValue(alias);
+            if (val != null)
+            {
+                if (val is string strVal)
+                {
+                    if (strVal.Length > 0)
+                        return strVal;
+                }
+                else if (
+                    val is not (System.Collections.IDictionary or System.Collections.IEnumerable)
+                )
+                {
+                    string s = val.ToString() ?? string.Empty;
+                    if (s.Length > 0)
+                        return s;
+                }
+            }
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
     /// 依次按别名获取整数值。
     /// </summary>
     public int GetInt(params string[] aliases) => GetIntWithDefault(0, aliases);
@@ -613,7 +641,7 @@ public sealed class NodeContext
         if (atIndex < 0)
         {
             string decoded = Base64Utils.Decode(mainPart);
-            atIndex = decoded.IndexOf('@', StringComparison.Ordinal);
+            atIndex = decoded.LastIndexOf('@', StringComparison.Ordinal);
             if (atIndex >= 0)
             {
                 ApplySsCredentials(decoded[..atIndex], ctx);

@@ -112,9 +112,13 @@ internal static class TransportParser
 
     private static V2RayTransportOptions ParseHttpUpgrade(NodeContext ctx)
     {
-        string path = ParsePath(GetPathString(ctx, "path", "httpupgrade-opts.path"));
-        string host = ctx.GetString("host", "httpupgrade-opts.host");
-        var headers = ParseHeaders(ctx, "httpupgrade-opts.headers");
+        string path = ParsePath(GetPathString(ctx, "path", "httpupgrade-opts.path", "ws-opts.path", "ws-path"));
+        string host = ctx.GetString("host", "httpupgrade-opts.host", "ws-opts.headers.Host", "ws-headers.Host");
+        var headers = ParseHeaders(ctx, "httpupgrade-opts.headers", "ws-opts.headers", "ws-headers");
+        if (!string.IsNullOrEmpty(host) && !headers.ContainsKey("Host"))
+        {
+            headers["Host"] = host;
+        }
 
         return new V2RayTransportOptions
         {
@@ -349,10 +353,30 @@ internal static class TransportParser
                 ? ctx.GetString("network", "net")
                 : ctx.GetString("net");
         if (!string.IsNullOrEmpty(net))
-            return net.ToLowerInvariant();
+        {
+            string lowerNet = net.ToLowerInvariant();
+            if (
+                lowerNet is "ws" or "websocket"
+                && (
+                    ctx.GetBool("ws-opts.v2ray-http-upgrade", "ws-opts.v2ray_http_upgrade", "v2ray-http-upgrade")
+                    || string.Equals(ctx.GetString("ws-opts.v2ray-http-upgrade", "ws-opts.v2ray_http_upgrade"), "true", StringComparison.OrdinalIgnoreCase)
+                )
+            )
+            {
+                return "httpupgrade";
+            }
+            return lowerNet;
+        }
 
         if (ctx.GetString("ws") is "1" or "true" || !string.IsNullOrEmpty(ctx.GetString("wspath")))
         {
+            if (
+                ctx.GetBool("ws-opts.v2ray-http-upgrade", "ws-opts.v2ray_http_upgrade", "v2ray-http-upgrade")
+                || string.Equals(ctx.GetString("ws-opts.v2ray-http-upgrade", "ws-opts.v2ray_http_upgrade"), "true", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                return "httpupgrade";
+            }
             return "ws";
         }
 
@@ -367,6 +391,19 @@ internal static class TransportParser
             || string.Equals(type, "quic", StringComparison.OrdinalIgnoreCase)
         )
         {
+            if (
+                string.Equals(type, "ws", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(type, "websocket", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                if (
+                    ctx.GetBool("ws-opts.v2ray-http-upgrade", "ws-opts.v2ray_http_upgrade", "v2ray-http-upgrade")
+                    || string.Equals(ctx.GetString("ws-opts.v2ray-http-upgrade", "ws-opts.v2ray_http_upgrade"), "true", StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    return "httpupgrade";
+                }
+            }
             return type.ToLowerInvariant();
         }
         return string.Empty;

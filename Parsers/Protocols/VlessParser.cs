@@ -19,9 +19,13 @@ public static class VlessParser
         if (port < 1 || port > 65535)
             return null;
 
-        string uuid = ctx.GetString("uuid", "password");
-        if (string.IsNullOrWhiteSpace(uuid))
+        string rawUuid = ctx.GetExactString("uuid", "password", "auth");
+        if (string.IsNullOrWhiteSpace(rawUuid))
             return null;
+
+        string uuid = Guid.TryParse(rawUuid.Trim(), out var parsedGuid)
+            ? parsedGuid.ToString().ToLowerInvariant()
+            : rawUuid;
 
         string enc = ctx.GetString("encryption");
         if (

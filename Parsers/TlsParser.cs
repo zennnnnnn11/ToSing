@@ -33,11 +33,11 @@ public static class TlsParser
         if (!CheckTlsEnabled(ctx, forceTls))
             return null;
 
-        string serverName = ctx.GetString("sni", "servername", "peer");
+        string serverName = ctx.GetString("sni", "servername", "peer", "amp;sni", "amp;servername");
         if (string.IsNullOrEmpty(serverName))
             serverName = defaultServer;
 
-        var alpnList = ctx.GetStringList("alpn");
+        var alpnList = ctx.GetStringList("alpn", "amp;alpn");
         var cipherSuites = ctx.GetStringList("cipher_suites", "cipher-suites", "ciphers");
         string minVersion = ctx.GetString("min_version", "min-version");
         string maxVersion = ctx.GetString("max_version", "max-version");
@@ -83,9 +83,9 @@ public static class TlsParser
 
     private static bool CheckTlsEnabled(NodeContext ctx, bool forceTls)
     {
-        string security = ctx.GetString("security").ToLowerInvariant();
-        string tlsRaw = ctx.GetString("tls").ToLowerInvariant();
-        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key");
+        string security = ctx.GetString("security", "amp;security").ToLowerInvariant();
+        string tlsRaw = ctx.GetString("tls", "amp;tls").ToLowerInvariant();
+        string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key", "amp;pbk");
 
         return forceTls
             || ctx.GetBool("tls")
@@ -214,7 +214,7 @@ public static class TlsParser
             return null;
         }
 
-        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint");
+        string fpRaw = ctx.GetString("fp", "client-fingerprint", "fingerprint", "amp;fp");
         if (IsPotentialCertificateSha256(fpRaw))
         {
             return null;
@@ -234,7 +234,7 @@ public static class TlsParser
 
     private static OutboundRealityOptions? ParseReality(NodeContext ctx)
     {
-        string security = ctx.GetString("security").ToLowerInvariant();
+        string security = ctx.GetString("security", "amp;security").ToLowerInvariant();
         string pbk = ctx.GetString("pbk", "public-key", "reality-opts.public-key", "amp;pbk");
 
         if (
@@ -245,7 +245,7 @@ public static class TlsParser
             return null;
         }
 
-        string sid = ctx.GetString("sid", "short-id", "reality-opts.short-id");
+        string sid = ctx.GetString("sid", "short-id", "reality-opts.short-id", "amp;sid");
         return new OutboundRealityOptions
         {
             Enabled = true,
