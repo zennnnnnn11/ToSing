@@ -1,25 +1,24 @@
 <p align="center">
-  <img src="assets/logo.png" width="80" height="80" alt="ToSing" />
+  <img src="assets/logo.png" width="72" height="72" alt="ToSing" />
 </p>
 
 <h1 align="center">ToSing</h1>
 
 <p align="center">
-  <strong>Universal Ingestion. Strict Alignment. Native Speed.</strong><br/>
-  面向下一代 <code>sing-box</code> 内核的高性能无状态通用订阅聚合器与规范化编译器。
+  sing-box 订阅解析与节点聚合工具
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/.NET-11.0_Preview-0F172A?style=flat-square" alt=".NET 11" />
+  <img src="https://img.shields.io/badge/.NET-11.0-0F172A?style=flat-square" alt=".NET 11" />
   <img src="https://img.shields.io/badge/C%23-15.0-0F172A?style=flat-square" alt="C# 15" />
-  <img src="https://img.shields.io/badge/Binary-Native_AOT-0F172A?style=flat-square" alt="Native AOT" />
-  <img src="https://img.shields.io/badge/GUI-Avalonia_12-0F172A?style=flat-square" alt="Avalonia 12" />
+  <img src="https://img.shields.io/badge/Native-AOT-0F172A?style=flat-square" alt="Native AOT" />
+  <img src="https://img.shields.io/badge/Avalonia-12-0F172A?style=flat-square" alt="Avalonia 12" />
   <img src="https://img.shields.io/badge/sing--box-1.11%2B-0F172A?style=flat-square" alt="sing-box 1.11+" />
   <img src="https://img.shields.io/badge/Pass_Rate-99.996%25-0F172A?style=flat-square" alt="99.996% Pass" />
 </p>
 
 <p align="center">
-  <a href="#中文">简体中文</a> &nbsp;|&nbsp; <a href="#english">English</a>
+  <a href="#中文">中文</a> &nbsp;|&nbsp; <a href="#english">English</a>
 </p>
 
 ---
@@ -28,38 +27,38 @@
 
 ## 中文
 
-### 处理管线
+### 架构
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'edgeLabelBackground':'#FFFFFF', 'tertiaryColor': '#F8FAFC'}}}%%
 flowchart LR
-    classDef input fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#3F3F46,rx:6,ry:6
-    classDef core fill:#FFFFFF,stroke:#18181B,stroke-width:2px,color:#18181B,rx:8,ry:8
+    classDef input fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#3F3F46,rx:4,ry:4
+    classDef core fill:#FFFFFF,stroke:#18181B,stroke-width:1.5px,color:#18181B,rx:6,ry:6
     classDef step fill:#F4F4F5,stroke:#E4E4E7,stroke-width:1px,color:#27272A,rx:4,ry:4
-    classDef output fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#18181B,rx:6,ry:6
+    classDef output fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#18181B,rx:4,ry:4
 
-    subgraph Inputs [" 多态输入源 "]
+    subgraph Inputs [" 输入 "]
         direction TB
-        I1["远程订阅链接 (HTTP/HTTPS)"]
-        I2["Clash / Meta (YAML / JSON)"]
-        I3["节点协议 URI (8大协议/AnyTLS)"]
-        I4["Base64 订阅密文块"]
-        I5["WireGuard (.conf / 多 Peer)"]
+        I1["订阅链接 (HTTP/S)"]
+        I2["Clash (YAML / JSON)"]
+        I3["节点链接 (8 种协议 / AnyTLS)"]
+        I4["Base64 密文"]
+        I5["WireGuard (.conf)"]
     end
 
-    subgraph Engine [" ToSing 核心 "]
+    subgraph Engine [" ToSing "]
         direction TB
-        E1["词法扫描与语法树解构"]
-        E2["广告与失效节点拓扑清洗"]
-        E3["FrozenDict 契约静态校验"]
+        E1["词法解析与 AST 重构"]
+        E2["广告与失效节点清洗"]
+        E3["FrozenDict 契约校验"]
         E1 --> E2 --> E3
     end
 
-    subgraph Outputs [" 标准化输出 "]
+    subgraph Outputs [" 输出 "]
         direction TB
-        O1["sing-box 1.11+ 标准出站"]
-        O2["顶层 Endpoints 规范"]
-        O3["规范化 JSON / 极速导出"]
+        O1["sing-box 1.11+ 出站"]
+        O2["顶层 Endpoints"]
+        O3["标准 JSON / 文件导出"]
     end
 
     Inputs --> Engine
@@ -71,28 +70,28 @@ flowchart LR
     class O1,O2,O3 output
 ```
 
-### 核心原理
-- **无状态管道**：全内存运行，零状态残留，纯粹执行幂等数据清洗与拓扑规范化。
-- **方言中立语法树**：不论源数据格式差异与畸变，统一解构为协议 AST 并映射至标准数据结构。
-- **O(1) 契约静态校验**：通过 `FrozenDictionary` 索引官方 Schema，在纳秒级完成密钥合法性、CIDR 掩码及传输协议判别。
+### 原理
+- **无状态**：全内存处理，无本地数据库与网络状态依赖。
+- **AST 解构**：统一将各类格式映射为标准协议模型。
+- **O(1) 校验**：基于 `FrozenDictionary` 索引官方 Schema 验证字段。
 
 ### 技术栈
-| 模块 | 核心技术 | 说明 |
+| 模块 | 技术 | 说明 |
 | :--- | :--- | :--- |
-| **语言与运行时** | C# 15 / .NET 11 Preview | 前沿内存控制与现代语言特性 |
-| **机器码交付** | Native AOT | 单文件原生执行档 (~10.6MB CLI，脱机免运行库，毫秒级启动) |
-| **桌面工作台** | Avalonia 12.1.2 | Windows 11 Fluent Mica 沉浸卡片、全异步后台与 64KB 极速视口 |
-| **序列化** | 源码生成 `System.Text.Json` | 彻底移除反射，全面保障 Native AOT 剪裁安全 |
+| **运行时** | C# 15 / .NET 11 | 纯内存流处理 |
+| **二进制** | Native AOT | 单文件可执行程序 (~10.6MB，无运行库依赖) |
+| **界面** | Avalonia 12.1.2 | Windows 11 Fluent 桌面端 |
+| **序列化** | `System.Text.Json` | 源码生成模式（Source Generator） |
 
-### 海量实战压测
-使用来自 36 个异构数据源的真实节点全景库（含复杂 Clash Meta、Base64 订阅池及多 Peer WireGuard）进行极限回放：
-- **实测样本总量**：`301,513`
-- **成功解析提取**：`245,717`
-- **官方 sing-box 内核校验通过**：`245,708`
-- **契约对齐率**：**`99.996%`**
+### 测试数据
+基于 36 个异构数据源的回放验证：
+- **测试样本**：`301,513`
+- **解析成功**：`245,717`
+- **sing-box 内核校验通过**：`245,708`
+- **对齐通过率**：**`99.996%`**
 
-### 上游对齐承诺
-严格对齐 **`sing-box 1.11+` 最新规范**（支持顶层 `endpoints` 解构、IPv4/IPv6 双栈规范化与 AnyTLS），并持续跟进官方内核演进。
+### 内核对齐
+严格对齐 **`sing-box 1.11+`**（含 WireGuard 顶层 `endpoints` 与双栈 CIDR），持续跟进官方内核更新。
 
 ---
 
@@ -105,25 +104,25 @@ flowchart LR
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'edgeLabelBackground':'#FFFFFF', 'tertiaryColor': '#F8FAFC'}}}%%
 flowchart LR
-    classDef input fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#3F3F46,rx:6,ry:6
-    classDef core fill:#FFFFFF,stroke:#18181B,stroke-width:2px,color:#18181B,rx:8,ry:8
+    classDef input fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#3F3F46,rx:4,ry:4
+    classDef core fill:#FFFFFF,stroke:#18181B,stroke-width:1.5px,color:#18181B,rx:6,ry:6
     classDef step fill:#F4F4F5,stroke:#E4E4E7,stroke-width:1px,color:#27272A,rx:4,ry:4
-    classDef output fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#18181B,rx:6,ry:6
+    classDef output fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#18181B,rx:4,ry:4
 
     subgraph Inputs [" Ingestion "]
         direction TB
-        I1["Remote Subscriptions (HTTP/S)"]
-        I2["Clash / Meta (YAML / JSON)"]
+        I1["Remote URLs (HTTP/S)"]
+        I2["Clash (YAML / JSON)"]
         I3["Protocol URIs (8 Protocols / AnyTLS)"]
-        I4["Base64 Cipher Blobs"]
-        I5["WireGuard (.conf / Multi-Peer)"]
+        I4["Base64 Blobs"]
+        I5["WireGuard (.conf)"]
     end
 
-    subgraph Engine [" ToSing Core "]
+    subgraph Engine [" ToSing "]
         direction TB
-        E1["Token Scanner & AST Probe"]
-        E2["Topology & Stale Node Sanitizer"]
-        E3["Contract Validator (FrozenDict)"]
+        E1["Lexer & AST Probe"]
+        E2["Ad & Stale Node Sanitizer"]
+        E3["FrozenDict Contract Validator"]
         E1 --> E2 --> E3
     end
 
@@ -131,7 +130,7 @@ flowchart LR
         direction TB
         O1["sing-box 1.11+ Outbounds"]
         O2["Top-Level Endpoints"]
-        O3["Pure Canonical JSON"]
+        O3["Canonical JSON"]
     end
 
     Inputs --> Engine
@@ -143,24 +142,25 @@ flowchart LR
     class O1,O2,O3 output
 ```
 
-### Architecture
-- **Stateless Pipeline**: Zero runtime database or state leakage. Operates purely in-memory as an idempotent sanitizer and normalizer.
-- **Dialect Deconstruction**: Normalizes heterogeneous and malformed URIs/YAML into dialect-agnostic syntax trees, mapping directly to sing-box schema definitions.
-- **O(1) Contract Verification**: Uses schemas pre-indexed with `FrozenDictionary` to validate fields, Curve25519 keys, and CIDRs with zero heap linear scans.
+### Design
+- **Stateless**: In-memory execution without external database or state leakage.
+- **AST Mapping**: Deconstructs heterogeneous sources into uniform protocol models.
+- **O(1) Validation**: `FrozenDictionary` indexed schemas for schema compliance checks.
 
 ### Tech Stack
 | Component | Technology | Detail |
 | :--- | :--- | :--- |
-| **Runtime** | C# 15 / .NET 11 Preview | High-performance, zero-allocation memory layout |
-| **Binary** | Native AOT | Single-file standalone executable (~10.6MB CLI, zero runtime dependencies) |
-| **Desktop UI** | Avalonia 12.1.2 | Windows 11 Fluent Mica workbench with asynchronous background compute |
-| **Data Engine** | Source-Gen `System.Text.Json` | Reflection-free, trim-safe JSON serialization |
+| **Runtime** | C# 15 / .NET 11 | In-memory stream processing |
+| **Binary** | Native AOT | Single-file executable (~10.6MB, zero runtime dependencies) |
+| **Desktop UI** | Avalonia 12.1.2 | Windows 11 Fluent desktop app |
+| **Serialization** | `System.Text.Json` | Source generator mode |
 
-### Empirical Validation
-Tested against a stress-test corpus of **301,513 real-world network records** across 36 heterogeneous providers:
-- **Parsed Outbounds**: `245,717`
-- **Official Kernel Validation**: `245,708`
-- **Contract Alignment Rate**: **`99.996%`**
+### Test Corpus
+Verified against a real-world corpus across 36 heterogeneous sources:
+- **Total Records**: `301,513`
+- **Parsed**: `245,717`
+- **Kernel Verified**: `245,708`
+- **Pass Rate**: **`99.996%`**
 
-### Upstream Commitment
-Engineered strictly against the **`sing-box 1.11+` specification** (including top-level `endpoints` architecture and IPv4/IPv6 dual-stack CIDR normalization). Maintained and synchronized with upcoming upstream releases.
+### Upstream
+Built against **`sing-box 1.11+`** (including top-level `endpoints` & dual-stack CIDRs). Continuously synchronized with upstream releases.
