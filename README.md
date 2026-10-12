@@ -19,79 +19,8 @@
 </p>
 
 <p align="center">
-  <a href="#english">English</a> &nbsp;|&nbsp; <a href="#中文">简体中文</a>
+  <a href="#中文">简体中文</a> &nbsp;|&nbsp; <a href="#english">English</a>
 </p>
-
----
-
-<div id="english"></div>
-
-## English
-
-### Pipeline
-
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'edgeLabelBackground':'#FFFFFF', 'tertiaryColor': '#F8FAFC'}}}%%
-flowchart LR
-    classDef input fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#3F3F46,rx:6,ry:6
-    classDef core fill:#FFFFFF,stroke:#18181B,stroke-width:2px,color:#18181B,rx:8,ry:8
-    classDef step fill:#F4F4F5,stroke:#E4E4E7,stroke-width:1px,color:#27272A,rx:4,ry:4
-    classDef output fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#18181B,rx:6,ry:6
-
-    subgraph Inputs [" Ingestion "]
-        direction TB
-        I1["Remote Subscriptions (HTTP/S)"]
-        I2["Clash / Meta (YAML / JSON)"]
-        I3["Protocol URIs (8 Protocols / AnyTLS)"]
-        I4["Base64 Cipher Blobs"]
-        I5["WireGuard (.conf / Multi-Peer)"]
-    end
-
-    subgraph Engine [" ToSing Core "]
-        direction TB
-        E1["Token Scanner & AST Probe"]
-        E2["Topology & Stale Node Sanitizer"]
-        E3["Contract Validator (FrozenDict)"]
-        E1 --> E2 --> E3
-    end
-
-    subgraph Outputs [" Egress "]
-        direction TB
-        O1["sing-box 1.11+ Outbounds"]
-        O2["Top-Level Endpoints"]
-        O3["Pure Canonical JSON"]
-    end
-
-    Inputs --> Engine
-    Engine --> Outputs
-
-    class I1,I2,I3,I4,I5 input
-    class Engine core
-    class E1,E2,E3 step
-    class O1,O2,O3 output
-```
-
-### Architecture
-- **Stateless Pipeline**: Zero runtime database or state leakage. Operates purely in-memory as an idempotent sanitizer and normalizer.
-- **Dialect Deconstruction**: Normalizes heterogeneous and malformed URIs/YAML into dialect-agnostic syntax trees, mapping directly to sing-box schema definitions.
-- **O(1) Contract Verification**: Uses schemas pre-indexed with `FrozenDictionary` to validate fields, Curve25519 keys, and CIDRs with zero heap linear scans.
-
-### Tech Stack
-| Component | Technology | Detail |
-| :--- | :--- | :--- |
-| **Runtime** | C# 15 / .NET 11 Preview | High-performance, zero-allocation memory layout |
-| **Binary** | Native AOT | Single-file standalone executable (~10.6MB CLI, zero runtime dependencies) |
-| **Desktop UI** | Avalonia 12.1.2 | Windows 11 Fluent Mica workbench with asynchronous background compute |
-| **Data Engine** | Source-Gen `System.Text.Json` | Reflection-free, trim-safe JSON serialization |
-
-### Empirical Validation
-Tested against a stress-test corpus of **301,513 real-world network records** across 36 heterogeneous providers:
-- **Parsed Outbounds**: `245,717`
-- **Official Kernel Validation**: `245,708`
-- **Contract Alignment Rate**: **`99.996%`**
-
-### Upstream Commitment
-Engineered strictly against the **`sing-box 1.11+` specification** (including top-level `endpoints` architecture and IPv4/IPv6 dual-stack CIDR normalization). Maintained and synchronized with upcoming upstream releases.
 
 ---
 
@@ -164,3 +93,74 @@ flowchart LR
 
 ### 上游对齐承诺
 严格对齐 **`sing-box 1.11+` 最新规范**（支持顶层 `endpoints` 解构、IPv4/IPv6 双栈规范化与 AnyTLS），并持续跟进官方内核演进。
+
+---
+
+<div id="english"></div>
+
+## English
+
+### Pipeline
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#FFFFFF', 'edgeLabelBackground':'#FFFFFF', 'tertiaryColor': '#F8FAFC'}}}%%
+flowchart LR
+    classDef input fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#3F3F46,rx:6,ry:6
+    classDef core fill:#FFFFFF,stroke:#18181B,stroke-width:2px,color:#18181B,rx:8,ry:8
+    classDef step fill:#F4F4F5,stroke:#E4E4E7,stroke-width:1px,color:#27272A,rx:4,ry:4
+    classDef output fill:#FAFAFA,stroke:#E4E4E7,stroke-width:1px,color:#18181B,rx:6,ry:6
+
+    subgraph Inputs [" Ingestion "]
+        direction TB
+        I1["Remote Subscriptions (HTTP/S)"]
+        I2["Clash / Meta (YAML / JSON)"]
+        I3["Protocol URIs (8 Protocols / AnyTLS)"]
+        I4["Base64 Cipher Blobs"]
+        I5["WireGuard (.conf / Multi-Peer)"]
+    end
+
+    subgraph Engine [" ToSing Core "]
+        direction TB
+        E1["Token Scanner & AST Probe"]
+        E2["Topology & Stale Node Sanitizer"]
+        E3["Contract Validator (FrozenDict)"]
+        E1 --> E2 --> E3
+    end
+
+    subgraph Outputs [" Egress "]
+        direction TB
+        O1["sing-box 1.11+ Outbounds"]
+        O2["Top-Level Endpoints"]
+        O3["Pure Canonical JSON"]
+    end
+
+    Inputs --> Engine
+    Engine --> Outputs
+
+    class I1,I2,I3,I4,I5 input
+    class Engine core
+    class E1,E2,E3 step
+    class O1,O2,O3 output
+```
+
+### Architecture
+- **Stateless Pipeline**: Zero runtime database or state leakage. Operates purely in-memory as an idempotent sanitizer and normalizer.
+- **Dialect Deconstruction**: Normalizes heterogeneous and malformed URIs/YAML into dialect-agnostic syntax trees, mapping directly to sing-box schema definitions.
+- **O(1) Contract Verification**: Uses schemas pre-indexed with `FrozenDictionary` to validate fields, Curve25519 keys, and CIDRs with zero heap linear scans.
+
+### Tech Stack
+| Component | Technology | Detail |
+| :--- | :--- | :--- |
+| **Runtime** | C# 15 / .NET 11 Preview | High-performance, zero-allocation memory layout |
+| **Binary** | Native AOT | Single-file standalone executable (~10.6MB CLI, zero runtime dependencies) |
+| **Desktop UI** | Avalonia 12.1.2 | Windows 11 Fluent Mica workbench with asynchronous background compute |
+| **Data Engine** | Source-Gen `System.Text.Json` | Reflection-free, trim-safe JSON serialization |
+
+### Empirical Validation
+Tested against a stress-test corpus of **301,513 real-world network records** across 36 heterogeneous providers:
+- **Parsed Outbounds**: `245,717`
+- **Official Kernel Validation**: `245,708`
+- **Contract Alignment Rate**: **`99.996%`**
+
+### Upstream Commitment
+Engineered strictly against the **`sing-box 1.11+` specification** (including top-level `endpoints` architecture and IPv4/IPv6 dual-stack CIDR normalization). Maintained and synchronized with upcoming upstream releases.
