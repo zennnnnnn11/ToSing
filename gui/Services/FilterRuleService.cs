@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using ToSing.Models;
 using ToSing.Parsers;
 
 public class FilterRuleService
@@ -31,7 +32,7 @@ public class FilterRuleService
             if (File.Exists(ConfigPath))
             {
                 string json = File.ReadAllText(ConfigPath);
-                var list = JsonSerializer.Deserialize<List<string>>(json);
+                var list = JsonSerializer.Deserialize(json, ToSingJsonContext.Default.ListString);
                 if (list != null)
                 {
                     foreach (string w in list)
@@ -63,7 +64,7 @@ public class FilterRuleService
             }
             string json = JsonSerializer.Serialize(
                 Keywords.ToList(),
-                new JsonSerializerOptions { WriteIndented = true }
+                ToSingJsonContext.Default.ListString
             );
             File.WriteAllText(ConfigPath, json);
         }

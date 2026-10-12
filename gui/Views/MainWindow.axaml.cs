@@ -268,8 +268,7 @@ public partial class MainWindow : Window
 
                 string serialized = JsonSerializer.Serialize(
                     nodes,
-                    typeof(IReadOnlyList<SingboxOutbound>),
-                    JsonOptions
+                    ToSingJsonContext.Default.IReadOnlyListSingboxOutbound
                 );
 
                 return (nodes, filtered, serialized);
