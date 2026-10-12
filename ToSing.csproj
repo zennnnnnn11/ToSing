@@ -10,6 +10,7 @@
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>latest-recommended</AnalysisLevel>
         <AnalysisMode>Recommended</AnalysisMode>
+        <ApplicationIcon>gui\Assets\app.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
